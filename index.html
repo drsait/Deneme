@@ -20,7 +20,7 @@
                 data.forEach(file => {
                     const listItem = document.createElement('li');
                     const link = document.createElement('a');
-                    link.href = file.html_url;
+                    link.href = `https://${username}.github.io/${repo}/${file.name}`;
                     link.textContent = file.name;
                     link.target = '_blank';
                     listItem.appendChild(link);
