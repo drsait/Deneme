@@ -2,55 +2,332 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Dosya Listesi ve Yükleme</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Dosya Yönetimi</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #f9f9f9; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 8px; }
-        .delete-btn { margin-left: 10px; color: red; cursor: pointer; text-decoration: underline; background: none; border: none; font-size: 14px; padding: 0; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --danger: #f43f5e;
+            --danger-hover: #e11d48;
+            --success: #10b981;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px 16px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 540px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .card h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #fff;
+            color: var(--text);
+        }
+
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        /* Modern Dosya Seçici Tasarımı */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 12px;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--primary);
+            background: #f5f3ff;
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-text {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .file-upload-text span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        /* Dosya Listesi Stilleri */
+        .file-list {
+            list-style: none;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .file-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .file-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+
+        .file-item:hover {
+            background: #f1f5f9;
+        }
+
+        .file-link {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.92rem;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            margin-right: 12px;
+        }
+
+        .file-link:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .delete-btn {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        .info-text {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <h1>Depomdaki Dosyalar</h1>
+    <div class="wrapper">
+        <header>
+            <h1>Dosya Yönetimi</h1>
+            <p>GitHub Depo Entegrasyon Paneli</p>
+        </header>
 
-    <!-- GitHub Token Ayarı -->
-    <div class="section">
-        <h3>GitHub Ayarları</h3>
-        <input type="password" id="github-token" placeholder="GitHub Personal Access Token" style="width: 300px;">
-        <button onclick="saveToken()">Token'ı Kaydet</button>
-        <span id="token-status" style="color: green; margin-left: 10px;"></span>
+        <!-- GitHub Token Kartı -->
+        <div class="card">
+            <h3>🔑 GitHub Ayarları</h3>
+            <div class="form-row">
+                <input type="password" id="github-token" placeholder="Personal Access Token (PAT)">
+                <button class="btn" style="width: auto;" onclick="saveToken()">Kaydet</button>
+            </div>
+            <span id="token-status" class="status-msg" style="color: var(--success);"></span>
+        </div>
+
+        <!-- Dosya Yükleme Kartı -->
+        <div class="card">
+            <h3>📤 Dosya Yükle</h3>
+            <div class="file-upload-wrapper">
+                <input type="file" id="file-input" onchange="updateFileName(this)">
+                <div class="file-upload-text" id="file-label">
+                    Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>
+                </div>
+            </div>
+            <button class="btn" onclick="uploadFile()">Depoya Gönder</button>
+            <p id="upload-status" class="status-msg"></p>
+        </div>
+
+        <!-- Dosya Listesi Kartı -->
+        <div class="card">
+            <h3>📁 Depodaki Dosyalar</h3>
+            <ul id="file-list" class="file-list">
+                <li class="info-text">Yükleniyor...</li>
+            </ul>
+        </div>
     </div>
-
-    <!-- Dosya Yükleme Alanı -->
-    <div class="section">
-        <h3>Dosya Yükle</h3>
-        <input type="file" id="file-input">
-        <button onclick="uploadFile()">Depoya Yükle</button>
-        <p id="upload-status" style="font-weight: bold;"></p>
-    </div>
-
-    <ul id="file-list">Yükleniyor...</ul>
 
     <script>
         const username = 'drsait';
         const repo = 'Deneme';
 
-        // Sayfa açıldığında token'ı yükle
         window.onload = function() {
             const savedToken = localStorage.getItem('github_token');
             if (savedToken) {
                 document.getElementById('github-token').value = savedToken;
-                document.getElementById('token-status').textContent = 'Kaydedilmiş Token mevcut.';
+                document.getElementById('token-status').textContent = '✔ Kayıtlı Token yüklendi.';
             }
             loadFiles();
         };
 
+        function updateFileName(input) {
+            const label = document.getElementById('file-label');
+            if (input.files.length > 0) {
+                label.innerHTML = `Seçilen dosya: <strong>${input.files[0].name}</strong>`;
+            }
+        }
+
         function saveToken() {
             const token = document.getElementById('github-token').value.trim();
+            const status = document.getElementById('token-status');
             if (token) {
                 localStorage.setItem('github_token', token);
-                document.getElementById('token-status').textContent = 'Token başarıyla kaydedildi!';
+                status.style.color = 'var(--success)';
+                status.textContent = '✔ Token başarıyla kaydedildi!';
             } else {
                 alert('Lütfen geçerli bir token girin.');
             }
@@ -62,17 +339,29 @@
                 .then(data => {
                     const listElement = document.getElementById('file-list');
                     listElement.innerHTML = '';
-                    if (!Array.isArray(data)) return;
                     
-                    data.forEach(file => {
-                        if (file.name.toLowerCase() === 'index.html') return;
-                        
+                    if (!Array.isArray(data)) {
+                        listElement.innerHTML = '<li class="info-text" style="color:var(--danger);">Yetki hatası veya depo bulunamadı.</li>';
+                        return;
+                    }
+                    
+                    const files = data.filter(file => file.name.toLowerCase() !== 'index.html');
+
+                    if (files.length === 0) {
+                        listElement.innerHTML = '<li class="info-text">Depoda hiç dosya yok.</li>';
+                        return;
+                    }
+
+                    files.forEach(file => {
                         const listItem = document.createElement('li');
+                        listItem.className = 'file-item';
                         
                         const link = document.createElement('a');
                         link.href = `https://${username}.github.io/${repo}/${file.name}`;
                         link.textContent = file.name;
+                        link.className = 'file-link';
                         link.target = '_blank';
+                        link.innerHTML = `📄 ${file.name}`;
                         
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Sil';
@@ -85,7 +374,7 @@
                     });
                 })
                 .catch(error => {
-                    document.getElementById('file-list').textContent = 'Dosyalar yüklenirken bir hata oluştu.';
+                    document.getElementById('file-list').innerHTML = '<li class="info-text" style="color:var(--danger);">Bağlantı hatası oluştu.</li>';
                     console.error(error);
                 });
         }
@@ -106,6 +395,7 @@
             }
 
             const file = fileInput.files[0];
+            statusElement.style.color = 'var(--text-muted)';
             statusElement.textContent = 'Yükleniyor...';
 
             const reader = new FileReader();
@@ -127,16 +417,17 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        statusElement.style.color = 'green';
-                        statusElement.textContent = 'Dosya başarıyla yüklendi!';
+                        statusElement.style.color = 'var(--success)';
+                        statusElement.textContent = '✔ Dosya başarıyla yüklendi!';
                         fileInput.value = '';
+                        document.getElementById('file-label').innerHTML = 'Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>';
                         loadFiles();
                     } else {
                         return response.json().then(err => { throw new Error(err.message); });
                     }
                 })
                 .catch(error => {
-                    statusElement.style.color = 'red';
+                    statusElement.style.color = 'var(--danger)';
                     statusElement.textContent = 'Hata: ' + error.message;
                     console.error(error);
                 });
