@@ -33,13 +33,13 @@
             min-height: 100vh;
             padding: 24px 16px;
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
         }
 
         .wrapper {
             width: 100%;
-            max-width: 540px;
+            max-width: 1000px;
         }
 
         header {
@@ -60,11 +60,24 @@
             opacity: 0.9;
         }
 
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .card {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
             border-radius: var(--radius);
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.4);
@@ -82,20 +95,15 @@
 
         .form-row {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 8px;
             margin-bottom: 8px;
-        }
-
-        @media (max-width: 480px) {
-            .form-row {
-                flex-direction: column;
-            }
         }
 
         input[type="password"],
         input[type="text"] {
-            flex: 1;
-            padding: 12px 14px;
+            width: 100%;
+            padding: 10px 12px;
             border: 1.5px solid var(--border);
             border-radius: 10px;
             font-size: 0.95rem;
@@ -116,7 +124,7 @@
             width: 100%;
             border: 2px dashed var(--border);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             text-align: center;
             background: #fafafa;
             cursor: pointer;
@@ -140,7 +148,7 @@
         }
 
         .file-upload-text {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
             pointer-events: none;
         }
@@ -154,9 +162,9 @@
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-radius: 10px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -187,7 +195,7 @@
         }
 
         .status-msg {
-            margin-top: 10px;
+            margin-top: 8px;
             font-size: 0.85rem;
             font-weight: 500;
             text-align: center;
@@ -197,7 +205,7 @@
 
         .file-list {
             list-style: none;
-            max-height: 320px;
+            max-height: 500px;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -276,12 +284,35 @@
         .delete-btn {
             color: var(--danger);
             border-color: rgba(244, 63, 94, 0.3);
+            display: none; /* Başlangıçta gizli */
         }
 
         .delete-btn:hover {
             background: var(--danger);
             color: white;
             border-color: var(--danger);
+        }
+
+        .delete-menu-toggle {
+            background: #fee2e2;
+            color: var(--danger);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+
+        .delete-menu-toggle:hover {
+            background: #fecaca;
         }
 
         .info-text {
@@ -300,40 +331,56 @@
     <div class="wrapper">
         <header>
             <h1>Dosya Deposu</h1>
-                 </header>
+            <p>GitHub Depo Entegrasyon Paneli</p>
+        </header>
 
-        <!-- GitHub Şifre / Token Kartı -->
-        <div class="card">
-            <h3>🔑 Kimlik Doğrulama</h3>
-            <div class="form-row">
-                <input type="password" id="github-token" placeholder="Şifreyi girin">
-                <button class="btn" style="width: auto;" onclick="saveToken()">Kaydet</button>
-            </div>
-            <button class="btn btn-danger" style="margin-top: 8px; display: none;" id="forget-btn" onclick="forgetIdentity()">Kimliği Unut</button>
-            <span id="token-status" class="status-msg" style="color: var(--success);"></span>
-        </div>
+        <div class="main-layout">
+            <!-- Sol Menü: Kimlik Doğrulama ve Dosya Yükleme -->
+            <div class="sidebar">
+                <div class="card">
+                    <h3>🔑 Kimlik Doğrulama</h3>
+                    <div class="form-row">
+                        <input type="password" id="github-token" placeholder="Şifreyi girin">
+                        <button class="btn" onclick="saveToken()">Kaydet</button>
+                    </div>
+                    <button class="btn btn-danger" style="margin-top: 8px; display: none;" id="forget-btn" onclick="forgetIdentity()">Kimliği Unut</button>
+                    <span id="token-status" class="status-msg" style="color: var(--success);"></span>
+                </div>
 
-        <!-- Korumalı İçerik Alanı -->
-        <div id="secure-content" class="protected-content">
-            <!-- Dosya Yükleme Kartı -->
-            <div class="card">
-                <h3>📤 Dosya Yükle</h3>
-                <div class="file-upload-wrapper">
-                    <input type="file" id="file-input" onchange="updateFileName(this)">
-                    <div class="file-upload-text" id="file-label">
-                        Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>
+                <!-- Korumalı Sol Menü Parçası -->
+                <div id="secure-sidebar" class="protected-content">
+                    <div class="card">
+                        <h3>📤 Dosya Yükle</h3>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="file-input" onchange="updateFileName(this)">
+                            <div class="file-upload-text" id="file-label">
+                                Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="uploadFile()">Depoya Gönder</button>
+                        <p id="upload-status" class="status-msg"></p>
+                    </div>
+
+                    <!-- Dosya Silme Menüsü Başlığı -->
+                    <div class="card" style="padding: 16px;">
+                        <button class="delete-menu-toggle" onclick="toggleDeleteMode()">
+                            <span>🗑️ Dosya Silme Menüsü</span>
+                            <span id="delete-mode-status">▶</span>
+                        </button>
                     </div>
                 </div>
-                <button class="btn" onclick="uploadFile()">Depoya Gönder</button>
-                <p id="upload-status" class="status-msg"></p>
             </div>
 
-            <!-- Dosya Listesi Kartı -->
-            <div class="card">
-                <h3>📁 Depodaki Dosyalar</h3>
-                <ul id="file-list" class="file-list">
-                    <li class="info-text">Yükleniyor...</li>
-                </ul>
+            <!-- Orta Alan: Dosya Listesi -->
+            <div class="content-area">
+                <div id="secure-content" class="protected-content">
+                    <div class="card">
+                        <h3>📁 Depodaki Dosyalar</h3>
+                        <ul id="file-list" class="file-list">
+                            <li class="info-text">Yükleniyor...</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -341,6 +388,7 @@
     <script>
         const username = 'drsait';
         const repo = 'Deneme';
+        let deleteModeActive = false;
 
         window.onload = function() {
             const savedToken = localStorage.getItem('github_token');
@@ -364,14 +412,17 @@
             localStorage.removeItem('github_token');
             document.getElementById('github-token').value = '';
             document.getElementById('secure-content').style.display = 'none';
+            document.getElementById('secure-sidebar').style.display = 'none';
             document.getElementById('forget-btn').style.display = 'none';
             document.getElementById('token-status').style.color = 'var(--text-muted)';
             document.getElementById('token-status').textContent = 'Kimlik bilgileri unutuldu.';
+            deleteModeActive = false;
         }
 
         function verifyAndUnlock(token, showAlert = false) {
             const status = document.getElementById('token-status');
             const secureContent = document.getElementById('secure-content');
+            const secureSidebar = document.getElementById('secure-sidebar');
             const forgetBtn = document.getElementById('forget-btn');
 
             fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
@@ -385,6 +436,7 @@
                     if (showAlert) alert('Şifre başarıyla kaydedildi ve doğrulandı!');
                     
                     secureContent.style.display = 'block';
+                    secureSidebar.style.display = 'block';
                     forgetBtn.style.display = 'inline-flex';
                     loadFiles();
                 } else {
@@ -394,6 +446,7 @@
                     if (showAlert) alert('Girilen şifre geçersiz. Lütfen doğru şifreyi girin.');
                     
                     secureContent.style.display = 'none';
+                    secureSidebar.style.display = 'none';
                     forgetBtn.style.display = 'none';
                 }
             })
@@ -401,7 +454,19 @@
                 status.style.color = 'var(--danger)';
                 status.textContent = '✖ Bağlantı hatası!';
                 secureContent.style.display = 'none';
+                secureSidebar.style.display = 'none';
                 forgetBtn.style.display = 'none';
+            });
+        }
+
+        function toggleDeleteMode() {
+            deleteModeActive = !deleteModeActive;
+            const statusIndicator = document.getElementById('delete-mode-status');
+            statusIndicator.textContent = deleteModeActive ? '▼' : '▶';
+
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(btn => {
+                btn.style.display = deleteModeActive ? 'inline-block' : 'none';
             });
         }
 
@@ -458,6 +523,7 @@
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Sil';
                         deleteButton.className = 'action-btn delete-btn';
+                        deleteButton.style.display = deleteModeActive ? 'inline-block' : 'none';
                         deleteButton.onclick = () => deleteFile(file.name, file.sha);
 
                         actionsDiv.appendChild(renameButton);
