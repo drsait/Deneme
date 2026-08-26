@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dosya Listesi ve Yükleme</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Depomdaki Dosyalar</h1>
+
+    <!-- GitHub Token Ayarı -->
+    <div class="section">
+        <h3>GitHub Ayarları</h3>
+        <input type="password" id="github-token" placeholder="GitHub Personal Access Token" style="width: 300px;">
+        <button onclick="saveToken()">Token'ı Kaydet</button>
+        <span id="token-status" style="color: green; margin-left: 10px;"></span>
+    </div>
+
+    <!-- Dosya Yükleme Alanı -->
+    <div class="section">
+        <h3>Dosya Yükle</h3>
+        <input type="file" id="file-input">
+        <button onclick="uploadFile()">Depoya Yükle</button>
+        <p id="upload-status" style="font-weight: bold;"></p>
+    </div>
+
+    <ul id="file-list">Yükleniyor...</ul>
+
+    <script>
+        const username = 'drsait';
+        const repo = 'Deneme';
+
+        // Sayfa açıldığında token'ı yükle
+        window.onload = function() {
+            const savedToken = localStorage.getItem('github_token');
+            if (savedToken) {
+                document.getElementById('github-token').value = savedToken;
+                document.getElementById('token-status').textContent = 'Kaydedilmiş Token mevcut.';
+            }
+            loadFiles();
+        };
+
+        function saveToken() {
+            const token = document.getElementById('github-token').value.trim();
+            if (token) {
+                localStorage.setItem('github_token', token);
+                document.getElementById('token-status').textContent = 'Token başarıyla kaydedildi!';
+            } else {
+                alert('Lütfen geçerli bir token girin.');
+            }
+        }
+
+        function loadFiles() {
+            fetch(`https://api.github.com/repos/${username}/${repo}/contents`)
+                .then(response => response.json())
+                .then(data => {
+                    const listElement = document.getElementById('file-list');
+                    listElement.innerHTML = '';
+                    if (!Array.isArray(data)) return;
+                    
+                    data.forEach(file => {
+                        if (file.name.toLowerCase() === 'index.html') return;
+                        
+                        const listItem = document.createElement('li');
+                        const link = document.createElement('a');
+                        link.href = `https://${username}.github.io/${repo}/${file.name}`;
+                        link.textContent = file.name;
+                        link.target = '_blank';
+                        listItem.appendChild(link);
+                        listElement.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    document.getElementById('file-list').textContent = 'Dosyalar yüklenirken bir hata oluştu.';
+                    console.error(error);
+                });
+        }
+
+        function uploadFile() {
+            const token = localStorage.getItem('github_token');
+            const fileInput = document.getElementById('file-input');
+            const statusElement = document.getElementById('upload-status');
+
+            if (!token) {
+                alert('Lütfen önce GitHub Token\'ınızı girip kaydedin.');
+                return;
+            }
+
+            if (fileInput.files.length === 0) {
+                alert('Lütfen yüklenecek bir dosya seçin.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            statusElement.textContent = 'Yükleniyor...';
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                // Base64 içeriğini al (baştaki veri başlığını temizle)
+                const base64Content = reader.result.split(',')[1];
+                const apiURL = `https://api.github.com/repos/${username}/${repo}/contents/${file.name}`;
+
+                fetch(apiURL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Web üzerinden yüklendi: ${file.name}`,
+                        content: base64Content
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        statusElement.style.color = 'green';
+                        statusElement.textContent = 'Dosya başarıyla yüklendi!';
+                        fileInput.value = '';
+                        loadFiles(); // Listeyi güncelle
+                    } else {
+                        return response.json().then(err => { throw new Error(err.message); });
+                    }
+                })
+                .catch(error => {
+                    statusElement.style.color = 'red';
+                    statusElement.textContent = 'Hata: ' + error.message;
+                    console.error(error);
+                });
+            };
+        }
+    </script>
+</body>
+</html>
