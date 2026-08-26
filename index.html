@@ -83,6 +83,7 @@
         .form-row {
             display: flex;
             gap: 10px;
+            margin-bottom: 8px;
         }
 
         @media (max-width: 480px) {
@@ -176,12 +177,22 @@
             transform: translateY(0);
         }
 
+        .btn-danger {
+            background-color: var(--danger);
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
         .status-msg {
             margin-top: 10px;
             font-size: 0.85rem;
             font-weight: 500;
             text-align: center;
             min-height: 20px;
+            display: block;
         }
 
         .file-list {
@@ -289,7 +300,7 @@
     <div class="wrapper">
         <header>
             <h1>Dosya Deposu</h1>
-        </header>
+                 </header>
 
         <!-- GitHub Şifre / Token Kartı -->
         <div class="card">
@@ -298,6 +309,7 @@
                 <input type="password" id="github-token" placeholder="Şifreyi girin">
                 <button class="btn" style="width: auto;" onclick="saveToken()">Kaydet</button>
             </div>
+            <button class="btn btn-danger" style="margin-top: 8px; display: none;" id="forget-btn" onclick="forgetIdentity()">Kimliği Unut</button>
             <span id="token-status" class="status-msg" style="color: var(--success);"></span>
         </div>
 
@@ -348,9 +360,19 @@
             }
         }
 
+        function forgetIdentity() {
+            localStorage.removeItem('github_token');
+            document.getElementById('github-token').value = '';
+            document.getElementById('secure-content').style.display = 'none';
+            document.getElementById('forget-btn').style.display = 'none';
+            document.getElementById('token-status').style.color = 'var(--text-muted)';
+            document.getElementById('token-status').textContent = 'Kimlik bilgileri unutuldu.';
+        }
+
         function verifyAndUnlock(token, showAlert = false) {
             const status = document.getElementById('token-status');
             const secureContent = document.getElementById('secure-content');
+            const forgetBtn = document.getElementById('forget-btn');
 
             fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
                 headers: { 'Authorization': `token ${token}` }
@@ -363,6 +385,7 @@
                     if (showAlert) alert('Şifre başarıyla kaydedildi ve doğrulandı!');
                     
                     secureContent.style.display = 'block';
+                    forgetBtn.style.display = 'inline-flex';
                     loadFiles();
                 } else {
                     localStorage.removeItem('github_token');
@@ -371,12 +394,14 @@
                     if (showAlert) alert('Girilen şifre geçersiz. Lütfen doğru şifreyi girin.');
                     
                     secureContent.style.display = 'none';
+                    forgetBtn.style.display = 'none';
                 }
             })
             .catch(() => {
                 status.style.color = 'var(--danger)';
                 status.textContent = '✖ Bağlantı hatası!';
                 secureContent.style.display = 'none';
+                forgetBtn.style.display = 'none';
             });
         }
 
