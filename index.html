@@ -284,7 +284,7 @@
         .delete-btn {
             color: var(--danger);
             border-color: rgba(244, 63, 94, 0.3);
-            display: none; /* Başlangıçta gizli */
+            display: none;
         }
 
         .delete-btn:hover {
@@ -335,16 +335,20 @@
         </header>
 
         <div class="main-layout">
-            <!-- Sol Menü: Kimlik Doğrulama ve Dosya Yükleme -->
+            <!-- Sol Menü: Kimlik Doğrulama / Çıkış ve Dosya Yükleme -->
             <div class="sidebar">
-                <div class="card">
+                <div class="card" id="auth-card">
                     <h3>🔑 Kimlik Doğrulama</h3>
-                    <div class="form-row">
-                        <input type="password" id="github-token" placeholder="Şifreyi girin">
-                        <button class="btn" onclick="saveToken()">Kaydet</button>
+                    <div id="auth-form-container">
+                        <div class="form-row">
+                            <input type="password" id="github-token" placeholder="Şifreyi girin">
+                            <button class="btn" onclick="saveToken()">Kaydet</button>
+                        </div>
+                        <span id="token-status" class="status-msg"></span>
                     </div>
-                    <button class="btn btn-danger" style="margin-top: 8px; display: none;" id="forget-btn" onclick="forgetIdentity()">Kimliği Unut</button>
-                    <span id="token-status" class="status-msg" style="color: var(--success);"></span>
+                    <div id="logout-container" style="display: none;">
+                        <button class="btn btn-danger" onclick="forgetIdentity()">Çıkış Yap</button>
+                    </div>
                 </div>
 
                 <!-- Korumalı Sol Menü Parçası -->
@@ -400,7 +404,6 @@
 
         function saveToken() {
             const token = document.getElementById('github-token').value.trim();
-            const status = document.getElementById('token-status');
             if (token) {
                 verifyAndUnlock(token, true);
             } else {
@@ -411,11 +414,14 @@
         function forgetIdentity() {
             localStorage.removeItem('github_token');
             document.getElementById('github-token').value = '';
+            
+            // Görünümleri sıfırla
             document.getElementById('secure-content').style.display = 'none';
             document.getElementById('secure-sidebar').style.display = 'none';
-            document.getElementById('forget-btn').style.display = 'none';
-            document.getElementById('token-status').style.color = 'var(--text-muted)';
-            document.getElementById('token-status').textContent = 'Kimlik bilgileri unutuldu.';
+            document.getElementById('logout-container').style.display = 'none';
+            document.getElementById('auth-form-container').style.display = 'block';
+            document.getElementById('token-status').textContent = '';
+            
             deleteModeActive = false;
         }
 
@@ -423,7 +429,8 @@
             const status = document.getElementById('token-status');
             const secureContent = document.getElementById('secure-content');
             const secureSidebar = document.getElementById('secure-sidebar');
-            const forgetBtn = document.getElementById('forget-btn');
+            const authFormContainer = document.getElementById('auth-form-container');
+            const logoutContainer = document.getElementById('logout-container');
 
             fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
                 headers: { 'Authorization': `token ${token}` }
@@ -431,13 +438,14 @@
             .then(response => {
                 if (response.ok) {
                     localStorage.setItem('github_token', token);
-                    status.style.color = 'var(--success)';
-                    status.textContent = '✔ Kimlik doğrulandı!';
                     if (showAlert) alert('Şifre başarıyla kaydedildi ve doğrulandı!');
+                    
+                    // Giriş başarılı olunca form yerine sadece çıkış yap butonu göster
+                    authFormContainer.style.display = 'none';
+                    logoutContainer.style.display = 'block';
                     
                     secureContent.style.display = 'block';
                     secureSidebar.style.display = 'block';
-                    forgetBtn.style.display = 'inline-flex';
                     loadFiles();
                 } else {
                     localStorage.removeItem('github_token');
@@ -445,17 +453,19 @@
                     status.textContent = '✖ Geçersiz şifre!';
                     if (showAlert) alert('Girilen şifre geçersiz. Lütfen doğru şifreyi girin.');
                     
+                    authFormContainer.style.display = 'block';
+                    logoutContainer.style.display = 'none';
                     secureContent.style.display = 'none';
                     secureSidebar.style.display = 'none';
-                    forgetBtn.style.display = 'none';
                 }
             })
             .catch(() => {
                 status.style.color = 'var(--danger)';
                 status.textContent = '✖ Bağlantı hatası!';
+                authFormContainer.style.display = 'block';
+                logoutContainer.style.display = 'none';
                 secureContent.style.display = 'none';
                 secureSidebar.style.display = 'none';
-                forgetBtn.style.display = 'none';
             });
         }
 
