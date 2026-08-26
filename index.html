@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Dosya Yönetimi</title>
+    <title>Dosya Deposu</title>
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
@@ -279,44 +279,51 @@
             padding: 24px;
             font-size: 0.9rem;
         }
+
+        .protected-content {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="wrapper">
         <header>
-            <h1>Dosya Yönetimi</h1>
+            <h1>Dosya Deposu</h1>
             <p>GitHub Depo Entegrasyon Paneli</p>
         </header>
 
-        <!-- GitHub Token Kartı -->
+        <!-- GitHub Şifre / Token Kartı -->
         <div class="card">
-            <h3>🔑 GitHub Ayarları</h3>
+            <h3>🔑 Kimlik Doğrulama</h3>
             <div class="form-row">
-                <input type="password" id="github-token" placeholder="Personal Access Token (PAT)">
+                <input type="password" id="github-token" placeholder="Şifreyi girin">
                 <button class="btn" style="width: auto;" onclick="saveToken()">Kaydet</button>
             </div>
             <span id="token-status" class="status-msg" style="color: var(--success);"></span>
         </div>
 
-        <!-- Dosya Yükleme Kartı -->
-        <div class="card">
-            <h3>📤 Dosya Yükle</h3>
-            <div class="file-upload-wrapper">
-                <input type="file" id="file-input" onchange="updateFileName(this)">
-                <div class="file-upload-text" id="file-label">
-                    Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>
+        <!-- Korumalı İçerik Alanı -->
+        <div id="secure-content" class="protected-content">
+            <!-- Dosya Yükleme Kartı -->
+            <div class="card">
+                <h3>📤 Dosya Yükle</h3>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="file-input" onchange="updateFileName(this)">
+                    <div class="file-upload-text" id="file-label">
+                        Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>
+                    </div>
                 </div>
+                <button class="btn" onclick="uploadFile()">Depoya Gönder</button>
+                <p id="upload-status" class="status-msg"></p>
             </div>
-            <button class="btn" onclick="uploadFile()">Depoya Gönder</button>
-            <p id="upload-status" class="status-msg"></p>
-        </div>
 
-        <!-- Dosya Listesi Kartı -->
-        <div class="card">
-            <h3>📁 Depodaki Dosyalar</h3>
-            <ul id="file-list" class="file-list">
-                <li class="info-text">Yükleniyor...</li>
-            </ul>
+            <!-- Dosya Listesi Kartı -->
+            <div class="card">
+                <h3>📁 Depodaki Dosyalar</h3>
+                <ul id="file-list" class="file-list">
+                    <li class="info-text">Yükleniyor...</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -328,10 +335,51 @@
             const savedToken = localStorage.getItem('github_token');
             if (savedToken) {
                 document.getElementById('github-token').value = savedToken;
-                document.getElementById('token-status').textContent = '✔ Kayıtlı Token yüklendi.';
+                verifyAndUnlock(savedToken);
             }
-            loadFiles();
         };
+
+        function saveToken() {
+            const token = document.getElementById('github-token').value.trim();
+            const status = document.getElementById('token-status');
+            if (token) {
+                verifyAndUnlock(token, true);
+            } else {
+                alert('Lütfen şifreyi girin.');
+            }
+        }
+
+        function verifyAndUnlock(token, showAlert = false) {
+            const status = document.getElementById('token-status');
+            const secureContent = document.getElementById('secure-content');
+
+            fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
+                headers: { 'Authorization': `token ${token}` }
+            })
+            .then(response => {
+                if (response.ok) {
+                    localStorage.setItem('github_token', token);
+                    status.style.color = 'var(--success)';
+                    status.textContent = '✔ Kimlik doğrulandı!';
+                    if (showAlert) alert('Şifre başarıyla kaydedildi ve doğrulandı!');
+                    
+                    secureContent.style.display = 'block';
+                    loadFiles();
+                } else {
+                    localStorage.removeItem('github_token');
+                    status.style.color = 'var(--danger)';
+                    status.textContent = '✖ Geçersiz şifre!';
+                    if (showAlert) alert('Girilen şifre geçersiz. Lütfen doğru şifreyi girin.');
+                    
+                    secureContent.style.display = 'none';
+                }
+            })
+            .catch(() => {
+                status.style.color = 'var(--danger)';
+                status.textContent = '✖ Bağlantı hatası!';
+                secureContent.style.display = 'none';
+            });
+        }
 
         function updateFileName(input) {
             const label = document.getElementById('file-label');
@@ -340,20 +388,13 @@
             }
         }
 
-        function saveToken() {
-            const token = document.getElementById('github-token').value.trim();
-            const status = document.getElementById('token-status');
-            if (token) {
-                localStorage.setItem('github_token', token);
-                status.style.color = 'var(--success)';
-                status.textContent = '✔ Token başarıyla kaydedildi!';
-            } else {
-                alert('Lütfen geçerli bir token girin.');
-            }
-        }
-
         function loadFiles() {
-            fetch(`https://api.github.com/repos/${username}/${repo}/contents`)
+            const token = localStorage.getItem('github_token');
+            if (!token) return;
+
+            fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
+                headers: { 'Authorization': `token ${token}` }
+            })
                 .then(response => response.json())
                 .then(data => {
                     const listElement = document.getElementById('file-list');
@@ -415,7 +456,7 @@
             const statusElement = document.getElementById('upload-status');
 
             if (!token) {
-                alert('Lütfen önce GitHub Token\'ınızı girip kaydedin.');
+                alert('Lütfen önce şifrenizi girip kaydedin.');
                 return;
             }
 
@@ -467,7 +508,7 @@
         function renameFile(oldName, oldSha) {
             const token = localStorage.getItem('github_token');
             if (!token) {
-                alert('Lütfen önce GitHub Token\'ınızı girip kaydedin.');
+                alert('Lütfen önce şifrenizi girip kaydedin.');
                 return;
             }
 
@@ -478,17 +519,14 @@
 
             const getURL = `https://api.github.com/repos/${username}/${repo}/contents/${oldName}`;
 
-            // Önce mevcut dosyanın içeriğini alıyoruz
             fetch(getURL, {
                 headers: { 'Authorization': `token ${token}` }
             })
             .then(res => res.json())
             .then(fileData => {
-                const content = fileData.content; // Zaten base64 formatındadır
-
+                const content = fileData.content; 
                 const newURL = `https://api.github.com/repos/${username}/${repo}/contents/${newName.trim()}`;
 
-                // 1. Yeni isimle dosyayı oluştur
                 return fetch(newURL, {
                     method: 'PUT',
                     headers: {
@@ -503,7 +541,6 @@
                 .then(newRes => {
                     if (!newRes.ok) throw new Error('Yeni dosya oluşturulamadı.');
                     
-                    // 2. Eski dosyayı sil
                     return fetch(getURL, {
                         method: 'DELETE',
                         headers: {
@@ -535,7 +572,7 @@
             const token = localStorage.getItem('github_token');
 
             if (!token) {
-                alert('Lütfen önce GitHub Token\'ınızı girip kaydedin.');
+                alert('Lütfen önce şifrenizi girip kaydedin.');
                 return;
             }
 
