@@ -6,6 +6,9 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 30px; }
         .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #f9f9f9; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        .delete-btn { margin-left: 10px; color: red; cursor: pointer; text-decoration: underline; background: none; border: none; font-size: 14px; padding: 0; }
     </style>
 </head>
 <body>
@@ -65,11 +68,19 @@
                         if (file.name.toLowerCase() === 'index.html') return;
                         
                         const listItem = document.createElement('li');
+                        
                         const link = document.createElement('a');
                         link.href = `https://${username}.github.io/${repo}/${file.name}`;
                         link.textContent = file.name;
                         link.target = '_blank';
+                        
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Sil';
+                        deleteButton.className = 'delete-btn';
+                        deleteButton.onclick = () => deleteFile(file.name, file.sha);
+
                         listItem.appendChild(link);
+                        listItem.appendChild(deleteButton);
                         listElement.appendChild(listItem);
                     });
                 })
@@ -100,7 +111,6 @@
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function () {
-                // Base64 içeriğini al (baştaki veri başlığını temizle)
                 const base64Content = reader.result.split(',')[1];
                 const apiURL = `https://api.github.com/repos/${username}/${repo}/contents/${file.name}`;
 
@@ -120,7 +130,7 @@
                         statusElement.style.color = 'green';
                         statusElement.textContent = 'Dosya başarıyla yüklendi!';
                         fileInput.value = '';
-                        loadFiles(); // Listeyi güncelle
+                        loadFiles();
                     } else {
                         return response.json().then(err => { throw new Error(err.message); });
                     }
@@ -131,6 +141,45 @@
                     console.error(error);
                 });
             };
+        }
+
+        function deleteFile(fileName, fileSha) {
+            const token = localStorage.getItem('github_token');
+
+            if (!token) {
+                alert('Lütfen önce GitHub Token\'ınızı girip kaydedin.');
+                return;
+            }
+
+            if (!confirm(`"${fileName}" adlı dosyayı silmek istediğinize emin misiniz?`)) {
+                return;
+            }
+
+            const apiURL = `https://api.github.com/repos/${username}/${repo}/contents/${fileName}`;
+
+            fetch(apiURL, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: `Web üzerinden silindi: ${fileName}`,
+                    sha: fileSha
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Dosya başarıyla silindi!');
+                    loadFiles();
+                } else {
+                    return response.json().then(err => { throw new Error(err.message); });
+                }
+            })
+            .catch(error => {
+                alert('Silme sırasında hata oluştu: ' + error.message);
+                console.error(error);
+            });
         }
     </script>
 </body>
