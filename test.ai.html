@@ -1,0 +1,354 @@
+html_code = """<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Türkçe Çevrimdışı Mini Yapay Zeka Botu</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 480px;
+      height: 600px;
+      background: #1e293b;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      border: 1px solid #334155;
+    }
+    .chat-header {
+      padding: 16px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .bot-avatar {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .header-info h2 {
+      font-size: 15px;
+      color: #f8fafc;
+      font-weight: 600;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+    .msg-group {
+      display: flex;
+      flex-direction: column;
+      max-width: 82%;
+    }
+    .msg-group.user {
+      align-self: flex-end;
+      align-items: flex-end;
+    }
+    .msg-group.bot {
+      align-self: flex-start;
+      align-items: flex-start;
+    }
+    .msg {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+    .msg.user {
+      background: #3b82f6;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+    .msg.bot {
+      background: #334155;
+      color: #f1f5f9;
+      border-bottom-left-radius: 4px;
+    }
+    .msg-time {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+    .suggestions {
+      display: flex;
+      gap: 8px;
+      padding: 0 16px 12px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .suggestion-btn {
+      background: #334155;
+      border: 1px solid #475569;
+      color: #cbd5e1;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .suggestion-btn:hover {
+      background: #475569;
+      color: #fff;
+    }
+    .chat-input-area {
+      padding: 14px 16px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      gap: 10px;
+    }
+    input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #f8fafc;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-color: #3b82f6;
+    }
+    button.send-btn {
+      background: #3b82f6;
+      color: #ffffff;
+      border: none;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button.send-btn:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">
+    <div class="bot-avatar">🤖</div>
+    <div class="header-info">
+      <h2>Asistan Bot</h2>
+      <div class="status-badge"><span class="status-dot"></span> Çevrimdışı / Hazır</div>
+    </div>
+  </div>
+
+  <div class="chat-messages" id="chatArea">
+    <div class="msg-group bot">
+      <div class="msg bot">Merhaba! Ben tamamen çevrimdışı çalışan Türkçe sohbet botuyum. Size nasıl yardımcı olabilirim?</div>
+      <div class="msg-time" id="initTime"></div>
+    </div>
+  </div>
+
+  <div class="suggestions">
+    <button class="suggestion-btn" onclick="sendSuggestion('Nasılsın?')">Nasılsın?</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('Saat kaç?')">Saat kaç?</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('Bir fıkra anlat')">Fıkra anlat</button>
+    <button class="suggestion-btn" onclick="sendSuggestion('Ne yapabilirsin?')">Ne yapabilirsin?</button>
+  </div>
+
+  <div class="chat-input-area">
+    <input type="text" id="userInput" placeholder="Bir mesaj yazın..." onkeydown="if(event.key==='Enter') sendMessage()" autofocus>
+    <button class="send-btn" onclick="sendMessage()">Gönder</button>
+  </div>
+</div>
+
+<script>
+function getTimeStr() {
+  const now = new Date();
+  return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+}
+document.getElementById('initTime').innerText = getTimeStr();
+
+const knowledgeBase = [
+  {
+    triggers: ["merhaba", "selam", "hey", "günaydın", "iyi akşamlar", "iyi günler"],
+    replies: [
+      "Merhaba! Size nasıl yardımcı olabilirim?",
+      "Selamlar! Gününüz nasıl geçiyor?",
+      "Merhaba! Harika bir gün dilerim."
+    ]
+  },
+  {
+    triggers: ["nasılsın", "ne haber", "nasıl gidiyor", "keyifler nasıl"],
+    replies: [
+      "Harikayım! Tarayıcınızda sıfır gecikmeyle çalışıyorum. Siz nasılsınız?",
+      "İyiyim, teşekkürler! Size yardımcı olmaya hazırım.",
+      "Her şey yolunda! Sizinle sohbet etmek çok güzel."
+    ]
+  },
+  {
+    triggers: ["iyiyim", "ben de iyiyim", "süper", "harika"],
+    replies: [
+      "Bunu duyduğuma sevindim! Keyifli anlar dilerim.",
+      "Harika! Bugün sizin için ne yapabilirim?"
+    ]
+  },
+  {
+    triggers: ["kimsin", "nesin", "adın ne", "kim geliştirdi"],
+    replies: [
+      "Ben tek bir HTML dosyası içinde çalışan, internete ihtiyaç duymayan hafif bir Türkçe mini sohbet botuyum."
+    ]
+  },
+  {
+    triggers: ["saat", "vakit", "saat kaç"],
+    action: () => "Şu an saat: " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit', second:'2-digit'})
+  },
+  {
+    triggers: ["tarih", "gün", "hangi gün", "bugün ayın kaçı"],
+    action: () => "Bugünün tarihi: " + new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  },
+  {
+    triggers: ["fıkra", "şaka", "komik bir şey söyle", "güldür"],
+    replies: [
+      "Temel bir gün uçağa binmiş, yanındaki koltuğa bakıp 'Burası kime ait?' demiş. Hostes 'Boş beyefendi' deyince Temel: 'Ula madem boş, niye para alaysunuz?' demiş.",
+      "Yazılımcı bakkala gider. Eşi der ki: '1 ekmek al, eğer yumurta varsa 10 tane al.' Yazılımcı eve 10 ekmekle döner.",
+      "Bilgisayarım bana 'Parolanız çok kısa' dedi. Ben de 'Sonbahar' yazdım, bu sefer de 'Mevsimler kabul edilmez' dedi."
+    ]
+  },
+  {
+    triggers: ["ne yapabilirsin", "yardım", "özelliklerin", "komutlar"],
+    replies: [
+      "Benimle sohbet edebilir, saat ve tarihi sorabilir, fıkra isteyebilir veya matematiksel hesaplamalar yapmamı isteyebilirsiniz."
+    ]
+  },
+  {
+    triggers: ["teşekkür", "sağ ol", "eyvallah", "mersi"],
+    replies: [
+      "Rica ederim! Her zaman yardıma hazırım.",
+      "Ne demek, lafı bile olmaz!",
+      "Keyifle! Başka bir isteğiniz var mı?"
+    ]
+  },
+  {
+    triggers: ["görüşürüz", "bay bay", "hoşça kal", "kendine iyi bak"],
+    replies: [
+      "Görüşmek üzere! Kendinize çok iyi bakın.",
+      "Hoşça kalın, güzel bir gün dilerim!"
+    ]
+  }
+];
+
+function calculateMath(expr) {
+  try {
+    const cleaned = expr.replace(/[^0-9+\-*/().]/g, '');
+    if (cleaned && /[0-9]/.test(cleaned) && /[+\-*/]/.test(cleaned)) {
+      const result = Function('"use strict"; return (' + cleaned + ')')();
+      if (!isNaN(result) && isFinite(result)) {
+        return "İşlemin sonucu: " + result;
+      }
+    }
+  } catch (e) {}
+  return null;
+}
+
+function getBotResponse(userText) {
+  const mathResult = calculateMath(userText);
+  if (mathResult) return mathResult;
+
+  const text = userText.toLocaleLowerCase('tr-TR').trim();
+  for (const item of knowledgeBase) {
+    for (const trigger of item.triggers) {
+      if (text.includes(trigger)) {
+        if (item.action) return item.action();
+        const randIndex = Math.floor(Math.random() * item.replies.length);
+        return item.replies[randIndex];
+      }
+    }
+  }
+  return "Bunu tam olarak anlayamadım. 'Saat kaç?', 'Fıkra anlat' veya 'Nasılsın?' gibi sorular sorabilirsiniz!";
+}
+
+function addMessage(text, sender) {
+  const chatArea = document.getElementById("chatArea");
+  const time = getTimeStr();
+  
+  const group = document.createElement("div");
+  group.className = "msg-group " + sender;
+  
+  const msg = document.createElement("div");
+  msg.className = "msg " + sender;
+  msg.innerText = text;
+  
+  const timeDiv = document.createElement("div");
+  timeDiv.className = "msg-time";
+  timeDiv.innerText = time;
+  
+  group.appendChild(msg);
+  group.appendChild(timeDiv);
+  chatArea.appendChild(group);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function sendMessage() {
+  const input = document.getElementById("userInput");
+  const text = input.value.trim();
+  if (!text) return;
+  
+  addMessage(text, "user");
+  input.value = "";
+  
+  setTimeout(() => {
+    const reply = getBotResponse(text);
+    addMessage(reply, "bot");
+  }, 350);
+}
+
+function sendSuggestion(text) {
+  document.getElementById("userInput").value = text;
+  sendMessage();
+}
+</script>
+
+</body>
+</html>
+"""
+
+with open("turkce_mini_ai_bot.html", "w", encoding="utf-8") as f:
+    f.write(html_code)
+
