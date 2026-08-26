@@ -55,11 +55,6 @@
             margin-bottom: 6px;
         }
 
-        header p {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-
         .main-layout {
             display: grid;
             grid-template-columns: 320px 1fr;
@@ -331,14 +326,12 @@
     <div class="wrapper">
         <header>
             <h1>Dosya Deposu</h1>
-            <p>GitHub Depo Entegrasyon Paneli</p>
         </header>
 
         <div class="main-layout">
-            <!-- Sol Menü: Kimlik Doğrulama / Çıkış ve Dosya Yükleme -->
+            <!-- Sol Menü: Şifre / Çıkış ve Dosya Yükleme -->
             <div class="sidebar">
                 <div class="card" id="auth-card">
-                    <h3>🔑 Kimlik Doğrulama</h3>
                     <div id="auth-form-container">
                         <div class="form-row">
                             <input type="password" id="github-token" placeholder="Şifreyi girin">
@@ -415,7 +408,6 @@
             localStorage.removeItem('github_token');
             document.getElementById('github-token').value = '';
             
-            // Görünümleri sıfırla
             document.getElementById('secure-content').style.display = 'none';
             document.getElementById('secure-sidebar').style.display = 'none';
             document.getElementById('logout-container').style.display = 'none';
@@ -440,7 +432,6 @@
                     localStorage.setItem('github_token', token);
                     if (showAlert) alert('Şifre başarıyla kaydedildi ve doğrulandı!');
                     
-                    // Giriş başarılı olunca form yerine sadece çıkış yap butonu göster
                     authFormContainer.style.display = 'none';
                     logoutContainer.style.display = 'block';
                     
