@@ -12,6 +12,7 @@
             --primary-hover: #4f46e5;
             --danger: #f43f5e;
             --danger-hover: #e11d48;
+            --warning: #f59e0b;
             --success: #10b981;
             --text: #0f172a;
             --text-muted: #64748b;
@@ -109,7 +110,6 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        /* Modern Dosya Seçici Tasarımı */
         .file-upload-wrapper {
             position: relative;
             width: 100%;
@@ -184,7 +184,6 @@
             min-height: 20px;
         }
 
-        /* Dosya Listesi Stilleri */
         .file-list {
             list-style: none;
             max-height: 320px;
@@ -235,10 +234,14 @@
             text-decoration: underline;
         }
 
-        .delete-btn {
+        .action-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
             background: transparent;
-            color: var(--danger);
-            border: 1px solid rgba(244, 63, 94, 0.3);
+            border: 1px solid;
             padding: 6px 10px;
             border-radius: 8px;
             font-size: 0.8rem;
@@ -246,6 +249,22 @@
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+        }
+
+        .rename-btn {
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .rename-btn:hover {
+            background: var(--warning);
+            color: white;
+            border-color: var(--warning);
+        }
+
+        .delete-btn {
+            color: var(--danger);
+            border-color: rgba(244, 63, 94, 0.3);
         }
 
         .delete-btn:hover {
@@ -363,13 +382,24 @@
                         link.target = '_blank';
                         link.innerHTML = `📄 ${file.name}`;
                         
+                        const actionsDiv = document.createElement('div');
+                        actionsDiv.className = 'action-buttons';
+
+                        const renameButton = document.createElement('button');
+                        renameButton.textContent = 'Yeniden Adlandır';
+                        renameButton.className = 'action-btn rename-btn';
+                        renameButton.onclick = () => renameFile(file.name, file.sha);
+
                         const deleteButton = document.createElement('button');
                         deleteButton.textContent = 'Sil';
-                        deleteButton.className = 'delete-btn';
+                        deleteButton.className = 'action-btn delete-btn';
                         deleteButton.onclick = () => deleteFile(file.name, file.sha);
 
+                        actionsDiv.appendChild(renameButton);
+                        actionsDiv.appendChild(deleteButton);
+
                         listItem.appendChild(link);
-                        listItem.appendChild(deleteButton);
+                        listItem.appendChild(actionsDiv);
                         listElement.appendChild(listItem);
                     });
                 })
@@ -432,6 +462,73 @@
                     console.error(error);
                 });
             };
+        }
+
+        function renameFile(oldName, oldSha) {
+            const token = localStorage.getItem('github_token');
+            if (!token) {
+                alert('Lütfen önce GitHub Token\'ınızı girip kaydedin.');
+                return;
+            }
+
+            const newName = prompt(`"${oldName}" için yeni dosya adını girin:`, oldName);
+            if (!newName || newName.trim() === "" || newName === oldName) {
+                return;
+            }
+
+            const getURL = `https://api.github.com/repos/${username}/${repo}/contents/${oldName}`;
+
+            // Önce mevcut dosyanın içeriğini alıyoruz
+            fetch(getURL, {
+                headers: { 'Authorization': `token ${token}` }
+            })
+            .then(res => res.json())
+            .then(fileData => {
+                const content = fileData.content; // Zaten base64 formatındadır
+
+                const newURL = `https://api.github.com/repos/${username}/${repo}/contents/${newName.trim()}`;
+
+                // 1. Yeni isimle dosyayı oluştur
+                return fetch(newURL, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: `Yeniden adlandırıldı: ${oldName} -> ${newName.trim()}`,
+                        content: content
+                    })
+                })
+                .then(newRes => {
+                    if (!newRes.ok) throw new Error('Yeni dosya oluşturulamadı.');
+                    
+                    // 2. Eski dosyayı sil
+                    return fetch(getURL, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: `Kaldırıldı (Yeniden adlandırma sebebiyle): ${oldName}`,
+                            sha: oldSha
+                        })
+                    });
+                });
+            })
+            .then(delRes => {
+                if (delRes.ok) {
+                    alert('Dosya başarıyla yeniden adlandırıldı!');
+                    loadFiles();
+                } else {
+                    throw new Error('Eski dosya silinemedi.');
+                }
+            })
+            .catch(error => {
+                alert('Yeniden adlandırma sırasında hata oluştu: ' + error.message);
+                console.error(error);
+            });
         }
 
         function deleteFile(fileName, fileSha) {
