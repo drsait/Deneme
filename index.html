@@ -42,19 +42,26 @@
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; display: none; }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; }
         
+        /* Şık ve Düzgün Kod Simgesi Butonu (&lt;/&gt;) */
         .code-trigger {
             background: #f1f5f9;
-            border: 1px solid var(--border);
+            border: 1.5px solid var(--border);
             color: var(--primary);
             border-radius: 10px;
             padding: 10px;
             text-align: center;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 1px;
             cursor: pointer;
             transition: 0.2s;
             margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
-        .code-trigger:hover { background: #e2e8f0; }
+        .code-trigger:hover { background: #e2e8f0; border-color: var(--primary); }
     </style>
 </head>
 <body>
@@ -72,8 +79,8 @@
                 <div id="logout-box" class="hidden">
                     <div class="auth-btns">
                         <button style="background:var(--danger)" onclick="logout()">Çıkış</button>
-                        <button id="del-toggle" class="btn-sm btn-delete" style="color:var(--danger); border-color:var(--danger);" onclick="toggleDel()">Sil</button>
-                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="load()">🔄</button>
+                        <button id="del-toggle" class="btn-sm" style="color:var(--danger); border-color:var(--danger); background:transparent;" onclick="toggleDel()">Sil</button>
+                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary); background:transparent;" onclick="load()">🔄</button>
                     </div>
                 </div>
                 <div id="auth-toast" class="toast"></div>
@@ -84,7 +91,11 @@
                         <input type="file" id="file" onchange="upload()">
                         <span id="drop-text" style="font-size:0.85rem; color:#64748b;">Dosya seç veya sürükle</span>
                     </div>
-                    <div class="code-trigger" onclick="openCodeModal()" title="HTML Kodu Yapıştır">💻</div>
+                    <!-- Şık Kod Yükleme Simgesi -->
+                    <div class="code-trigger" onclick="openCodeModal()" title="HTML Kodu Yükle">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                        <span>&lt;/&gt; HTML Yükle</span>
+                    </div>
                     <div id="upload-toast" class="toast"></div>
                 </div>
             </div>
@@ -172,7 +183,15 @@
 
     const toggleDel = () => {
         delMode = !delMode;
-        document.getElementById('del-toggle').classList.toggle('active', delMode);
+        const btn = document.getElementById('del-toggle');
+        btn.classList.toggle('active', delMode);
+        if(delMode) {
+            btn.style.background = 'var(--danger)';
+            btn.style.color = 'white';
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--danger)';
+        }
         document.querySelectorAll('.btn-delete').forEach(b => b.style.display = delMode ? 'inline-block' : 'none');
     };
 
