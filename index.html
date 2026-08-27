@@ -6,723 +6,207 @@
     <title>Dosya Deposu</title>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            --card-bg: rgba(255, 255, 255, 0.95);
+            --bg: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --card: rgba(255, 255, 255, 0.95);
             --primary: #6366f1;
-            --primary-hover: #4f46e5;
             --danger: #f43f5e;
-            --danger-hover: #e11d48;
             --warning: #f59e0b;
             --success: #10b981;
             --text: #0f172a;
-            --text-muted: #64748b;
             --border: #e2e8f0;
-            --radius: 16px;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-gradient);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .wrapper {
-            width: 100%;
-            max-width: 1000px;
-            position: relative;
-        }
-
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 24px;
-        }
-
-        header h1 {
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            margin-bottom: 6px;
-        }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-
-        @media (max-width: 768px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border-radius: var(--radius);
-            padding: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            position: relative;
-        }
-
-        .form-row {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        input[type="password"],
-        input[type="text"] {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.2s ease;
-            background: #fff;
-            color: var(--text);
-        }
-
-        input[type="password"]:focus,
-        input[type="text"]:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-        }
-
-        .file-upload-wrapper {
-            position: relative;
-            width: 100%;
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            background: #fafafa;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-bottom: 12px;
-        }
-
-        .file-upload-wrapper:hover {
-            border-color: var(--primary);
-            background: #f5f3ff;
-        }
-
-        .file-upload-wrapper input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .file-upload-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            pointer-events: none;
-        }
-
-        .file-upload-text span {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-danger {
-            background-color: var(--danger);
-            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2);
-        }
-
-        .btn-danger:hover {
-            background-color: var(--danger-hover);
-        }
-
-        /* Satır içi geçici mesaj göstergesi */
-        .inline-toast {
-            font-size: 0.82rem;
-            font-weight: 500;
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-top: 8px;
-            display: none;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .file-list {
-            list-style: none;
-            max-height: 500px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .file-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .file-list::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 14px;
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            margin-bottom: 8px;
-            transition: background 0.2s;
-        }
-
-        .file-item:hover {
-            background: #f1f5f9;
-        }
-
-        .file-link {
-            color: var(--text);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.92rem;
-            word-break: break-all;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            margin-right: 12px;
-        }
-
-        .file-link:hover {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 6px;
-        }
-
-        .action-btn {
-            background: transparent;
-            border: 1px solid;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .rename-btn {
-            color: var(--warning);
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-
-        .rename-btn:hover {
-            background: var(--warning);
-            color: white;
-            border-color: var(--warning);
-        }
-
-        .delete-btn {
-            color: var(--danger);
-            border-color: rgba(244, 63, 94, 0.3);
-            display: none;
-        }
-
-        .delete-btn:hover {
-            background: var(--danger);
-            color: white;
-            border-color: var(--danger);
-        }
-
-        .info-text {
-            text-align: center;
-            color: var(--text-muted);
-            padding: 24px;
-            font-size: 0.9rem;
-        }
-
-        .protected-content {
-            display: none;
-        }
-
-        .auth-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .auth-actions .btn {
-            flex: 1;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            color: var(--danger);
-            border: 1px solid var(--danger);
-            box-shadow: none;
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--danger);
-            color: white;
-        }
-        
-        .btn-secondary.active {
-             background-color: #991b1b;
-             color: white;
-             border-color: #991b1b;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
+        .wrapper { width: 100%; max-width: 900px; }
+        header h1 { text-align: center; color: white; margin-bottom: 24px; font-size: 1.75rem; }
+        .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+        @media(max-width:768px){ .layout { grid-template-columns: 1fr; } }
+        .card { background: var(--card); backdrop-filter: blur(12px); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.4); }
+        input, button { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; }
+        button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        .row { display: flex; gap: 8px; }
+        .dropzone { border: 2px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: #fafafa; position: relative; cursor: pointer; }
+        .dropzone input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+        .toast { font-size: 0.8rem; padding: 6px; border-radius: 6px; margin-top: 8px; display: none; text-align: center; font-weight: 500; }
+        .list { list-style: none; max-height: 450px; overflow-y: auto; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+        .item a { color: var(--text); text-decoration: none; font-weight: 500; word-break: break-all; margin-right: 8px; }
+        .item a:hover { color: var(--primary); text-decoration: underline; }
+        .actions { display: flex; gap: 4px; }
+        .btn-sm { padding: 4px 8px; font-size: 0.75px; width: auto; border-radius: 6px; background: transparent; border: 1px solid; }
+        .btn-rename { color: var(--warning); border-color: rgba(245,158,11,0.3); }
+        .btn-delete { color: var(--danger); border-color: rgba(244,63,94,0.3); display: none; }
+        .auth-btns { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }
+        .hidden { display: none !important; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; display: none; }
+        .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 320px; }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <header>
-            <h1>Dosya Deposu</h1>
-        </header>
-
-        <div class="main-layout">
-            <!-- Sol Menü: Şifre / Çıkış, Sil ve Dosya Yükleme -->
-            <div class="sidebar">
-                <div class="card" id="auth-card">
-                    <div id="auth-form-container">
-                        <div class="form-row">
-                            <input type="password" id="github-token" placeholder="Şifreyi girin">
-                            <button class="btn" onclick="saveToken()">Kaydet</button>
-                        </div>
-                        <div id="auth-toast" class="inline-toast"></div>
-                    </div>
-                    
-                    <div id="logout-container" style="display: none;">
-                        <div class="auth-actions">
-                            <button class="btn btn-danger" onclick="forgetIdentity()">Çıkış Yap</button>
-                            <button id="toggle-delete-menu-btn" class="btn btn-secondary" onclick="toggleDeleteMode()">Dosya Sil</button>
-                        </div>
+<div class="wrapper">
+    <header><h1>Dosya Deposu</h1></header>
+    <div class="layout">
+        <div class="sidebar">
+            <div class="card">
+                <div id="auth-box">
+                    <div class="row">
+                        <input type="password" id="token" placeholder="Şifreyi girin">
+                        <button onclick="auth(true)">Kaydet</button>
                     </div>
                 </div>
-
-                <!-- Korumalı Sol Menü Parçası -->
-                <div id="secure-sidebar" class="protected-content">
-                    <div class="card">
-                        <div class="file-upload-wrapper">
-                            <input type="file" id="file-input" onchange="handleFileSelect(this)">
-                            <div class="file-upload-text" id="file-label">
-                                Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>
-                            </div>
-                        </div>
-                        <div id="upload-toast" class="inline-toast"></div>
+                <div id="logout-box" class="hidden">
+                    <div class="auth-btns">
+                        <button style="background:var(--danger)" onclick="logout()">Çıkış</button>
+                        <button id="del-toggle" class="btn-sm btn-delete" style="color:var(--danger); border-color:var(--danger);" onclick="toggleDel()">Sil</button>
+                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="load()">🔄</button>
                     </div>
+                </div>
+                <div id="auth-toast" class="toast"></div>
+            </div>
+            <div id="secure-sidebar" class="hidden">
+                <div class="card">
+                    <div class="dropzone">
+                        <input type="file" id="file" onchange="upload()">
+                        <span id="drop-text" style="font-size:0.85rem; color:#64748b;">Dosya seç veya sürükle</span>
+                    </div>
+                    <div id="upload-toast" class="toast"></div>
                 </div>
             </div>
-
-            <!-- Orta Alan: Dosya Listesi -->
-            <div class="content-area">
-                <div id="secure-content" class="protected-content">
-                    <div class="card">
-                        <ul id="file-list" class="file-list">
-                            <li class="info-text">Yükleniyor...</li>
-                        </ul>
-                        <!-- Dosya listesi kartının içinde belirecek silme/işlem toast alanı -->
-                        <div id="list-toast" class="inline-toast" style="margin-top: 12px; text-align: center;"></div>
-                    </div>
+        </div>
+        <div class="content">
+            <div id="secure-content" class="hidden">
+                <div class="card">
+                    <ul id="file-list" class="list"><li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li></ul>
+                    <div id="list-toast" class="toast"></div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const username = 'drsait';
-        const repo = 'Deneme';
-        let deleteModeActive = false;
+<div id="modal" class="modal">
+    <div class="modal-box">
+        <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
+        <input type="text" id="new-name" style="margin-bottom:10px;">
+        <div class="row">
+            <button style="background:#cbd5e1; color:#334155;" onclick="modal.style.display='none'">İptal</button>
+            <button onclick="saveRename()">Kaydet</button>
+        </div>
+    </div>
+</div>
 
-        window.onload = function() {
-            const savedToken = localStorage.getItem('github_token');
-            if (savedToken) {
-                document.getElementById('github-token').value = savedToken;
-                verifyAndUnlock(savedToken);
+<script>
+    const u = 'drsait', r = 'Deneme', api = `https://api.github.com/repos/${u}/${r}/contents`;
+    let delMode = false, renameData = {};
+
+    window.onload = () => { const t = localStorage.getItem('gt'); if(t) { document.getElementById('token').value = t; auth(false); } };
+
+    const toast = (id, msg, err) => {
+        const el = document.getElementById(id);
+        el.textContent = msg; el.style.display = 'block';
+        el.style.background = err ? '#fef2f2' : '#ecfdf5';
+        el.style.color = err ? '#991b1b' : '#065f46';
+        el.style.border = `1px solid ${err ? '#f43f5e' : '#10b981'}`;
+        setTimeout(() => el.style.display = 'none', 4000);
+    };
+
+    const req = (path, method = 'GET', body = null) => fetch(api + (path ? '/' + path : ''), {
+        method, headers: { 'Authorization': `token ${localStorage.getItem('gt')}`, 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : null
+    });
+
+    const auth = (showAlert) => {
+        const t = document.getElementById('token').value.trim();
+        if(!t) return toast('auth-toast', 'Şifre girin', true);
+        fetch(api, { headers: { 'Authorization': `token ${t}` } }).then(res => {
+            if(res.ok) {
+                localStorage.setItem('gt', t);
+                if(showAlert) toast('auth-toast', 'Giriş yapıldı');
+                document.getElementById('auth-box').classList.add('hidden');
+                document.getElementById('logout-box').classList.remove('hidden');
+                document.querySelectorAll('.hidden:not(#logout-box)').forEach(el => el.classList.remove('hidden'));
+                load();
+            } else {
+                localStorage.removeItem('gt');
+                if(showAlert) toast('auth-toast', 'Geçersiz şifre', true);
             }
+        }).catch(() => showAlert && toast('auth-toast', 'Bağlantı hatası', true));
+    };
+
+    const logout = () => {
+        localStorage.removeItem('gt');
+        location.reload();
+    };
+
+    const toggleDel = () => {
+        delMode = !delMode;
+        document.getElementById('del-toggle').classList.toggle('active', delMode);
+        document.querySelectorAll('.btn-delete').forEach(b => b.style.display = delMode ? 'inline-block' : 'none');
+    };
+
+    const load = () => {
+        req().then(res => res.json()).then(data => {
+            const list = document.getElementById('file-list');
+            list.innerHTML = '';
+            if(!Array.isArray(data)) return list.innerHTML = '<li style="text-align:center; color:red">Hata</li>';
+            const files = data.filter(f => f.name.toLowerCase() !== 'index.html');
+            if(!files.length) return list.innerHTML = '<li style="text-align:center; color:#64748b; padding:20px;">Depo boş</li>';
+            files.forEach(f => {
+                list.innerHTML += `<li class="item">
+                    <a href="https://${u}.github.io/${r}/${f.name}" target="_blank">📄 ${f.name}</a>
+                    <div class="actions">
+                        <button class="btn-sm btn-rename" onclick="openRename('${f.name}', '${f.sha}')">Düzenle</button>
+                        <button class="btn-sm btn-delete" style="display:${delMode?'inline-block':'none'}" onclick="del('${f.name}', '${f.sha}')">Sil</button>
+                    </div>
+                </li>`;
+            });
+        });
+    };
+
+    const upload = () => {
+        const file = document.getElementById('file').files[0];
+        if(!file) return;
+        toast('upload-toast', `${file.name} yükleniyor...`);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            req(file.name, 'PUT', { message: `Yüklendi: ${file.name}`, content: reader.result.split(',')[1] })
+            .then(res => {
+                if(res.ok) { toast('upload-toast', `${file.name} yüklendi`); load(); }
+                else throw new Error('Yüklenemedi');
+            }).catch(e => toast('upload-toast', e.message, true));
         };
+    };
 
-        function showToast(elementId, message, type = 'success') {
-            const toast = document.getElementById(elementId);
-            toast.textContent = message;
-            toast.style.display = 'block';
-            
-            if (type === 'success') {
-                toast.style.backgroundColor = '#ecfdf5';
-                toast.style.color = '#065f46';
-                toast.style.border = '1px solid #10b981';
-            } else {
-                toast.style.backgroundColor = '#fef2f2';
-                toast.style.color = '#991b1b';
-                toast.style.border = '1px solid #f43f5e';
-            }
+    const del = (name, sha) => {
+        if(!confirm(`"${name}" silinsin mi?`)) return;
+        req(name, 'DELETE', { message: `Silindi: ${name}`, sha }).then(res => {
+            if(res.ok) { toast('list-toast', `${name} silindi`); load(); }
+            else toast('list-toast', 'Silinemedi', true);
+        });
+    };
 
-            if (toast.timeoutId) {
-                clearTimeout(toast.timeoutId);
-            }
+    const openRename = (name, sha) => {
+        renameData = { name, sha };
+        document.getElementById('new-name').value = name;
+        document.getElementById('modal').style.display = 'flex';
+    };
 
-            toast.timeoutId = setTimeout(() => {
-                toast.style.display = 'none';
-            }, 5000);
-        }
-
-        function saveToken() {
-            const token = document.getElementById('github-token').value.trim();
-            if (token) {
-                verifyAndUnlock(token, true);
-            } else {
-                showToast('auth-toast', 'Lütfen şifreyi girin.', 'error');
-            }
-        }
-
-        function forgetIdentity() {
-            localStorage.removeItem('github_token');
-            document.getElementById('github-token').value = '';
-            
-            document.querySelectorAll('.protected-content').forEach(el => el.style.display = 'none');
-            document.getElementById('logout-container').style.display = 'none';
-            document.getElementById('auth-form-container').style.display = 'block';
-            document.getElementById('auth-toast').style.display = 'none';
-            
-            deleteModeActive = false;
-            document.getElementById('toggle-delete-menu-btn').classList.remove('active');
-        }
-
-        function verifyAndUnlock(token, showAlert = false) {
-            const authFormContainer = document.getElementById('auth-form-container');
-            const logoutContainer = document.getElementById('logout-container');
-
-            fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
-                headers: { 'Authorization': `token ${token}` }
-            })
-            .then(response => {
-                if (response.ok) {
-                    localStorage.setItem('github_token', token);
-                    if (showAlert) {
-                        showToast('auth-toast', '✔ Şifre doğrulandı ve kaydedildi!', 'success');
-                    }
-                    
-                    authFormContainer.style.display = 'none';
-                    logoutContainer.style.display = 'block';
-                    
-                    document.querySelectorAll('.protected-content').forEach(el => el.style.display = 'block');
-                    loadFiles();
-                } else {
-                    localStorage.removeItem('github_token');
-                    if (showAlert) {
-                        showToast('auth-toast', '✖ Geçersiz şifre!', 'error');
-                    }
-                    
-                    authFormContainer.style.display = 'block';
-                    logoutContainer.style.display = 'none';
-                    document.querySelectorAll('.protected-content').forEach(el => el.style.display = 'none');
-                }
-            })
-            .catch(() => {
-                if (showAlert) {
-                    showToast('auth-toast', '✖ Bağlantı hatası!', 'error');
-                }
-                authFormContainer.style.display = 'block';
-                logoutContainer.style.display = 'none';
-                document.querySelectorAll('.protected-content').forEach(el => el.style.display = 'none');
-            });
-        }
-
-        function toggleDeleteMode() {
-            deleteModeActive = !deleteModeActive;
-            const toggleBtn = document.getElementById('toggle-delete-menu-btn');
-            
-            if (deleteModeActive) {
-                toggleBtn.classList.add('active');
-            } else {
-                toggleBtn.classList.remove('active');
-            }
-
-            const deleteButtons = document.querySelectorAll('.delete-btn');
-            deleteButtons.forEach(btn => {
-                btn.style.display = deleteModeActive ? 'inline-block' : 'none';
-            });
-        }
-
-        function handleFileSelect(input) {
-            const label = document.getElementById('file-label');
-            if (input.files.length > 0) {
-                label.innerHTML = `Seçilen dosya: <strong>${input.files[0].name}</strong>`;
-                uploadFile();
-            } else {
-                label.innerHTML = 'Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>';
-            }
-        }
-
-        function loadFiles() {
-            const token = localStorage.getItem('github_token');
-            if (!token) return;
-
-            fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
-                headers: { 'Authorization': `token ${token}` }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    const listElement = document.getElementById('file-list');
-                    listElement.innerHTML = '';
-                    
-                    if (!Array.isArray(data)) {
-                        listElement.innerHTML = '<li class="info-text" style="color:var(--danger);">Yetki hatası veya depo bulunamadı.</li>';
-                        return;
-                    }
-                    
-                    const files = data.filter(file => file.name.toLowerCase() !== 'index.html');
-
-                    if (files.length === 0) {
-                        listElement.innerHTML = '<li class="info-text">Depoda hiç dosya yok.</li>';
-                        return;
-                    }
-
-                    files.forEach(file => {
-                        const listItem = document.createElement('li');
-                        listItem.className = 'file-item';
-                        
-                        const link = document.createElement('a');
-                        link.href = `https://${username}.github.io/${repo}/${file.name}`;
-                        link.textContent = file.name;
-                        link.className = 'file-link';
-                        link.target = '_blank';
-                        link.innerHTML = `📄 ${file.name}`;
-                        
-                        const actionsDiv = document.createElement('div');
-                        actionsDiv.className = 'action-buttons';
-
-                        const renameButton = document.createElement('button');
-                        renameButton.textContent = 'Yeniden Adlandır';
-                        renameButton.className = 'action-btn rename-btn';
-                        renameButton.onclick = () => renameFile(file.name, file.sha);
-
-                        const deleteButton = document.createElement('button');
-                        deleteButton.textContent = 'Sil';
-                        deleteButton.className = 'action-btn delete-btn';
-                        deleteButton.style.display = deleteModeActive ? 'inline-block' : 'none';
-                        deleteButton.onclick = () => deleteFile(file.name, file.sha);
-
-                        actionsDiv.appendChild(renameButton);
-                        actionsDiv.appendChild(deleteButton);
-
-                        listItem.appendChild(link);
-                        listItem.appendChild(actionsDiv);
-                        listElement.appendChild(listItem);
-                    });
-                })
-                .catch(error => {
-                    document.getElementById('file-list').innerHTML = '<li class="info-text" style="color:var(--danger);">Bağlantı hatası oluştu.</li>';
-                    console.error(error);
+    const saveRename = () => {
+        const newName = document.getElementById('new-name').value.trim();
+        document.getElementById('modal').style.display = 'none';
+        if(!newName || newName === renameData.name) return;
+        
+        toast('list-toast', 'Yeniden adlandırılıyor...');
+        req(renameData.name).then(res => res.json()).then(data => {
+            req(newName, 'PUT', { message: `Yeniden adlandırıldı`, content: data.content }).then(putRes => {
+                if(putRes.ok) req(renameData.name, 'DELETE', { message: 'Temizlik', sha: renameData.sha }).then(() => {
+                    toast('list-toast', 'Yeniden adlandırıldı'); load();
                 });
-        }
-
-        function uploadFile() {
-            const token = localStorage.getItem('github_token');
-            const fileInput = document.getElementById('file-input');
-            const label = document.getElementById('file-label');
-
-            if (!token) {
-                showToast('upload-toast', 'Lütfen önce şifrenizi girip kaydedin.', 'error');
-                return;
-            }
-
-            if (fileInput.files.length === 0) {
-                return;
-            }
-
-            const file = fileInput.files[0];
-            showToast('upload-toast', `${file.name} yükleniyor...`, 'success');
-
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function () {
-                const base64Content = reader.result.split(',')[1];
-                const apiURL = `https://api.github.com/repos/${username}/${repo}/contents/${file.name}`;
-
-                fetch(apiURL, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: `Web üzerinden yüklendi: ${file.name}`,
-                        content: base64Content
-                    })
-                })
-                .then(response => {
-                    if (response.ok) {
-                        showToast('upload-toast', `${file.name} yüklendi`, 'success');
-                        fileInput.value = '';
-                        label.innerHTML = 'Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>';
-                        loadFiles();
-                    } else {
-                        return response.json().then(err => { throw new Error(err.message); });
-                    }
-                })
-                .catch(error => {
-                    showToast('upload-toast', 'Hata: ' + error.message, 'error');
-                    label.innerHTML = 'Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>';
-                    console.error(error);
-                });
-            };
-        }
-
-        function renameFile(oldName, oldSha) {
-            const token = localStorage.getItem('github_token');
-            if (!token) {
-                alert('Lütfen önce şifrenizi girip kaydedin.');
-                return;
-            }
-
-            const newName = prompt(`"${oldName}" için yeni dosya adını girin:`, oldName);
-            if (!newName || newName.trim() === "" || newName === oldName) {
-                return;
-            }
-
-            const getURL = `https://api.github.com/repos/${username}/${repo}/contents/${oldName}`;
-
-            fetch(getURL, {
-                headers: { 'Authorization': `token ${token}` }
-            })
-            .then(res => res.json())
-            .then(fileData => {
-                const content = fileData.content; 
-                const newURL = `https://api.github.com/repos/${username}/${repo}/contents/${newName.trim()}`;
-
-                return fetch(newURL, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: `Yeniden adlandırıldı: ${oldName} -> ${newName.trim()}`,
-                        content: content
-                    })
-                })
-                .then(newRes => {
-                    if (!newRes.ok) throw new Error('Yeni dosya oluşturulamadı.');
-                    
-                    return fetch(getURL, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            message: `Kaldırıldı (Yeniden adlandırma sebebiyle): ${oldName}`,
-                            sha: oldSha
-                        })
-                    });
-                });
-            })
-            .then(delRes => {
-                if (delRes.ok) {
-                    showToast('list-toast', `${oldName} yeniden adlandırıldı`, 'success');
-                    loadFiles();
-                } else {
-                    throw new Error('Eski dosya silinemedi.');
-                }
-            })
-            .catch(error => {
-                showToast('list-toast', 'Yeniden adlandırma hatası: ' + error.message, 'error');
-                console.error(error);
             });
-        }
-
-        function deleteFile(fileName, fileSha) {
-            const token = localStorage.getItem('github_token');
-
-            if (!token) {
-                alert('Lütfen önce şifrenizi girip kaydedin.');
-                return;
-            }
-
-            if (!confirm(`"${fileName}" adlı dosyayı silmek istediğinize emin misiniz?`)) {
-                return;
-            }
-
-            const apiURL = `https://api.github.com/repos/${username}/${repo}/contents/${fileName}`;
-
-            fetch(apiURL, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    message: `Web üzerinden silindi: ${fileName}`,
-                    sha: fileSha
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    showToast('list-toast', `${fileName} silindi`, 'success');
-                    loadFiles();
-                } else {
-                    return response.json().then(err => { throw new Error(err.message); });
-                }
-            })
-            .catch(error => {
-                showToast('list-toast', 'Silme hatası: ' + error.message, 'error');
-                console.error(error);
-            });
-        }
-    </script>
+        }).catch(() => toast('list-toast', 'Hata oluştu', true));
+    };
+</script>
 </body>
 </html>
