@@ -39,8 +39,36 @@
         .btn-delete { color: var(--danger); border-color: rgba(244,63,94,0.4); background: rgba(244,63,94,0.05); }
         .auth-btns { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }
         .hidden { display: none !important; }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; display: none; }
-        .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; }
+        
+        /* Modal düzenlemeleri: Sayfanın en üstüne hizalama */
+        .modal { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.4); 
+            display: flex; 
+            align-items: flex-start; /* Ortalamak yerine en üste hizala */
+            justify-content: center; 
+            padding-top: 10px; /* En üste yapışmaması için hafif boşluk */
+            z-index: 100; 
+            display: none; 
+            overflow-y: auto; 
+        }
+        .modal-box { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 16px; 
+            width: 90%; 
+            max-width: 360px; 
+            margin-bottom: 20px;
+        }
+        
+        /* Kod textarea'sı için mobil ekran yükseklik ayarı */
+        #html-code-input {
+            resize: vertical;
+            margin-bottom: 10px;
+            max-height: 40vh;
+        }
+
         .menu-btn {
             background: #f1f5f9;
             border: 1.5px solid var(--border);
@@ -141,7 +169,7 @@
 <div id="code-modal" class="modal">
     <div class="modal-box" style="max-width: 420px;">
         <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu İşlemleri</h4>
-        <textarea id="html-code-input" rows="8" placeholder="HTML kodunu buraya yapıştırın veya düzenleyin..." style="resize:vertical; margin-bottom:10px;"></textarea>
+        <textarea id="html-code-input" rows="6" placeholder="HTML kodunu buraya yapıştırın veya düzenleyin..."></textarea>
         <div class="row" style="flex-direction: column; gap: 6px;">
             <div class="row">
                 <button onclick="pasteFromClipboard()" style="background: var(--warning);">Yapıştır</button>
@@ -180,7 +208,6 @@
         body: body ? JSON.stringify(body) : null
     });
 
-    // GitHub üzerindeki archive.json dosyasından veri okuma ve güncelleme işlemleri
     const getGitHubArchiveData = async () => {
         try {
             const res = await req('archive.json');
@@ -281,13 +308,10 @@
             
             if(!Array.isArray(data)) return list.innerHTML = '<li style="text-align:center; color:red">Hata</li>';
             
-            // Özel ayar ve sistem dosyalarını filtreden çıkar
             let files = data.filter(f => f.name.toLowerCase() !== 'index.html' && f.name.toLowerCase() !== 'archive.json');
             
-            // GitHub'daki archive.json dosyasından listenin çekilmesi
             const { list: archivedFiles } = await getGitHubArchiveData();
 
-            // Sekmeye göre dosyaları ayırma
             if (currentTab === 'files') {
                 files = files.filter(f => !archivedFiles.includes(f.name));
             } else {
@@ -299,7 +323,6 @@
                 return list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${emptyMsg}</li>`;
             }
             
-            // Son commit tarihlerini çekme
             const filesWithDates = await Promise.all(files.map(async (f) => {
                 try {
                     const commitRes = await fetch(`https://api.github.com/repos/${u}/${r}/commits?path=${f.name}&page=1&per_page=1`, {
@@ -313,7 +336,6 @@
                 }
             }));
 
-            // En son değiştirilene göre azalan sıralama
             filesWithDates.sort((a, b) => b.lastModified - a.lastModified);
 
             list.innerHTML = '';
