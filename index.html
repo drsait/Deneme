@@ -108,7 +108,7 @@
                 <div id="auth-box">
                     <div class="row">
                         <input type="password" id="token" placeholder="Şifreyi girin">
-                        <button onclick="auth(true)">Kaydet</button>
+                        <button onclick="auth(true)">Giriş</button>
                     </div>
                 </div>
                 <div id="logout-box" class="hidden">
@@ -128,9 +128,9 @@
                         📁 Dosya Yükle
                     </button>
 
-                    <!-- HTML Kod Yükle Butonu -->
+                    <!-- HTML Yükle Butonu -->
                     <button class="menu-btn" onclick="openCodeModal()">
-                        &lt;/&gt; HTML Kod Yükle
+                        &lt;/&gt; HTML Yükle
                     </button>
 
                     <div id="upload-toast" class="toast"></div>
@@ -282,7 +282,6 @@
         document.getElementById('html-code-input').focus();
     };
 
-    // Çalıştır butonuna basıldığında panodaki kodu otomatik yapıştırır ve çalıştırır
     const runHtmlCode = async () => {
         const textarea = document.getElementById('html-code-input');
         try {
