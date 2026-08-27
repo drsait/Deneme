@@ -57,18 +57,18 @@
             margin-bottom: 6px;
         }
 
-        /* Yüzer Silme Butonu (Sağ Üst Köşe) */
+        /* Sağ üst köşede kırmızı yüzer çöp kutusu butonu */
         .floating-delete-toggle {
             position: absolute;
             right: 0;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--danger);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(8px);
-            width: 40px;
-            height: 40px;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             font-size: 1.1rem;
             cursor: pointer;
@@ -79,13 +79,13 @@
         }
 
         .floating-delete-toggle:hover {
-            background: rgba(255, 255, 255, 0.35);
+            background: var(--danger-hover);
             transform: translateY(-50%) scale(1.05);
         }
 
         .floating-delete-toggle.active {
-            background: var(--danger);
-            border-color: var(--danger);
+            background: #991b1b;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .main-layout {
@@ -337,8 +337,8 @@
     <div class="wrapper">
         <header>
             <h1>Dosya Deposu</h1>
-            <!-- Sağ üst köşede yüzer mini çöp kutusu (Sil) butonu -->
-            <button id="floating-delete-btn" class="floating-delete-toggle protected-content" onclick="toggleDeleteMode()" title="Sil">
+            <!-- Sağ üst köşede kırmızı çöp kutusu butonu -->
+            <button id="floating-delete-btn" class="floating-delete-toggle protected-content" onclick="toggleDeleteMode()" title="Silme Menüsü">
                 🗑️
             </button>
         </header>
