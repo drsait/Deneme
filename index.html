@@ -42,7 +42,6 @@
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; display: none; }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; }
         
-        /* Şık ve Düzgün Kod Simgesi Butonu (&lt;/&gt;) */
         .code-trigger {
             background: #f1f5f9;
             border: 1.5px solid var(--border);
@@ -62,6 +61,46 @@
             gap: 6px;
         }
         .code-trigger:hover { background: #e2e8f0; border-color: var(--primary); }
+
+        /* Tam Ekran Canlı Önizleme Alanı */
+        #fullscreen-preview {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 9999;
+            display: none;
+        }
+        #fullscreen-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Taşınabilir ve Kırmızı Kapatma Butonu */
+        #draggable-close-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: grab;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            touch-action: none;
+        }
+        #draggable-close-btn:active {
+            cursor: grabbing;
+        }
     </style>
 </head>
 <body>
@@ -91,7 +130,6 @@
                         <input type="file" id="file" onchange="upload()">
                         <span id="drop-text" style="font-size:0.85rem; color:#64748b;">Dosya seç veya sürükle</span>
                     </div>
-                    <!-- Şık Kod Yükleme Simgesi -->
                     <div class="code-trigger" onclick="openCodeModal()" title="HTML Kodu Yükle">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
                         <span>&lt;/&gt; HTML Yükle</span>
@@ -111,6 +149,7 @@
     </div>
 </div>
 
+<!-- Yeniden Adlandır Modalı -->
 <div id="modal" class="modal">
     <div class="modal-box">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
@@ -122,15 +161,25 @@
     </div>
 </div>
 
+<!-- HTML Kod Yapıştırma ve Önizleme Modalı -->
 <div id="code-modal" class="modal">
     <div class="modal-box" style="max-width: 420px;">
-        <h4 style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu Yükle</h4>
+        <h4 style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu İşlemleri</h4>
         <textarea id="html-code-input" rows="6" placeholder="HTML kodunu buraya yapıştırın..." style="resize:vertical; margin-bottom:10px;"></textarea>
-        <div class="row">
-            <button style="background:#cbd5e1; color:#334155;" onclick="document.getElementById('code-modal').style.display='none'">İptal</button>
-            <button onclick="uploadHtmlCode()">Yükle</button>
+        <div class="row" style="flex-direction: column; gap: 6px;">
+            <button onclick="runHtmlCode()" style="background: var(--success);">Yapıştır Çalıştır</button>
+            <div class="row">
+                <button style="background:#cbd5e1; color:#334155;" onclick="document.getElementById('code-modal').style.display='none'">İptal</button>
+                <button onclick="uploadHtmlCode()">Depoya Yükle</button>
+            </div>
         </div>
     </div>
+</div>
+
+<!-- Tam Ekran Önizleme Katmanı -->
+<div id="fullscreen-preview">
+    <button id="draggable-close-btn" title="Kapat">✕</button>
+    <iframe id="preview-iframe"></iframe>
 </div>
 
 <script>
@@ -235,6 +284,18 @@
         document.getElementById('html-code-input').focus();
     };
 
+    // Yapıştır Çalıştır (Tam Ekran Canlı Önizleme)
+    const runHtmlCode = () => {
+        const code = document.getElementById('html-code-input').value.trim();
+        document.getElementById('code-modal').style.display = 'none';
+        if(!code) return;
+
+        const iframe = document.getElementById('preview-iframe');
+        iframe.srcdoc = code;
+        document.getElementById('fullscreen-preview').style.display = 'block';
+    };
+
+    // Depoya Yükleme Fonksiyonu
     const uploadHtmlCode = () => {
         const code = document.getElementById('html-code-input').value.trim();
         document.getElementById('code-modal').style.display = 'none';
@@ -253,6 +314,41 @@
             else throw new Error('Yüklenemedi');
         }).catch(e => toast('upload-toast', e.message, true));
     };
+
+    // Taşınabilir Kapatma Butonu Mantığı
+    const closeBtn = document.getElementById('draggable-close-btn');
+    let isDragging = false, startX, startY, initialX, initialY;
+
+    closeBtn.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = closeBtn.getBoundingClientRect();
+        initialX = rect.left;
+        initialY = rect.top;
+        closeBtn.setPointerCapture(e.pointerId);
+    });
+
+    closeBtn.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        closeBtn.style.left = `${initialX + dx}px`;
+        closeBtn.style.top = `${initialY + dy}px`;
+        closeBtn.style.right = 'auto';
+        closeBtn.style.bottom = 'auto';
+    });
+
+    closeBtn.addEventListener('pointerup', (e) => {
+        isDragging = false;
+        closeBtn.releasePointerCapture(e.pointerId);
+    });
+
+    // Kapatma butonuna tıklama (eğer sürüklenmediyse kapat)
+    closeBtn.addEventListener('click', (e) => {
+        document.getElementById('fullscreen-preview').style.display = 'none';
+        document.getElementById('preview-iframe').srcdoc = '';
+    });
 
     const del = (name, sha) => {
         if(!confirm(`"${name}" silinsin mi?`)) return;
