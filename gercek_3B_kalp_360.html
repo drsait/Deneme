@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gerçek 3B Kalp — 360°</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050a12;color:#fff;font-family:system-ui,Arial}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.ui{position:fixed;z-index:2;left:18px;top:18px;background:#081525e8;border:1px solid #29415d;border-radius:14px;padding:14px 16px;backdrop-filter:blur(8px)}
+h1{font-size:19px;margin:0 0 5px}.sub{font-size:12px;color:#9fb1c6}
+.controls{position:fixed;z-index:2;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:7px;background:#081525e8;border:1px solid #29415d;border-radius:14px;padding:9px}
+button{background:#142b45;color:#fff;border:1px solid #3b5875;border-radius:9px;padding:9px 13px;cursor:pointer}
+button:hover,button.on{background:#1677ff}
+.tip{position:fixed;right:18px;bottom:20px;color:#91a5ba;font-size:12px}
+</style>
+</head>
+<body>
+<div class="ui"><h1>❤️ Gerçek 3B Kalp</h1><div class="sub">WebGL ile oluşturulmuş gerçek 3B geometri • 360° döndürme</div></div>
+<canvas id="c"></canvas>
+<div class="controls">
+<button onclick="reset()">Sıfırla</button>
+<button onclick="zoom(1.12)">＋</button><button onclick="zoom(.89)">−</button>
+<button id="auto" onclick="toggleAuto()">▶ Otomatik Döndür</button>
+<button onclick="document.documentElement.requestFullscreen?.()">⛶</button>
+</div>
+<div class="tip">Sürükle: döndür • Tekerlek: yakınlaştır • Dokunmatik destekli</div>
+
+<script>
+const cv=document.getElementById('c'),gl=cv.getContext('webgl',{antialias:true});
+if(!gl) alert("Bu tarayıcı WebGL desteklemiyor.");
+
+const vs=`
+attribute vec3 p,n;
+uniform mat4 mvp,m;
+varying vec3 N,P;
+void main(){P=(m*vec4(p,1.)).xyz;N=mat3(m)*n;gl_Position=mvp*vec4(p,1.);}
+`;
+const fs=`
+precision mediump float;
+varying vec3 N,P;
+uniform vec3 light;
+void main(){
+ vec3 nn=normalize(N), l=normalize(light-P);
+ float d=max(dot(nn,l),0.);
+ float rim=pow(1.-max(dot(nn,normalize(-P)),0.),2.;
+ vec3 base=vec3(.62,.045,.055);
+ vec3 col=base*(.28+.72*d)+vec3(.18,.025,.02)*rim;
+ gl_FragColor=vec4(col,1.);
+}`;
+function shader(t,s){let x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);return x}
+const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vs));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);gl.useProgram(pr);
+
+// Parametrik 3B kalp yüzeyi: ön/arka derinliği olan, organik ve yuvarlatılmış bir kalp.
+const V=[],N=[],I=[], rings=96, seg=48;
+function point(u,v){
+  const t=u*Math.PI*2, s=Math.sin(t), c=Math.cos(t);
+  // Kalp konturu
+  const hx=16*s*s*s, hy=13*c-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+  // normalleştirilmiş kontur
+  let x=hx/18.2, y=hy/17.0;
+  // elipsoidal iç hacim; üst çentik ve alt uç korunur
+  const q=Math.max(0,1-v*v);
+  const bulge=(.90+.18*Math.max(y,-.2));
+  x*=v<0?(.72+.28*q):1;
+  const z=4.2*q*bulge;
+  return [x*1.08,y*1.08,z];
+}
+// Daha gerçekçi hacim için merkezden dış yüzeye tarama
+for(let r=0;r<=rings;r++){
+  const v=-1+2*r/rings;
+  for(let j=0;j<seg;j++){
+    const u=j/seg;
+    const p=point(u,v);
+    V.push(...p);
+  }
+}
+for(let r=0;r<=rings;r++)for(let j=0;j<seg;j++){
+ const a=r*seg+j,b=r*seg+(j+1)%seg,c=(Math.min(r+1,rings))*seg+j,d=(Math.min(r+1,rings))*seg+(j+1)%seg;
+ if(r<rings)I.push(a,c,b,b,c,d);
+}
+// normals from triangles
+N.length=V.length;for(let i=0;i<N.length;i++)N[i]=0;
+function addn(k,a,b,c){
+ let ax=V[b*3]-V[a*3],ay=V[b*3+1]-V[a*3+1],az=V[b*3+2]-V[a*3+2];
+ let bx=V[c*3]-V[a*3],by=V[c*3+1]-V[a*3+1],bz=V[c*3+2]-V[a*3+2];
+ let nx=ay*bz-az*by,ny=az*bx-ax*bz,nz=ax*by-ay*bx;
+ for(const q of [a,b,c]){N[q*3]+=nx;N[q*3+1]+=ny;N[q*3+2]+=nz;}
+}
+for(let k=0;k<I.length;k+=3)addn(k,I[k],I[k+1],I[k+2]);
+for(let i=0;i<N.length;i+=3){let l=Math.hypot(N[i],N[i+1],N[i+2])||1;N[i]/=l;N[i+1]/=l;N[i+2]/=l}
+
+function buf(data,attr,size){let b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);let a=gl.getAttribLocation(pr,attr);gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,size,gl.FLOAT,false,0,0)}
+buf(V,'p',3);buf(N,'n',3);
+let ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint32Array(I),gl.STATIC_DRAW);
+
+const um=gl.getUniformLocation(pr,'m'),umvp=gl.getUniformLocation(pr,'mvp'),ul=gl.getUniformLocation(pr,'light');
+let rx=-.15,ry=.55,scale=1.55,auto=false,drag=false,lx=0,ly=0;
+function mat(rx,ry,s){
+ const cx=Math.cos(rx),sx=Math.sin(rx),cy=Math.cos(ry),sy=Math.sin(ry);
+ return new Float32Array([
+ cy*s,sy*s,0,0, sx*sy*s,cx*cx*cy*s,-sx*s,0, -cx*sy*s,sx*cy*s,cx*s,0, 0,0,0,1
+ ]);
+}
+function perspective(fov,asp,n,f){let q=1/Math.tan(fov/2),nf=1/(n-f);return new Float32Array([q/asp,0,0,0,0,q,0,0,0,0,(f+n)*nf,-1,0,0,2*f*n*nf,0])}
+function mul(a,b){let o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)o[c*4+r]=a[r]*b[c*4]+a[4+r]*b[c*4+1]+a[8+r]*b[c*4+2]+a[12+r]*b[c*4+3];return o}
+function frame(){
+ const dpr=Math.min(devicePixelRatio,2);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;gl.viewport(0,0,cv.width,cv.height);
+ gl.enable(gl.DEPTH_TEST);gl.clearColor(.018,.035,.06,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ let m=mat(rx,ry,scale), p=perspective(1.0,cv.width/cv.height,.1,100), v=new Float32Array([1,0,0,0,0,1,0,0,0,0,1,-22,0,0,0,1]);
+ gl.uniformMatrix4fv(um,false,m);gl.uniformMatrix4fv(umvp,false,mul(p,mul(v,m)));gl.uniform3f(ul,5,7,10);
+ gl.drawElements(gl.TRIANGLES,I.length,gl.UNSIGNED_INT,0);
+ if(auto){ry+=.008;requestAnimationFrame(frame)}
+}
+function reset(){rx=-.15;ry=.55;scale=1.55;frame()}
+function zoom(x){scale=Math.max(.7,Math.min(3,scale*x));frame()}
+function toggleAuto(){auto=!auto;document.getElementById('auto').classList.toggle('on',auto);if(auto)requestAnimationFrame(frame);else frame()}
+cv.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;ry+=(e.clientX-lx)*.008;rx+=(e.clientY-ly)*.008;rx=Math.max(-1.35,Math.min(1.35,rx));lx=e.clientX;ly=e.clientY;frame()});
+cv.addEventListener('pointerup',()=>drag=false);cv.addEventListener('pointercancel',()=>drag=false);
+cv.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.08:.93)},{passive:false});
+addEventListener('resize',frame);frame();
+</script>
+</body></html>
