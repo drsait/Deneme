@@ -374,6 +374,8 @@
                         <ul id="file-list" class="file-list">
                             <li class="info-text">Yükleniyor...</li>
                         </ul>
+                        <!-- Dosya listesi kartının içinde belirecek silme/işlem toast alanı -->
+                        <div id="list-toast" class="inline-toast" style="margin-top: 12px; text-align: center;"></div>
                     </div>
                 </div>
             </div>
@@ -408,7 +410,6 @@
                 toast.style.border = '1px solid #f43f5e';
             }
 
-            // Eğer daha önceden kalan bir zamanlayıcı varsa temizle
             if (toast.timeoutId) {
                 clearTimeout(toast.timeoutId);
             }
@@ -584,7 +585,7 @@
             }
 
             const file = fileInput.files[0];
-            showToast('upload-toast', 'Yükleniyor...', 'success');
+            showToast('upload-toast', `${file.name} yükleniyor...`, 'success');
 
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -605,7 +606,7 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        showToast('upload-toast', '✔ Dosya başarıyla yüklendi!', 'success');
+                        showToast('upload-toast', `${file.name} yüklendi`, 'success');
                         fileInput.value = '';
                         label.innerHTML = 'Dosya seçmek için tıklayın veya <span>sürükleyip bırakın</span>';
                         loadFiles();
@@ -672,14 +673,14 @@
             })
             .then(delRes => {
                 if (delRes.ok) {
-                    alert('Dosya başarıyla yeniden adlandırıldı!');
+                    showToast('list-toast', `${oldName} yeniden adlandırıldı`, 'success');
                     loadFiles();
                 } else {
                     throw new Error('Eski dosya silinemedi.');
                 }
             })
             .catch(error => {
-                alert('Yeniden adlandırma sırasında hata oluştu: ' + error.message);
+                showToast('list-toast', 'Yeniden adlandırma hatası: ' + error.message, 'error');
                 console.error(error);
             });
         }
@@ -711,14 +712,14 @@
             })
             .then(response => {
                 if (response.ok) {
-                    alert('Dosya başarıyla silindi!');
+                    showToast('list-toast', `${fileName} silindi`, 'success');
                     loadFiles();
                 } else {
                     return response.json().then(err => { throw new Error(err.message); });
                 }
             })
             .catch(error => {
-                alert('Silme sırasında hata oluştu: ' + error.message);
+                showToast('list-toast', 'Silme hatası: ' + error.message, 'error');
                 console.error(error);
             });
         }
