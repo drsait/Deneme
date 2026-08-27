@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dönen ve Şirin Uzay Saati</title>
+    <style>
+        body {
+            margin: 0;
+            background: radial-gradient(circle at center, #1b0b2e 0%, #050510 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        /* Renkli Parlayan Yıldızlar Arka Planı */
+        .stars-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(#ff00ff, rgba(255,0,255,.4) 2px, transparent 3px),
+                radial-gradient(#00ffff, rgba(0,255,255,.4) 1px, transparent 2px),
+                radial-gradient(#ffff00, rgba(255,255,0,.4) 2px, transparent 3px);
+            background-size: 400px 400px, 300px 300px, 200px 200px;
+            animation: starMove 100s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes starMove {
+            from { background-position: 0 0, 0 0, 0 0; }
+            to { background-position: -400px -400px, 300px -300px, -200px 400px; }
+        }
+
+        /* Saatin Kapsayıcısı: Hem yüzüyor hem de KENDİ ETRAFINDA DÖNÜYOR */
+        .clock-wrapper {
+            position: relative;
+            width: 380px;
+            height: 380px;
+            z-index: 10;
+            animation: floatClock 6s ease-in-out infinite, spinClock 20s linear infinite;
+        }
+
+        @keyframes floatClock {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes spinClock {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Şirin ve Renkli Kadran */
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(20, 10, 40, 0.9);
+            border: 6px solid #ff77ff;
+            box-shadow: 0 0 40px #ff00ff, inset 0 0 25px #00ffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Düzgün Yerleştirilmiş Renkli Rakamlar */
+        .number {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 0px #ff0055, 0 0 8px #00ffff;
+        }
+
+        /* İçteki Renkli Yörüngeler */
+        .orbit {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px dotted rgba(0, 255, 255, 0.4);
+            pointer-events: none;
+        }
+        .orbit-1 { width: 75%; height: 75%; }
+        .orbit-2 { width: 50%; height: 50%; }
+
+        /* Renkli Hareketli Kollar */
+        .hand {
+            position: absolute;
+            bottom: 50%; left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            z-index: 20;
+        }
+        .hour-hand {
+            width: 8px; height: 70px;
+            background: linear-gradient(to top, #ff0055, #ffcc00);
+            box-shadow: 0 0 10px #ff0055;
+        }
+        .minute-hand {
+            width: 6px; height: 105px;
+            background: linear-gradient(to top, #00ffff, #00ff66);
+            box-shadow: 0 0 10px #00ffff;
+        }
+        .second-hand {
+            width: 2px; height: 125px;
+            background: linear-gradient(to top, #ffffff, #ff00ff);
+            box-shadow: 0 0 15px #ffffff;
+        }
+
+        .center-dot {
+            position: absolute;
+            width: 16px; height: 16px;
+            background: #ffff00;
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            box-shadow: 0 0 10px #ff00ff;
+        }
+
+        /* Etrafta Dönen Şirin Uzaylı ve UFO */
+        .alien-orbit {
+            position: absolute;
+            width: 100%; height: 100%;
+            animation: spinAlien 5s linear infinite;
+            pointer-events: none;
+            z-index: 30;
+        }
+        .alien {
+            position: absolute;
+            font-size: 2rem;
+            top: -35px; left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @keyframes spinAlien {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="stars-layer"></div>
+
+    <div class="clock-wrapper">
+        <div class="clock-face">
+            <div class="orbit orbit-1"></div>
+            <div class="orbit orbit-2"></div>
+
+            <!-- Düzgün Yerleşmiş Rakamlar -->
+            <script>
+                const face = document.querySelector('.clock-face');
+                const colors = ['#ff3366', '#33ccff', '#ffff33', '#ff66ff', '#66ff66', '#ff9933', '#33ffff', '#ff33cc', '#ffff66', '#66ffff', '#ff99ff', '#99ff33'];
+
+                for (let i = 1; i <= 12; i++) {
+                    const num = document.createElement('div');
+                    num.className = 'number';
+                    num.innerText = i;
+                    
+                    // Trigonometri ile saat kadranına kusursuz yerleşim
+                    const angle = (i * 30) * (Math.PI / 180);
+                    const radius = 130; // Saatin merkezinden uzaklık
+                    const x = 190 + radius * Math.sin(angle) - 12;
+                    const y = 190 - radius * Math.cos(angle) - 15;
+                    
+                    num.style.left = `${x}px`;
+                    num.style.top = `${y}px`;
+                    num.style.color = colors[i - 1];
+                    
+                    face.appendChild(num);
+                }
+            </script>
+            
+            <div class="hand hour-hand" id="hourHand"></div>
+            <div class="hand minute-hand" id="minuteHand"></div>
+            <div class="hand second-hand" id="secondHand"></div>
+            <div class="center-dot"></div>
+
+            <!-- Etrafta Dönen Şirin Uzaylı -->
+            <div class="alien-orbit">
+                <div class="alien">👽🛸</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hourHand = document.getElementById('hourHand');
+        const minuteHand = document.getElementById('minuteHand');
+        const secondHand = document.getElementById('secondHand');
+
+        function updateClock() {
+            const now = new Date();
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
+
+            const secondDeg = (seconds / 60) * 360;
+            const minuteDeg = (minutes / 60) * 360 + (seconds / 60) * 6;
+            const hourDeg = (hours % 12 / 12) * 360 + (minutes / 60) * 30;
+
+            secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+            minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+            hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
