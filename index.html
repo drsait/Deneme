@@ -26,8 +26,6 @@
         button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { opacity: 0.9; }
         .row { display: flex; gap: 8px; }
-        .dropzone { border: 2px dashed var(--border); border-radius: 10px; padding: 16px; text-align: center; background: #fafafa; position: relative; cursor: pointer; }
-        .dropzone input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
         .toast { font-size: 0.8rem; padding: 6px; border-radius: 6px; margin-top: 8px; display: none; text-align: center; font-weight: 500; }
         .list { list-style: none; max-height: 450px; overflow-y: auto; }
         .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
@@ -42,25 +40,25 @@
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; display: none; }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; }
         
-        .code-trigger {
+        /* Sol Menü Butonları */
+        .menu-btn {
             background: #f1f5f9;
             border: 1.5px solid var(--border);
-            color: var(--primary);
+            color: var(--text);
             border-radius: 10px;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
             font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 1px;
+            font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-            margin-top: 8px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
-        .code-trigger:hover { background: #e2e8f0; border-color: var(--primary); }
+        .menu-btn:hover { background: #e2e8f0; border-color: var(--primary); color: var(--primary); }
 
         #fullscreen-preview {
             position: fixed;
@@ -124,14 +122,17 @@
             </div>
             <div id="secure-sidebar" class="hidden">
                 <div class="card">
-                    <div class="dropzone">
-                        <input type="file" id="file" onchange="upload()">
-                        <span id="drop-text" style="font-size:0.85rem; color:#64748b;">Dosya seç veya sürükle</span>
-                    </div>
-                    <div class="code-trigger" onclick="openCodeModal()" title="HTML Kodu Yükle">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-                        <span>&lt;/&gt; HTML Yükle</span>
-                    </div>
+                    <!-- Dosya Yükle Butonu -->
+                    <input type="file" id="file" class="hidden" onchange="upload()">
+                    <button class="menu-btn" onclick="document.getElementById('file').click()">
+                        📁 Dosya Yükle
+                    </button>
+
+                    <!-- HTML Kod Yükle Butonu -->
+                    <button class="menu-btn" onclick="openCodeModal()">
+                        &lt;/&gt; HTML Kod Yükle
+                    </button>
+
                     <div id="upload-toast" class="toast"></div>
                 </div>
             </div>
@@ -147,6 +148,7 @@
     </div>
 </div>
 
+<!-- Yeniden Adlandır Modalı -->
 <div id="modal" class="modal">
     <div class="modal-box">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
@@ -158,10 +160,11 @@
     </div>
 </div>
 
+<!-- HTML Kod Modalı -->
 <div id="code-modal" class="modal">
     <div class="modal-box" style="max-width: 420px;">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu İşlemleri</h4>
-        <textarea id="html-code-input" rows="6" placeholder="HTML kodunu buraya yapıştırın..." style="resize:vertical; margin-bottom:10px;"></textarea>
+        <textarea id="html-code-input" rows="6" placeholder="HTML kodunu buraya yapıştırın veya 'Çalıştır' diyerek panodan yapıştırın..." style="resize:vertical; margin-bottom:10px;"></textarea>
         <div class="row" style="flex-direction: column; gap: 6px;">
             <button onclick="runHtmlCode()" style="background: var(--success);">Çalıştır</button>
             <div class="row">
@@ -273,22 +276,23 @@
         };
     };
 
-    const openCodeModal = async () => {
-        const textarea = document.getElementById('html-code-input');
-        textarea.value = '';
+    const openCodeModal = () => {
+        document.getElementById('html-code-input').value = '';
         document.getElementById('code-modal').style.display = 'flex';
+        document.getElementById('html-code-input').focus();
+    };
 
+    // Çalıştır butonuna basıldığında panodaki kodu otomatik yapıştırır ve çalıştırır
+    const runHtmlCode = async () => {
+        const textarea = document.getElementById('html-code-input');
         try {
             const clipboardText = await navigator.clipboard.readText();
             if (clipboardText) {
                 textarea.value = clipboardText;
             }
         } catch (err) {}
-        textarea.focus();
-    };
 
-    const runHtmlCode = () => {
-        const code = document.getElementById('html-code-input').value.trim();
+        const code = textarea.value.trim();
         document.getElementById('code-modal').style.display = 'none';
         if(!code) return;
 
