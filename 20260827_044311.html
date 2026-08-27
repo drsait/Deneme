@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Yakalama Oyunu</title>
+    <style>
+        body { margin: 0; background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; color: #fff; font-family: sans-serif; overflow: hidden; touch-action: none; }
+        canvas { background: #222; display: block; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let score = 0;
+        let ball = { x: Math.random() * 360 + 20, y: 0, radius: 15, speed: 3 };
+        let basket = { x: 160, y: 460, width: 80, height: 15 };
+
+        function handleMove(clientX) {
+            let rect = canvas.getBoundingClientRect();
+            basket.x = clientX - rect.left - basket.width / 2;
+            if (basket.x < 0) basket.x = 0;
+            if (basket.x > canvas.width - basket.width) basket.x = canvas.width - basket.width;
+        }
+
+        window.addEventListener("mousemove", (e) => handleMove(e.clientX));
+        window.addEventListener("touchmove", (e) => {
+            if (e.touches.length > 0) {
+                handleMove(e.touches[0].clientX);
+            }
+        }, { passive: true });
+
+        function update() {
+            ball.y += ball.speed;
+            if (ball.y + ball.radius >= basket.y && ball.x >= basket.x && ball.x <= basket.x + basket.width) {
+                score++;
+                resetBall();
+            }
+            if (ball.y > canvas.height) {
+                score = 0;
+                resetBall();
+            }
+        }
+
+        function resetBall() {
+            ball.y = 0;
+            ball.x = Math.random() * (canvas.width - 40) + 20;
+            ball.speed += 0.2;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#00ffcc";
+            ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+            
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#ff0055";
+            ctx.fill();
+            ctx.closePath();
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "20px Arial";
+            ctx.fillText("Skor: " + score, 20, 30);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>
