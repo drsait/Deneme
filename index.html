@@ -62,7 +62,6 @@
         }
         .code-trigger:hover { background: #e2e8f0; border-color: var(--primary); }
 
-        /* Tam Ekran Canlı Önizleme Alanı */
         #fullscreen-preview {
             position: fixed;
             inset: 0;
@@ -76,7 +75,6 @@
             border: none;
         }
 
-        /* Taşınabilir ve Kırmızı Kapatma Butonu */
         #draggable-close-btn {
             position: fixed;
             top: 20px;
@@ -149,7 +147,6 @@
     </div>
 </div>
 
-<!-- Yeniden Adlandır Modalı -->
 <div id="modal" class="modal">
     <div class="modal-box">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
@@ -161,13 +158,12 @@
     </div>
 </div>
 
-<!-- HTML Kod Yapıştırma ve Önizleme Modalı -->
 <div id="code-modal" class="modal">
     <div class="modal-box" style="max-width: 420px;">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu İşlemleri</h4>
         <textarea id="html-code-input" rows="6" placeholder="HTML kodunu buraya yapıştırın..." style="resize:vertical; margin-bottom:10px;"></textarea>
         <div class="row" style="flex-direction: column; gap: 6px;">
-            <button onclick="runHtmlCode()" style="background: var(--success);">Yapıştır Çalıştır</button>
+            <button onclick="runHtmlCode()" style="background: var(--success);">Çalıştır</button>
             <div class="row">
                 <button style="background:#cbd5e1; color:#334155;" onclick="document.getElementById('code-modal').style.display='none'">İptal</button>
                 <button onclick="uploadHtmlCode()">Depoya Yükle</button>
@@ -176,7 +172,6 @@
     </div>
 </div>
 
-<!-- Tam Ekran Önizleme Katmanı -->
 <div id="fullscreen-preview">
     <button id="draggable-close-btn" title="Kapat">✕</button>
     <iframe id="preview-iframe"></iframe>
@@ -278,13 +273,20 @@
         };
     };
 
-    const openCodeModal = () => {
-        document.getElementById('html-code-input').value = '';
+    const openCodeModal = async () => {
+        const textarea = document.getElementById('html-code-input');
+        textarea.value = '';
         document.getElementById('code-modal').style.display = 'flex';
-        document.getElementById('html-code-input').focus();
+
+        try {
+            const clipboardText = await navigator.clipboard.readText();
+            if (clipboardText) {
+                textarea.value = clipboardText;
+            }
+        } catch (err) {}
+        textarea.focus();
     };
 
-    // Yapıştır Çalıştır (Tam Ekran Canlı Önizleme)
     const runHtmlCode = () => {
         const code = document.getElementById('html-code-input').value.trim();
         document.getElementById('code-modal').style.display = 'none';
@@ -295,7 +297,6 @@
         document.getElementById('fullscreen-preview').style.display = 'block';
     };
 
-    // Depoya Yükleme Fonksiyonu
     const uploadHtmlCode = () => {
         const code = document.getElementById('html-code-input').value.trim();
         document.getElementById('code-modal').style.display = 'none';
@@ -315,7 +316,6 @@
         }).catch(e => toast('upload-toast', e.message, true));
     };
 
-    // Taşınabilir Kapatma Butonu Mantığı
     const closeBtn = document.getElementById('draggable-close-btn');
     let isDragging = false, startX, startY, initialX, initialY;
 
@@ -344,7 +344,6 @@
         closeBtn.releasePointerCapture(e.pointerId);
     });
 
-    // Kapatma butonuna tıklama (eğer sürüklenmediyse kapat)
     closeBtn.addEventListener('click', (e) => {
         document.getElementById('fullscreen-preview').style.display = 'none';
         document.getElementById('preview-iframe').srcdoc = '';
