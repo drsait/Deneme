@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metin ve Karakter Analizi</title>
+    <title>Metin, Kelime ve Karakter Analizi</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -21,27 +21,28 @@
         .stat-card { background: var(--card); border: 1px solid var(--border); padding: 14px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
         .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
-        textarea { width: 100%; height: 220px; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.95rem; outline: none; resize: vertical; margin-bottom: 12px; background: var(--card); }
+        textarea { width: 100%; height: 200px; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.95rem; outline: none; resize: vertical; margin-bottom: 12px; background: var(--card); }
         textarea:focus { border-color: var(--primary); }
         .actions { display: flex; gap: 8px; margin-bottom: 16px; }
         button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
         button:hover { background: #f1f5f9; }
-        .details-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .details-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
         details summary { font-weight: 600; cursor: pointer; color: var(--primary); outline: none; }
-        .char-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
-        .char-table th, .char-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        .char-table th { background: #f8fafc; color: var(--muted); }
-        .char-tag { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: var(--primary); border-radius: 4px; font-family: monospace; font-weight: bold; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
+        .data-table th, .data-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #f8fafc; color: var(--muted); }
+        .badge { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: var(--primary); border-radius: 4px; font-family: monospace; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>Metin & Karakter Sayacı</h1>
+    <h1>Metin & Kelime & Karakter Analizi</h1>
     
     <div class="grid-stats">
         <div class="stat-card"><div class="stat-val" id="c-all">0</div><div class="stat-lbl">Karakter (Boşluklu)</div></div>
         <div class="stat-card"><div class="stat-val" id="c-nospace">0</div><div class="stat-lbl">Karakter (Boşluksuz)</div></div>
-        <div class="stat-card"><div class="stat-val" id="w-count">0</div><div class="stat-lbl">Kelime</div></div>
+        <div class="stat-card"><div class="stat-val" id="w-count">0</div><div class="stat-lbl">Toplam Kelime</div></div>
+        <div class="stat-card"><div class="stat-val" id="unique-w-count">0</div><div class="stat-lbl">Farklı Kelime</div></div>
         <div class="stat-card"><div class="stat-val" id="s-count">0</div><div class="stat-lbl">Cümle</div></div>
         <div class="stat-card"><div class="stat-val" id="space-count">0</div><div class="stat-lbl">Boşluk</div></div>
     </div>
@@ -53,9 +54,19 @@
     </div>
 
     <div class="details-card">
+        <details open>
+            <summary>📖 Kelime Kullanım Detayları (<span id="unique-w-badge">0</span> farklı kelime)</summary>
+            <table class="data-table">
+                <thead><tr><th>Kelime</th><th>Kullanım Sayısı</th></tr></thead>
+                <tbody id="word-list"></tbody>
+            </table>
+        </details>
+    </div>
+
+    <div class="details-card">
         <details>
-            <summary>📊 Karakter Kullanım Detayları (<span id="unique-count">0</span> farklı karakter)</summary>
-            <table class="char-table">
+            <summary>📊 Karakter Kullanım Detayları (<span id="unique-c-badge">0</span> farklı karakter)</summary>
+            <table class="data-table">
                 <thead><tr><th>Karakter</th><th>Açıklama</th><th>Adet</th></tr></thead>
                 <tbody id="char-list"></tbody>
             </table>
@@ -67,28 +78,45 @@
 function analyze() {
     const text = document.getElementById('input').value;
     
+    // Karakterler ve boşluklar
     const charsAll = text.length;
     const spaces = (text.match(/\s/g) || []).length;
     const charsNoSpace = charsAll - spaces;
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
     const sentences = text.trim() ? (text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text.trim()]).length : 0;
 
+    // Kelime analizi
+    const rawWords = text.trim() ? text.trim().toLowerCase().split(/[\s,.;:!?()\[\]{}""''`\/\\<>+=*~|]+/).filter(Boolean) : [];
+    const totalWords = rawWords.length;
+
+    const wordFreq = {};
+    rawWords.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+    const sortedWords = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]);
+
+    // Karakter analizi
+    const charFreq = {};
+    for (const ch of text) { charFreq[ch] = (charFreq[ch] || 0) + 1; }
+    const sortedChars = Object.entries(charFreq).sort((a, b) => b[1] - a[1]);
+
+    // İstatistik alanları
     document.getElementById('c-all').innerText = charsAll.toLocaleString('tr-TR');
     document.getElementById('c-nospace').innerText = charsNoSpace.toLocaleString('tr-TR');
-    document.getElementById('w-count').innerText = words.toLocaleString('tr-TR');
+    document.getElementById('w-count').innerText = totalWords.toLocaleString('tr-TR');
+    document.getElementById('unique-w-count').innerText = sortedWords.length.toLocaleString('tr-TR');
+    document.getElementById('unique-w-badge').innerText = sortedWords.length.toLocaleString('tr-TR');
     document.getElementById('s-count').innerText = text.trim() ? sentences.toLocaleString('tr-TR') : 0;
     document.getElementById('space-count').innerText = spaces.toLocaleString('tr-TR');
+    document.getElementById('unique-c-badge').innerText = sortedChars.length.toLocaleString('tr-TR');
 
-    const freq = {};
-    for (const ch of text) {
-        freq[ch] = (freq[ch] || 0) + 1;
-    }
+    // Kelime tablosu
+    document.getElementById('word-list').innerHTML = sortedWords.map(([w, count]) => `
+        <tr>
+            <td><span class="badge">${w}</span></td>
+            <td><strong>${count.toLocaleString('tr-TR')}</strong></td>
+        </tr>
+    `).join('');
 
-    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-    document.getElementById('unique-count').innerText = sorted.length;
-
-    const tbody = document.getElementById('char-list');
-    tbody.innerHTML = sorted.map(([ch, count]) => {
+    // Karakter tablosu
+    document.getElementById('char-list').innerHTML = sortedChars.map(([ch, count]) => {
         let desc = 'Normal Karakter';
         let display = ch;
         if (ch === ' ') { display = 'Boşluk'; desc = 'Space (Boşluk)'; }
@@ -96,7 +124,7 @@ function analyze() {
         else if (ch === '\t') { display = '\\t'; desc = 'Tab'; }
 
         return `<tr>
-            <td><span class="char-tag">${display}</span></td>
+            <td><span class="badge">${display}</span></td>
             <td style="color:#64748b">${desc}</td>
             <td><strong>${count.toLocaleString('tr-TR')}</strong></td>
         </tr>`;
