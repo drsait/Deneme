@@ -177,7 +177,7 @@
             </div>
             <div class="row">
                 <button style="background:#cbd5e1; color:#334155;" onclick="document.getElementById('code-modal').style.display='none'">İptal</button>
-                <button id="code-save-btn" onclick="uploadHtmlCode()">Depoya Yükle</button>
+                <button id="code-save-btn" onclick="uploadHtmlCode()">Yayınla</button>
             </div>
         </div>
     </div>
@@ -381,7 +381,7 @@
     const openCodeModal = () => {
         editingFileName = null;
         document.getElementById('code-modal-title').textContent = 'HTML Kodu İşlemleri';
-        document.getElementById('code-save-btn').textContent = 'Depoya Yükle';
+        document.getElementById('code-save-btn').textContent = 'Yayınla';
         document.getElementById('html-code-input').value = '';
         document.getElementById('code-modal').style.display = 'flex';
         document.getElementById('html-code-input').focus();
