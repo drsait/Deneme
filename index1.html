@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dosyalar</title>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --card: rgba(255, 255, 255, 0.95);
+            --primary: #6366f1;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --text: #0f172a;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
+        .wrapper { width: 100%; max-width: 900px; }
+        header h1 { text-align: center; color: white; margin-bottom: 24px; font-size: 1.75rem; }
+        .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+        @media(max-width:768px){ .layout { grid-template-columns: 1fr; } }
+        .card { background: var(--card); backdrop-filter: blur(12px); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.4); }
+        input, button, textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; }
+        button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+        .row { display: flex; gap: 8px; }
+        .toast { font-size: 0.8rem; padding: 6px; border-radius: 6px; margin-top: 8px; display: none; text-align: center; font-weight: 500; }
+        .list { list-style: none; max-height: 450px; overflow-y: auto; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+        .item a { color: var(--text); text-decoration: none; font-weight: 500; word-break: break-all; margin-right: 8px; }
+        .item a:hover { color: var(--primary); text-decoration: underline; }
+        .actions { display: flex; gap: 4px; }
+        .btn-sm { padding: 6px 10px; font-size: 0.85rem; width: auto; border-radius: 6px; background: transparent; border: 1px solid; cursor: pointer; font-weight: bold; }
+        .btn-code { color: var(--primary); border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
+        .btn-rename { color: var(--warning); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.05); }
+        .btn-archive { color: #8b5cf6; border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.05); }
+        .btn-delete { color: var(--danger); border-color: rgba(244,63,94,0.4); background: rgba(244,63,94,0.05); }
+        .auth-btns { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }
+        .hidden { display: none !important; }
+        
+        /* Modal düzenlemeleri: Sayfanın en üstüne hizalama */
+        .modal { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.4); 
+            display: flex; 
+            align-items: flex-start; /* Ortalamak yerine en üste hizala */
+            justify-content: center; 
+            padding-top: 10px; /* En üste yapışmaması için hafif boşluk */
+            z-index: 100; 
+            display: none; 
+            overflow-y: auto; 
+        }
+        .modal-box { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 16px; 
+            width: 90%; 
+            max-width: 360px; 
+            margin-bottom: 20px;
+        }
+        
+        /* Kod textarea'sı için mobil ekran yükseklik ayarı */
+        #html-code-input {
+            resize: vertical;
+            margin-bottom: 10px;
+            max-height: 40vh;
+        }
+
+        .menu-btn {
+            background: #f1f5f9;
+            border: 1.5px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .menu-btn:hover { background: #e2e8f0; border-color: var(--primary); color: var(--primary); }
+        .menu-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        #fullscreen-preview { position: fixed; inset: 0; background: white; z-index: 9999; display: none; }
+        #fullscreen-preview iframe { width: 100%; height: 100%; border: none; }
+        #draggable-close-btn {
+            position: fixed; top: 20px; right: 20px; background: var(--danger); color: white;
+            border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem;
+            font-weight: bold; cursor: grab; z-index: 10000; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+            display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
+        }
+        #draggable-close-btn:active { cursor: grabbing; }
+        .tab-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: var(--primary); }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <header><h1>Dosyalar</h1></header>
+    <div class="layout">
+        <div class="sidebar">
+            <div class="card">
+                <div id="auth-box">
+                    <div class="row">
+                        <input type="password" id="token" placeholder="Şifreyi girin">
+                        <button onclick="auth(true)">Giriş</button>
+                    </div>
+                </div>
+                <div id="logout-box" class="hidden">
+                    <div class="auth-btns">
+                        <button style="background:var(--danger)" onclick="logout()">Çıkış</button>
+                        <button id="edit-toggle" class="btn-sm" style="color:var(--primary); border-color:var(--primary); background:transparent;" onclick="toggleEdit()" title="Düzenleme Modu">⚙️</button>
+                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary); background:transparent;" onclick="location.reload()" title="Yenile">🔄</button>
+                    </div>
+                </div>
+                <div id="auth-toast" class="toast"></div>
+            </div>
+
+            <div id="secure-sidebar" class="hidden">
+                <div class="card">
+                    <button class="menu-btn active" id="tab-files-btn" onclick="switchTab('files')">
+                        📄 Dosyalarım
+                    </button>
+                    <button class="menu-btn" id="tab-archive-btn" onclick="switchTab('archive')">
+                        📦 Arşiv
+                    </button>
+                    <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--border);">
+                    <input type="file" id="file" class="hidden" onchange="upload()">
+                    <button class="menu-btn" onclick="document.getElementById('file').click()">
+                        📁 Dosya Yükle
+                    </button>
+                    <button class="menu-btn" onclick="openCodeModal()">
+                        &lt;/&gt; HTML Yükle
+                    </button>
+                    <div id="upload-toast" class="toast"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="secure-content" class="hidden">
+                <div class="card">
+                    <div id="view-title" class="tab-title">📄 Dosyalarım</div>
+                    <ul id="file-list" class="list"><li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li></ul>
+                    <div id="list-toast" class="toast"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-box">
+        <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
+        <input type="text" id="new-name" style="margin-bottom:10px;" placeholder="Yeni Dosya Adı">
+        <div class="row">
+            <button style="background:#cbd5e1; color:#334155;" onclick="modal.style.display='none'">İptal</button>
+            <button onclick="saveRename()">Kaydet</button>
+        </div>
+    </div>
+</div>
+
+<div id="code-modal" class="modal">
+    <div class="modal-box" style="max-width: 420px;">
+        <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu İşlemleri</h4>
+        <textarea id="html-code-input" rows="6" placeholder="HTML kodunu buraya yapıştırın veya düzenleyin..."></textarea>
+        <div class="row" style="flex-direction: column; gap: 6px;">
+            <div class="row">
+                <button onclick="pasteFromClipboard()" style="background: var(--warning);">Yapıştır</button>
+                <button onclick="runHtmlCode()" style="background: var(--success);">Çalıştır</button>
+            </div>
+            <div class="row">
+                <button style="background:#cbd5e1; color:#334155;" onclick="document.getElementById('code-modal').style.display='none'">İptal</button>
+                <button id="code-save-btn" onclick="uploadHtmlCode()">Depoya Yükle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="fullscreen-preview">
+    <button id="draggable-close-btn" title="Kapat">✕</button>
+    <iframe id="preview-iframe"></iframe>
+</div>
+
+<script>
+    const u = 'drsait', r = 'Deneme', api = `https://api.github.com/repos/${u}/${r}/contents`;
+    let editMode = false, activeFileData = {}, editingFileName = null, currentTab = 'files';
+
+    window.onload = () => { const t = localStorage.getItem('gt'); if(t) { document.getElementById('token').value = t; auth(false); } };
+
+    const toast = (id, msg, err) => {
+        const el = document.getElementById(id);
+        el.textContent = msg; el.style.display = 'block';
+        el.style.background = err ? '#fef2f2' : '#ecfdf5';
+        el.style.color = err ? '#991b1b' : '#065f46';
+        el.style.border = `1px solid ${err ? '#f43f5e' : '#10b981'}`;
+        setTimeout(() => el.style.display = 'none', 4000);
+    };
+
+    const req = (path, method = 'GET', body = null) => fetch(api + (path ? '/' + path : ''), {
+        method, headers: { 'Authorization': `token ${localStorage.getItem('gt')}`, 'Content-Type': 'application/json' },
+        body: body ? JSON.stringify(body) : null
+    });
+
+    const getGitHubArchiveData = async () => {
+        try {
+            const res = await req('archive.json');
+            if (res.ok) {
+                const data = await res.json();
+                const content = decodeURIComponent(escape(atob(data.content)));
+                return { list: JSON.parse(content), sha: data.sha };
+            }
+        } catch {}
+        return { list: [], sha: null };
+    };
+
+    const saveGitHubArchiveData = async (newList, sha = null) => {
+        const jsonStr = JSON.stringify(newList, null, 2);
+        const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+        const payload = {
+            message: 'Arşiv listesi güncellendi',
+            content: base64Content
+        };
+        if (sha) payload.sha = sha;
+        await req('archive.json', 'PUT', payload);
+    };
+
+    const unlockUI = () => {
+        document.getElementById('auth-box').classList.add('hidden');
+        document.getElementById('logout-box').classList.remove('hidden');
+        document.getElementById('secure-sidebar').classList.remove('hidden');
+        document.getElementById('secure-content').classList.remove('hidden');
+    };
+
+    const auth = (showAlert) => {
+        const t = document.getElementById('token').value.trim();
+        if(!t) return toast('auth-toast', 'Şifre girin', true);
+        fetch(api, { headers: { 'Authorization': `token ${t}` } }).then(res => {
+            if(res.ok) {
+                localStorage.setItem('gt', t);
+                if(showAlert) toast('auth-toast', 'Giriş yapıldı');
+                unlockUI();
+                load();
+            } else {
+                localStorage.removeItem('gt');
+                if(showAlert) toast('auth-toast', 'Geçersiz şifre', true);
+            }
+        }).catch(() => showAlert && toast('auth-toast', 'Bağlantı hatası', true));
+    };
+
+    const logout = () => {
+        localStorage.removeItem('gt');
+        location.reload();
+    };
+
+    const switchTab = (tab) => {
+        currentTab = tab;
+        document.getElementById('tab-files-btn').classList.toggle('active', tab === 'files');
+        document.getElementById('tab-archive-btn').classList.toggle('active', tab === 'archive');
+        document.getElementById('view-title').textContent = tab === 'files' ? '📄 Dosyalarım' : '📦 Arşivdeki Dosyalar';
+        load();
+    };
+
+    const toggleEdit = () => {
+        editMode = !editMode;
+        const btn = document.getElementById('edit-toggle');
+        btn.classList.toggle('active', editMode);
+        if(editMode) {
+            btn.style.background = 'var(--primary)';
+            btn.style.color = 'white';
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--primary)';
+        }
+        document.querySelectorAll('.actions').forEach(a => a.style.display = editMode ? 'flex' : 'none');
+    };
+
+    const toggleArchive = async (fileName) => {
+        toast('list-toast', 'Arşiv durumu güncelleniyor...');
+        const { list: archivedList, sha } = await getGitHubArchiveData();
+        let updatedList;
+        
+        if (archivedList.includes(fileName)) {
+            updatedList = archivedList.filter(name => name !== fileName);
+            toast('list-toast', `${fileName} arşivden çıkarıldı`);
+        } else {
+            updatedList = [...archivedList, fileName];
+            toast('list-toast', `${fileName} arşive kaldırıldı`);
+        }
+        
+        await saveGitHubArchiveData(updatedList, sha);
+        load();
+    };
+
+    const load = async () => {
+        const list = document.getElementById('file-list');
+        list.innerHTML = '<li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li>';
+        
+        try {
+            const res = await req();
+            const data = await res.json();
+            
+            if(!Array.isArray(data)) return list.innerHTML = '<li style="text-align:center; color:red">Hata</li>';
+            
+            let files = data.filter(f => f.name.toLowerCase() !== 'index.html' && f.name.toLowerCase() !== 'archive.json');
+            
+            const { list: archivedFiles } = await getGitHubArchiveData();
+
+            if (currentTab === 'files') {
+                files = files.filter(f => !archivedFiles.includes(f.name));
+            } else {
+                files = files.filter(f => archivedFiles.includes(f.name));
+            }
+            
+            if(!files.length) {
+                const emptyMsg = currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok';
+                return list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${emptyMsg}</li>`;
+            }
+            
+            const filesWithDates = await Promise.all(files.map(async (f) => {
+                try {
+                    const commitRes = await fetch(`https://api.github.com/repos/${u}/${r}/commits?path=${f.name}&page=1&per_page=1`, {
+                        headers: { 'Authorization': `token ${localStorage.getItem('gt')}` }
+                    });
+                    const commitData = await commitRes.json();
+                    const dateStr = commitData[0]?.commit?.committer?.date;
+                    return { ...f, lastModified: dateStr ? new Date(dateStr) : new Date(0) };
+                } catch {
+                    return { ...f, lastModified: new Date(0) };
+                }
+            }));
+
+            filesWithDates.sort((a, b) => b.lastModified - a.lastModified);
+
+            list.innerHTML = '';
+            filesWithDates.forEach(f => {
+                const isHtml = f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm');
+                const dateText = f.lastModified.valueOf() !== 0 
+                    ? `Değiştirilme Tarihi: ${f.lastModified.toLocaleString('tr-TR')}` 
+                    : 'Tarih bilgisi alınamadı';
+
+                const isArchived = archivedFiles.includes(f.name);
+                const archiveBtnTitle = isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle';
+
+                list.innerHTML += `<li class="item">
+                    <a href="https://${u}.github.io/${r}/${f.name}" target="_blank" title="${dateText}">📄 ${f.name}</a>
+                    <div class="actions" style="display:${editMode ? 'flex' : 'none'}">
+                        ${isHtml ? `<button class="btn-sm btn-code" onclick="editHtmlContent('${f.name}')" title="Kod Düzenle">&lt;/&gt;</button>` : ''}
+                        <button class="btn-sm btn-archive" onclick="toggleArchive('${f.name}')" title="${archiveBtnTitle}">📦</button>
+                        <button class="btn-sm btn-rename" onclick="openRenameModal('${f.name}', '${f.sha}')" title="Yeniden Adlandır">🏷️</button>
+                        <button class="btn-sm btn-delete" onclick="del('${f.name}', '${f.sha}')" title="Sil">🗑️</button>
+                    </div>
+                </li>`;
+            });
+        } catch {
+            list.innerHTML = '<li style="text-align:center; color:red">Yüklenirken hata oluştu</li>';
+        }
+    };
+
+    const upload = () => {
+        const file = document.getElementById('file').files[0];
+        if(!file) return;
+        toast('upload-toast', `${file.name} yükleniyor...`);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            req(file.name, 'PUT', { message: `Yüklendi: ${file.name}`, content: reader.result.split(',')[1] })
+            .then(res => {
+                if(res.ok) { toast('upload-toast', `${file.name} yüklendi`); load(); }
+                else throw new Error('Yüklenemedi');
+            }).catch(e => toast('upload-toast', e.message, true));
+        };
+    };
+
+    const openCodeModal = () => {
+        editingFileName = null;
+        document.getElementById('code-modal-title').textContent = 'HTML Kodu İşlemleri';
+        document.getElementById('code-save-btn').textContent = 'Depoya Yükle';
+        document.getElementById('html-code-input').value = '';
+        document.getElementById('code-modal').style.display = 'flex';
+        document.getElementById('html-code-input').focus();
+    };
+
+    const pasteFromClipboard = async () => {
+        const textarea = document.getElementById('html-code-input');
+        try {
+            const clipboardText = await navigator.clipboard.readText();
+            if (clipboardText) {
+                textarea.value = clipboardText;
+            }
+        } catch (err) {}
+        textarea.focus();
+    };
+
+    const runHtmlCode = () => {
+        const code = document.getElementById('html-code-input').value.trim();
+        document.getElementById('code-modal').style.display = 'none';
+        if(!code) return;
+
+        const iframe = document.getElementById('preview-iframe');
+        iframe.srcdoc = code;
+        document.getElementById('fullscreen-preview').style.display = 'block';
+    };
+
+    const uploadHtmlCode = () => {
+        const code = document.getElementById('html-code-input').value.trim();
+        document.getElementById('code-modal').style.display = 'none';
+        if(!code) return;
+
+        const base64Content = btoa(unescape(encodeURIComponent(code)));
+
+        if (editingFileName) {
+            toast('list-toast', `${editingFileName} güncelleniyor...`);
+            req(editingFileName, 'PUT', { message: `Güncellendi: ${editingFileName}`, content: base64Content, sha: activeFileData.sha })
+            .then(res => {
+                if(res.ok) { toast('list-toast', `${editingFileName} güncellendi`); load(); }
+                else throw new Error('Güncellenemedi');
+            }).catch(e => toast('list-toast', e.message, true));
+        } else {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const fileName = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.html`;
+
+            toast('upload-toast', `${fileName} yükleniyor...`);
+            req(fileName, 'PUT', { message: `HTML kod yüklendi: ${fileName}`, content: base64Content })
+            .then(res => {
+                if(res.ok) { toast('upload-toast', `${fileName} yüklendi`); load(); }
+                else throw new Error('Yüklenemedi');
+            }).catch(e => toast('upload-toast', e.message, true));
+        }
+    };
+
+    const closeBtn = document.getElementById('draggable-close-btn');
+    let isDragging = false, startX, startY, initialX, initialY;
+
+    closeBtn.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = closeBtn.getBoundingClientRect();
+        initialX = rect.left;
+        initialY = rect.top;
+        closeBtn.setPointerCapture(e.pointerId);
+    });
+
+    closeBtn.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        closeBtn.style.left = `${initialX + dx}px`;
+        closeBtn.style.top = `${initialY + dy}px`;
+        closeBtn.style.right = 'auto';
+        closeBtn.style.bottom = 'auto';
+    });
+
+    closeBtn.addEventListener('pointerup', (e) => {
+        isDragging = false;
+        closeBtn.releasePointerCapture(e.pointerId);
+    });
+
+    closeBtn.addEventListener('click', (e) => {
+        document.getElementById('fullscreen-preview').style.display = 'none';
+        document.getElementById('preview-iframe').srcdoc = '';
+    });
+
+    const del = async (name, sha) => {
+        if(!confirm(`"${name}" silinsin mi?`)) return;
+        req(name, 'DELETE', { message: `Silindi: ${name}`, sha }).then(async res => {
+            if(res.ok) { 
+                const { list: archivedList, sha: archSha } = await getGitHubArchiveData();
+                if (archivedList.includes(name)) {
+                    const updatedList = archivedList.filter(n => n !== name);
+                    await saveGitHubArchiveData(updatedList, archSha);
+                }
+                toast('list-toast', `${name} silindi`); 
+                load(); 
+            }
+            else toast('list-toast', 'Silinemedi', true);
+        });
+    };
+
+    const openRenameModal = (name, sha) => {
+        activeFileData = { name, sha };
+        document.getElementById('new-name').value = name;
+        document.getElementById('modal').style.display = 'flex';
+    };
+
+    const editHtmlContent = (fileName) => {
+        toast('list-toast', 'Dosya içeriği çekiliyor...');
+        req(fileName).then(res => res.json()).then(data => {
+            activeFileData = { name: fileName, sha: data.sha };
+            const decodedContent = decodeURIComponent(escape(atob(data.content)));
+            editingFileName = fileName;
+            document.getElementById('code-modal-title').textContent = `${fileName} Düzenleniyor`;
+            document.getElementById('code-save-btn').textContent = 'Kaydet';
+            document.getElementById('html-code-input').value = decodedContent;
+            document.getElementById('code-modal').style.display = 'flex';
+        }).catch(() => toast('list-toast', 'Açılırken hata oluştu', true));
+    };
+
+    const saveRename = () => {
+        const newName = document.getElementById('new-name').value.trim();
+        document.getElementById('modal').style.display = 'none';
+        if(!newName || newName === activeFileData.name) return;
+            
+        toast('list-toast', 'Yeniden adlandırılıyor...');
+        req(activeFileData.name).then(res => res.json()).then(data => {
+            req(newName, 'PUT', { message: `Yeniden adlandırıldı`, content: data.content }).then(putRes => {
+                if(putRes.ok) req(activeFileData.name, 'DELETE', { message: 'Temizlik', sha: activeFileData.sha }).then(async () => {
+                    const { list: archivedList, sha: archSha } = await getGitHubArchiveData();
+                    if (archivedList.includes(activeFileData.name)) {
+                        const updatedList = archivedList.map(n => n === activeFileData.name ? newName : n);
+                        await saveGitHubArchiveData(updatedList, archSha);
+                    }
+                    toast('list-toast', 'Yeniden adlandırıldı'); load();
+                });
+            });
+        }).catch(() => toast('list-toast', 'Hata oluştu', true));
+    };
+</script>
+</body>
+</html>
