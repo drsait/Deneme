@@ -1,188 +1,23 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metin, Kelime ve Karakter Analizi</title>
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #0f172a;
-            --muted: #64748b;
-            --border: #e2e8f0;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 24px 16px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 900px; }
-        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
-        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
-        .stat-card { background: var(--card); border: 1px solid var(--border); padding: 14px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
-        .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
-        textarea { width: 100%; height: 200px; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.95rem; outline: none; resize: vertical; margin-bottom: 12px; background: var(--card); }
-        textarea:focus { border-color: var(--primary); }
-        .actions { display: flex; gap: 8px; margin-bottom: 16px; }
-        button { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
-        button:hover { background: #f1f5f9; }
-        .details-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        details summary { font-weight: 600; cursor: pointer; color: var(--primary); outline: none; }
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
-        .data-table th, .data-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-        .data-table th { background: #f8fafc; color: var(--muted); }
-        .badge { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: var(--primary); border-radius: 4px; font-family: monospace; font-weight: bold; }
-        .parent-row { background: #f8fafc; font-weight: 600; }
-        .sub-row td { padding-left: 32px; color: #475569; background: #ffffff; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>Metin, Kelime & Karakter Analizi</h1>
-    
-    <div class="grid-stats">
-        <div class="stat-card"><div class="stat-val" id="c-all">0</div><div class="stat-lbl">Karakter (Boşluklu)</div></div>
-        <div class="stat-card"><div class="stat-val" id="c-nospace">0</div><div class="stat-lbl">Karakter (Boşluksuz)</div></div>
-        <div class="stat-card"><div class="stat-val" id="w-count">0</div><div class="stat-lbl">Toplam Kelime</div></div>
-        <div class="stat-card"><div class="stat-val" id="unique-w-count">0</div><div class="stat-lbl">Farklı Kelime</div></div>
-        <div class="stat-card"><div class="stat-val" id="s-count">0</div><div class="stat-lbl">Cümle</div></div>
-        <div class="stat-card"><div class="stat-val" id="space-count">0</div><div class="stat-lbl">Boşluk</div></div>
-    </div>
+Dördüncü Söz
+Dördüncü Söz
+بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحٖيمِ
 
-    <textarea id="input" placeholder="Metin veya kod yapıştırın..." oninput="analyze()"></textarea>
+اَلصَّلَاةُ عِمَادُ الدّٖينِ
 
-    <div class="actions">
-        <button onclick="document.getElementById('input').value=''; analyze();">Temizle</button>
-    </div>
+Namaz, ne kadar kıymettar ve mühim hem ne kadar ucuz ve az bir masraf ile kazanılır hem namazsız adam ne kadar divane ve zararlı olduğunu, iki kere iki dört eder derecesinde kat’î anlamak istersen şu temsilî hikâyeciğe bak, gör:
 
-    <!-- Kelime Frekansı -->
-    <div class="details-card">
-        <details>
-            <summary>📖 Kelime Kullanım Detayları (<span id="unique-w-badge">0</span> farklı kelime)</summary>
-            <table class="data-table">
-                <thead><tr><th>Kelime</th><th>Kullanım Sayısı</th></tr></thead>
-                <tbody id="word-list"></tbody>
-            </table>
-        </details>
-    </div>
+Bir zaman bir büyük hâkim, iki hizmetkârını, her birisine yirmi dört altın verip iki ay uzaklıkta has ve güzel bir çiftliğine ikamet etmek için gönderiyor. Ve onlara emreder ki: “Şu para ile yol ve bilet masrafı yapınız. Hem oradaki meskeninize lâzım bazı şeyleri mübayaa ediniz. Bir günlük mesafede bir istasyon vardır. Hem araba hem gemi hem şimendifer hem tayyare bulunur. Sermayeye göre binilir.”
 
-    <!-- Karakter Frekansı -->
-    <div class="details-card">
-        <details open>
-            <summary>📊 Tüm Karakter Frekansı (<span id="unique-c-badge">0</span> farklı karakter / grup)</summary>
-            <table class="data-table">
-                <thead><tr><th>Karakter</th><th>Açıklama</th><th>Adet</th></tr></thead>
-                <tbody id="char-list"></tbody>
-            </table>
-        </details>
-    </div>
-</div>
+İki hizmetkâr, ders aldıktan sonra giderler. Birisi bahtiyar idi ki istasyona kadar bir parça para masraf eder. Fakat o masraf içinde, efendisinin hoşuna gidecek öyle güzel bir ticaret elde eder ki sermayesi birden bine çıkar.
 
-<script>
-function getBaseChar(ch) {
-    if (!/\p{L}/u.test(ch)) return null;
-    const lower = ch.toLowerCase();
-    const specialMap = { 'ı': 'ı', 'i': 'i', 'ş': 'ş', 'ğ': 'ğ', 'ü': 'ü', 'ö': 'ö', 'ç': 'ç' };
-    if (specialMap[lower]) return specialMap[lower];
-    
-    const norm = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return norm || lower;
-}
+Öteki hizmetkâr bedbaht, serseri olduğundan istasyona kadar yirmi üç altınını sarf eder. Kumara mumara verip zayi eder, bir tek altını kalır. Arkadaşı ona der: “Yahu, şu liranı bir bilete ver. Tâ bu uzun yolda yayan ve aç kalmayasın. Hem bizim efendimiz kerîmdir, belki merhamet eder, ettiğin kusuru affeder. Seni de tayyareye bindirirler. Bir günde mahall-i ikametimize gideriz. Yoksa iki aylık bir çölde aç, yayan, yalnız gitmeye mecbur olursun.”
 
-function analyze() {
-    const text = document.getElementById('input').value;
-    
-    const charsAll = text.length;
-    const spaces = (text.match(/\s/g) || []).length;
-    const charsNoSpace = charsAll - spaces;
-    const sentences = text.trim() ? (text.match(/[^.!?]+[.!?]+(\s|$)/g) || [text.trim()]).length : 0;
+Acaba şu adam inat edip o tek lirasını bir define anahtarı hükmünde olan bir bilete vermeyip muvakkat bir lezzet için sefahete sarf etse; gayet akılsız, zararlı, bedbaht olduğunu, en akılsız adam dahi anlamaz mı?
 
-    const rawWords = text.trim() ? text.trim().toLowerCase().split(/[\s,.;:!?()\[\]{}""''`\/\\<>+=*~|]+/).filter(Boolean) : [];
-    const wordFreq = {};
-    rawWords.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
-    const sortedWords = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]);
+İşte ey namazsız adam ve ey namazdan hoşlanmayan nefsim!
 
-    const charEntries = {};
+O hâkim ise Rabb’imiz, Hâlık’ımızdır. O iki hizmetkâr yolcu ise biri mütedeyyin, namazını şevk ile kılar; diğeri gafil, namazsız insanlardır. O yirmi dört altın ise yirmi dört saat her gündeki ömürdür. O has çiftlik ise cennettir. O istasyon ise kabirdir. O seyahat ise kabre, haşre, ebede gidecek beşer yolculuğudur. Amele göre, takva kuvvetine göre, o uzun yolu mütefavit derecede katederler. Bir kısım ehl-i takva, berk gibi bin senelik yolu bir günde keser. Bir kısmı da hayal gibi elli bin senelik bir mesafeyi bir günde kateder. Kur’an-ı Azîmüşşan, şu hakikate iki âyetiyle işaret eder. O bilet ise namazdır. Bir tek saat, beş vakit namaza abdestle kâfi gelir.
 
-    for (const ch of text) {
-        const base = getBaseChar(ch);
+Acaba yirmi üç saatini şu kısacık hayat-ı dünyeviyeye sarf eden ve o uzun hayat-ı ebediyeye bir tek saatini sarf etmeyen; ne kadar zarar eder, ne kadar nefsine zulmeder, ne kadar hilaf-ı akıl hareket eder. Zira bin adamın iştirak ettiği bir piyango kumarına yarı malını vermek, akıl kabul ederse halbuki kazanç ihtimali binde birdir. Sonra yirmi dörtten bir malını, yüzde doksan dokuz ihtimal ile kazancı musaddak bir hazine-i ebediyeye vermemek; ne kadar hilaf-ı akıl ve hikmet hareket ettiğini, ne kadar akıldan uzak düştüğünü, kendini âkıl zanneden adam anlamaz mı?
 
-        if (base) {
-            const key = `letter_${base}`;
-            if (!charEntries[key]) {
-                charEntries[key] = { isLetterGroup: true, base: base, total: 0, variants: {} };
-            }
-            charEntries[key].total += 1;
-            charEntries[key].variants[ch] = (charEntries[key].variants[ch] || 0) + 1;
-        } else {
-            const key = `char_${ch}`;
-            if (!charEntries[key]) {
-                charEntries[key] = { isLetterGroup: false, char: ch, total: 0 };
-            }
-            charEntries[key].total += 1;
-        }
-    }
-
-    const items = Object.values(charEntries).sort((a, b) => b.total - a.total);
-
-    document.getElementById('c-all').innerText = charsAll.toLocaleString('tr-TR');
-    document.getElementById('c-nospace').innerText = charsNoSpace.toLocaleString('tr-TR');
-    document.getElementById('w-count').innerText = rawWords.length.toLocaleString('tr-TR');
-    document.getElementById('unique-w-count').innerText = sortedWords.length.toLocaleString('tr-TR');
-    document.getElementById('unique-w-badge').innerText = sortedWords.length.toLocaleString('tr-TR');
-    document.getElementById('s-count').innerText = text.trim() ? sentences.toLocaleString('tr-TR') : 0;
-    document.getElementById('space-count').innerText = spaces.toLocaleString('tr-TR');
-    document.getElementById('unique-c-badge').innerText = items.length.toLocaleString('tr-TR');
-
-    document.getElementById('word-list').innerHTML = sortedWords.map(([w, count]) => `
-        <tr><td><span class="badge">${w}</span></td><td><strong>${count.toLocaleString('tr-TR')}</strong></td></tr>
-    `).join('');
-
-    let charHtml = '';
-    items.forEach(item => {
-        if (!item.isLetterGroup) {
-            let desc = 'Normal Karakter';
-            let display = item.char;
-            if (item.char === ' ') { display = 'Boşluk'; desc = 'Space (Boşluk)'; }
-            else if (item.char === '\n') { display = '\\n'; desc = 'Alt Satır (Newline)'; }
-            else if (item.char === '\t') { display = '\\t'; desc = 'Tab'; }
-
-            charHtml += `<tr>
-                <td><span class="badge">${display}</span></td>
-                <td style="color:#64748b">${desc}</td>
-                <td><strong>${item.total.toLocaleString('tr-TR')}</strong></td>
-            </tr>`;
-        } else {
-            const variantKeys = Object.keys(item.variants);
-            const hasSubVariants = variantKeys.length > 1 || !variantKeys.includes(item.base);
-
-            if (hasSubVariants) {
-                charHtml += `<tr class="parent-row">
-                    <td><span class="badge" style="background:#c7d2fe;">${item.base.toUpperCase()} / ${item.base}</span></td>
-                    <td style="color:#4f46e5; font-weight:600;">Harf ve Varyantları Toplamı</td>
-                    <td><strong>${item.total.toLocaleString('tr-TR')}</strong></td>
-                </tr>`;
-                
-                const sortedVars = Object.entries(item.variants).sort((a, b) => b[1] - a[1]);
-                sortedVars.forEach(([v, count]) => {
-                    charHtml += `<tr class="sub-row">
-                        <td>↳ <span class="badge">${v}</span></td>
-                        <td>Varyant Kullanımı</td>
-                        <td>${count.toLocaleString('tr-TR')}</td>
-                    </tr>`;
-                });
-            } else {
-                charHtml += `<tr>
-                    <td><span class="badge">${variantKeys[0]}</span></td>
-                    <td style="color:#64748b">Harf</td>
-                    <td><strong>${item.total.toLocaleString('tr-TR')}</strong></td>
-                </tr>`;
-            }
-        }
-    });
-
-    document.getElementById('char-list').innerHTML = charHtml;
-}
-</script>
-</body>
-</html>
+Halbuki namazda ruhun ve kalbin ve aklın büyük bir rahatı vardır. Hem cisme de o kadar ağır bir iş değildir. Hem namaz kılanın diğer mubah dünyevî amelleri, güzel bir niyet ile ibadet hükmünü alır. Bu surette bütün sermaye-i ömrünü, âhirete mal edebilir. Fâni ömrünü, bir cihette ibka eder.
