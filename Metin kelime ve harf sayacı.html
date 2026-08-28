@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metin, Kelime ve Karakter Analizi</title>
+    <title>Metin, Kelime ve Şapkalı Harf Analizi</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -32,11 +32,13 @@
         .data-table th, .data-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
         .data-table th { background: #f8fafc; color: var(--muted); }
         .badge { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: var(--primary); border-radius: 4px; font-family: monospace; font-weight: bold; }
+        .group-header { background: #f1f5f9; font-weight: 700; color: #1e293b; }
+        .sub-row td { padding-left: 28px; color: #475569; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>Metin & Kelime & Karakter Analizi</h1>
+    <h1>Metin, Kelime & Şapkalı Harf Analizi</h1>
     
     <div class="grid-stats">
         <div class="stat-card"><div class="stat-val" id="c-all">0</div><div class="stat-lbl">Karakter (Boşluklu)</div></div>
@@ -55,6 +57,16 @@
 
     <div class="details-card">
         <details open>
+            <summary>🔤 Harf & Şapkalı/Aksanlı Harf Grupları (<span id="letter-groups-count">0</span> ana harf)</summary>
+            <table class="data-table">
+                <thead><tr><th>Harf / Varyant</th><th>Toplam & Dağılım</th></tr></thead>
+                <tbody id="letter-group-list"></tbody>
+            </table>
+        </details>
+    </div>
+
+    <div class="details-card">
+        <details>
             <summary>📖 Kelime Kullanım Detayları (<span id="unique-w-badge">0</span> farklı kelime)</summary>
             <table class="data-table">
                 <thead><tr><th>Kelime</th><th>Kullanım Sayısı</th></tr></thead>
@@ -65,7 +77,7 @@
 
     <div class="details-card">
         <details>
-            <summary>📊 Karakter Kullanım Detayları (<span id="unique-c-badge">0</span> farklı karakter)</summary>
+            <summary>📊 Tüm Karakter Frekansı (<span id="unique-c-badge">0</span> farklı karakter)</summary>
             <table class="data-table">
                 <thead><tr><th>Karakter</th><th>Açıklama</th><th>Adet</th></tr></thead>
                 <tbody id="char-list"></tbody>
@@ -75,10 +87,19 @@
 </div>
 
 <script>
+function getBaseLetter(char) {
+    const lower = char.toLowerCase();
+    const specialMap = { 'ı': 'ı', 'i': 'i', 'ş': 'ş', 'ğ': 'ğ', 'ü': 'ü', 'ö': 'ö', 'ç': 'ç' };
+    if (specialMap[lower]) return specialMap[lower].toUpperCase();
+    
+    const normalized = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return normalized ? normalized.toUpperCase() : char.toUpperCase();
+}
+
 function analyze() {
     const text = document.getElementById('input').value;
     
-    // Karakterler ve boşluklar
+    // Temel sayaçlar
     const charsAll = text.length;
     const spaces = (text.match(/\s/g) || []).length;
     const charsNoSpace = charsAll - spaces;
@@ -86,36 +107,68 @@ function analyze() {
 
     // Kelime analizi
     const rawWords = text.trim() ? text.trim().toLowerCase().split(/[\s,.;:!?()\[\]{}""''`\/\\<>+=*~|]+/).filter(Boolean) : [];
-    const totalWords = rawWords.length;
-
     const wordFreq = {};
     rawWords.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
     const sortedWords = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]);
 
-    // Karakter analizi
+    // Karakter ve harf gruplama analizi
     const charFreq = {};
-    for (const ch of text) { charFreq[ch] = (charFreq[ch] || 0) + 1; }
-    const sortedChars = Object.entries(charFreq).sort((a, b) => b[1] - a[1]);
+    const letterGroups = {};
 
-    // İstatistik alanları
+    for (const ch of text) {
+        charFreq[ch] = (charFreq[ch] || 0) + 1;
+
+        if (/\p{L}/u.test(ch)) {
+            const base = getBaseLetter(ch);
+            if (!letterGroups[base]) {
+                letterGroups[base] = { total: 0, variants: {} };
+            }
+            letterGroups[base].total += 1;
+            letterGroups[base].variants[ch] = (letterGroups[base].variants[ch] || 0) + 1;
+        }
+    }
+
+    // Arayüz metrikleri
     document.getElementById('c-all').innerText = charsAll.toLocaleString('tr-TR');
     document.getElementById('c-nospace').innerText = charsNoSpace.toLocaleString('tr-TR');
-    document.getElementById('w-count').innerText = totalWords.toLocaleString('tr-TR');
+    document.getElementById('w-count').innerText = rawWords.length.toLocaleString('tr-TR');
     document.getElementById('unique-w-count').innerText = sortedWords.length.toLocaleString('tr-TR');
     document.getElementById('unique-w-badge').innerText = sortedWords.length.toLocaleString('tr-TR');
     document.getElementById('s-count').innerText = text.trim() ? sentences.toLocaleString('tr-TR') : 0;
     document.getElementById('space-count').innerText = spaces.toLocaleString('tr-TR');
-    document.getElementById('unique-c-badge').innerText = sortedChars.length.toLocaleString('tr-TR');
+    document.getElementById('unique-c-badge').innerText = Object.keys(charFreq).length.toLocaleString('tr-TR');
+
+    // Harf grupları tablosu
+    const sortedGroups = Object.entries(letterGroups).sort((a, b) => b[1].total - a[1].total);
+    document.getElementById('letter-groups-count').innerText = sortedGroups.length;
+
+    let groupHtml = '';
+    sortedGroups.forEach(([base, data]) => {
+        groupHtml += `
+            <tr class="group-header">
+                <td><span class="badge" style="background:#c7d2fe;">${base}</span> (Ana Harf)</td>
+                <td><strong>Toplam: ${data.total.toLocaleString('tr-TR')}</strong></td>
+            </tr>
+        `;
+        const sortedVariants = Object.entries(data.variants).sort((a, b) => b[1] - a[1]);
+        sortedVariants.forEach(([variant, count]) => {
+            groupHtml += `
+                <tr class="sub-row">
+                    <td>↳ <span class="badge">${variant}</span></td>
+                    <td>${count.toLocaleString('tr-TR')} adet</td>
+                </tr>
+            `;
+        });
+    });
+    document.getElementById('letter-group-list').innerHTML = groupHtml;
 
     // Kelime tablosu
     document.getElementById('word-list').innerHTML = sortedWords.map(([w, count]) => `
-        <tr>
-            <td><span class="badge">${w}</span></td>
-            <td><strong>${count.toLocaleString('tr-TR')}</strong></td>
-        </tr>
+        <tr><td><span class="badge">${w}</span></td><td><strong>${count.toLocaleString('tr-TR')}</strong></td></tr>
     `).join('');
 
     // Karakter tablosu
+    const sortedChars = Object.entries(charFreq).sort((a, b) => b[1] - a[1]);
     document.getElementById('char-list').innerHTML = sortedChars.map(([ch, count]) => {
         let desc = 'Normal Karakter';
         let display = ch;
