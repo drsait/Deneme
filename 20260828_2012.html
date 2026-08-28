@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASM Harcama Takip</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 p-4 sm:p-6 min-h-screen">
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- Başlık & Ay Seçimi -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold text-slate-900">Aile Sağlığı Merkezi Harcama Takibi</h1>
+        <p class="text-sm text-slate-500">Aylık gider kayıt ve bütçe özeti</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium text-slate-600">Dönem:</label>
+        <input type="month" id="filterMonth" class="border rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+      </div>
+    </div>
+
+    <!-- Yeni Gider Ekleme Formu -->
+    <form id="expenseForm" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Tarih</label>
+        <input type="date" id="date" required class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
+        <select id="category" class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          <option>Tıbbi Sarf</option>
+          <option>Temizlik & Hijyen</option>
+          <option>Kırtasiye & Büro</option>
+          <option>Fatura & Aidat</option>
+          <option>Bakım & Onarım</option>
+          <option>Diğer</option>
+        </select>
+      </div>
+      <div class="lg:col-span-1">
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Açıklama</label>
+        <input type="text" id="desc" placeholder="Örn: Enjektör alımı" required class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Tutar (₺)</label>
+        <input type="number" step="0.01" id="amount" placeholder="0.00" required class="w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition">
+        + Gider Ekle
+      </button>
+    </form>
+
+    <!-- Özet Kartları -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-blue-50 border border-blue-100 p-5 rounded-2xl">
+        <span class="text-xs font-semibold text-blue-600 uppercase">Seçili Ay Toplamı</span>
+        <div id="monthlyTotal" class="text-2xl font-bold text-blue-900 mt-1">₺0,00</div>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl">
+        <span class="text-xs font-semibold text-emerald-600 uppercase">Toplam Kayıt Sayısı</span>
+        <div id="recordCount" class="text-2xl font-bold text-emerald-900 mt-1">0 Adet</div>
+      </div>
+    </div>
+
+    <!-- Harcama Listesi Tablosu -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="p-4 border-b flex justify-between items-center">
+        <h2 class="font-semibold text-slate-800 text-sm">Gider Listesi</h2>
+        <button id="exportBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-md transition">
+          CSV Olarak İndir
+        </button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 text-slate-600 text-xs border-b">
+            <tr>
+              <th class="p-3">Tarih</th>
+              <th class="p-3">Kategori</th>
+              <th class="p-3">Açıklama</th>
+              <th class="p-3 text-right">Tutar</th>
+              <th class="p-3 text-center">İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="expenseList" class="divide-y divide-slate-100 text-slate-700"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let expenses = JSON.parse(localStorage.getItem('asm_expenses')) || [];
+
+    const dateInput = document.getElementById('date');
+    const filterMonth = document.getElementById('filterMonth');
+    const form = document.getElementById('expenseForm');
+    const list = document.getElementById('expenseList');
+    const monthlyTotalEl = document.getElementById('monthlyTotal');
+    const recordCountEl = document.getElementById('recordCount');
+
+    // Varsayılan bugünün tarihi ve ayı
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+    filterMonth.value = today.slice(0, 7);
+
+    function saveData() {
+      localStorage.setItem('asm_expenses', JSON.stringify(expenses));
+      render();
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const expense = {
+        id: Date.now(),
+        date: dateInput.value,
+        category: document.getElementById('category').value,
+        desc: document.getElementById('desc').value,
+        amount: parseFloat(document.getElementById('amount').value)
+      };
+      expenses.unshift(expense);
+      saveData();
+      document.getElementById('desc').value = '';
+      document.getElementById('amount').value = '';
+    });
+
+    function deleteExpense(id) {
+      expenses = expenses.filter(item => item.id !== id);
+      saveData();
+    }
+
+    function render() {
+      const selectedMonth = filterMonth.value;
+      const filtered = expenses.filter(item => item.date.startsWith(selectedMonth));
+      
+      list.innerHTML = '';
+      let total = 0;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Bu ay için henüz harcama kaydı bulunmuyor.</td></tr>`;
+      } else {
+        filtered.forEach(item => {
+          total += item.amount;
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-50 transition';
+          tr.innerHTML = `
+            <td class="p-3 font-mono text-xs">${item.date}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">${item.category}</span></td>
+            <td class="p-3">${item.desc}</td>
+            <td class="p-3 text-right font-semibold">₺${item.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+            <td class="p-3 text-center">
+              <button onclick="deleteExpense(${item.id})" class="text-rose-500 hover:text-rose-700 text-xs font-semibold px-2 py-1 rounded">Sil</button>
+            </td>
+          `;
+          list.appendChild(tr);
+        });
+      }
+
+      monthlyTotalEl.textContent = `₺${total.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
+      recordCountEl.textContent = `${filtered.length} Adet`;
+    }
+
+    filterMonth.addEventListener('change', render);
+
+    // CSV Dışa Aktarma
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      if (!expenses.length) return alert('Dışa aktarılacak veri yok.');
+      let csv = 'Tarih,Kategori,Aciklama,Tutar\n';
+      expenses.forEach(e => {
+        csv += `"${e.date}","${e.category}","${e.desc}",${e.amount}\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `ASM_Giderler_${filterMonth.value}.csv`;
+      link.click();
+    });
+
+    render();
+  </script>
+</body>
+</html>
