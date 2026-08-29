@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Sitesi Yedekleyici ve Arşivleyici</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    :root {
+      --arkaplan: #090d16;
+      --kart-arkaplan: #131c2e;
+      --kenarlik: #24324d;
+      --metin: #f1f5f9;
+      --ikincil-metin: #94a3b8;
+      --vurgu: #2563eb;
+      --vurgu-hover: #1d4ed8;
+      --basari: #10b981;
+      --uyari: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--arkaplan); color: var(--metin); padding: 24px; min-height: 100vh; }
+    .kapsayici { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .kart { background: var(--kart-arkaplan); border: 1px solid var(--kenarlik); border-radius: 12px; padding: 20px; }
+    h1 { font-size: 1.4rem; color: #fff; margin-bottom: 6px; }
+    p.aciklama { font-size: 0.85rem; color: var(--ikincil-metin); margin-bottom: 18px; }
+    .izgara { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--ikincil-metin); margin-bottom: 6px; }
+    input, select {
+      width: 100%; background: #0b111e; border: 1px solid var(--kenarlik);
+      border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 0.875rem; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--vurgu); }
+    .secenek-grubu { display: flex; flex-wrap: wrap; gap: 14px; margin: 14px 0; }
+    .secenek-etiket { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--metin); cursor: pointer; }
+    .secenek-etiket input { width: auto; }
+    .ana-buton {
+      background: var(--vurgu); color: #fff; border: none; border-radius: 8px;
+      padding: 12px 24px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; width: 100%;
+    }
+    .ana-buton:hover { background: var(--vurgu-hover); }
+    .ana-buton:disabled { opacity: 0.5; cursor: not-allowed; }
+    .gunluk-kutusu {
+      background: #060910; border: 1px solid var(--kenarlik); border-radius: 8px;
+      padding: 12px; height: 230px; overflow-y: auto; font-family: monospace; font-size: 0.8rem; color: #38bdf8;
+    }
+    .gunluk-satiri { margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
+    .basarili { color: var(--basari); }
+    .uyari { color: var(--uyari); }
+  </style>
+</head>
+<body>
+<div class="kapsayici">
+  <div class="kart">
+    <h1>Web Sayfası ve Varlık Arşivleyici</h1>
+    <p class="aciklama">2. derece bağlantıları, stilleri (CSS), betikleri (JS), görselleri ve fontları yerel klasör hiyerarşisinde toplayarak kaydeder.</p>
+
+    <div class="izgara">
+      <div style="grid-column: span 2;">
+        <label for="hedefAdres">Hedef Web Adresi (URL)</label>
+        <input id="hedefAdres" type="url" placeholder="https://ornek-site.com" value="https://example.com" />
+      </div>
+      <div>
+        <label for="derinlik">Tarama Derinliği</label>
+        <select id="derinlik">
+          <option value="1">1. Derece (Yalnızca Ana Sayfa)</option>
+          <option value="2" selected>2. Derece (Ana Sayfa + Alt Sayfalar)</option>
+        </select>
+      </div>
+      <div>
+        <label for="sayfaSiniri">Maksimum Sayfa Sayısı</label>
+        <input id="sayfaSiniri" type="number" value="10" min="1" max="50" />
+      </div>
+    </div>
+
+    <div class="izgara">
+      <div>
+        <label for="yedekTuru">Yedekleme Yöntemi</label>
+        <select id="yedekTuru" onchange="githubAlanlariniGoster()">
+          <option value="zip">Klasörlü ZIP Dosyası Olarak İndir</option>
+          <option value="github">Doğrudan GitHub Reposuna Gönder</option>
+        </select>
+      </div>
+      <div id="ghTokenAlan" style="display:none;">
+        <label for="ghToken">GitHub Erişim Belirteci (Token)</label>
+        <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" />
+      </div>
+      <div id="ghRepoAlan" style="display:none;">
+        <label for="ghRepo">Repo Adresi (kullanici/repo-adi)</label>
+        <input id="ghRepo" type="text" placeholder="kullanici/proje" />
+      </div>
+      <div id="ghDalAlan" style="display:none;">
+        <label for="ghDal">GitHub Dalı (Branch)</label>
+        <input id="ghDal" type="text" value="main" />
+      </div>
+    </div>
+
+    <div class="secenek-grubu">
+      <label class="secenek-etiket"><input id="secCss" type="checkbox" checked /> CSS Dosyaları</label>
+      <label class="secenek-etiket"><input id="secJs" type="checkbox" checked /> JavaScript Kodları</label>
+      <label class="secenek-etiket"><input id="secGorsel" type="checkbox" checked /> Görseller ve Favicon</label>
+      <label class="secenek-etiket"><input id="secFont" type="checkbox" checked /> CSS url() Fontları</label>
+      <label class="secenek-etiket"><input id="secCevrimdisi" type="checkbox" checked /> Çevrimdışı Link Dönüştürücü</label>
+    </div>
+
+    <button id="baslatBtn" class="ana-buton" onclick="arsivlemeyiBaslat()">Arşivlemeyi ve İndirmeyi Başlat</button>
+  </div>
+
+  <div class="kart">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <label style="margin: 0;">İşlem ve Klasörleme Durumu</label>
+      <span id="sayacMetni" style="font-size: 0.8rem; color: var(--ikincil-metin);">Hazır</span>
+    </div>
+    <div id="gunlukKutusu" class="gunluk-kutusu"></div>
+  </div>
+</div>
+
+<script>
+  const VEKIL_SUNUCU = "https://api.allorigins.win/raw?url=";
+  let ziyaretEdilenler = new Set();
+  let indirilenVarliklar = new Map();
+
+  function githubAlanlariniGoster() {
+    const ghAktif = document.getElementById("yedekTuru").value === "github";
+    document.getElementById("ghTokenAlan").style.display = ghAktif ? "block" : "none";
+    document.getElementById("ghRepoAlan").style.display = ghAktif ? "block" : "none";
+    document.getElementById("ghDalAlan").style.display = ghAktif ? "block" : "none";
+  }
+
+  function gunlukEkle(mesaj, tip = "") {
+    const kutu = document.getElementById("gunlukKutusu");
+    const div = document.createElement("div");
+    div.className = `gunluk-satiri ${tip}`;
+    div.textContent = `[${new Date().toLocaleTimeString("tr-TR")}] ${mesaj}`;
+    kutu.appendChild(div);
+    kutu.scrollTop = kutu.scrollHeight;
+  }
+
+  async function baglantiGetir(url, yanitTipi = "text") {
+    const vekilUrl = VEKIL_SUNUCU + encodeURIComponent(url);
+    const yanit = await fetch(vekilUrl);
+    if (!yanit.ok) throw new Error(`HTTP ${yanit.status}`);
+    return yanitTipi === "arraybuffer" ? await yanit.arrayBuffer() : await yanit.text();
+  }
+
+  function alanAdiTemizle(urlMetni) {
+    try {
+      return new URL(urlMetni).hostname.replace(/[^a-zA-Z0-9.-]/g, "_");
+    } catch {
+      return "site_arsivi";
+    }
+  }
+
+  function dosyaAdiTemizle(urlMetni, varsayilanUzantı = ".html") {
+    try {
+      const u = new URL(urlMetni);
+      let isim = u.pathname.split("/").filter(Boolean).pop() || "index";
+      if (!isim.includes(".")) isim += varsayilanUzantı;
+      return isim.replace(/[^a-zA-Z0-9._-]/g, "_");
+    } catch {
+      return `dosya_${Date.now()}${varsayilanUzantı}`;
+    }
+  }
+
+  async function arsivlemeyiBaslat() {
+    const baslangicUrl = document.getElementById("hedefAdres").value.trim();
+    const derinlik = parseInt(document.getElementById("derinlik").value);
+    const maksSayfa = parseInt(document.getElementById("sayfaSiniri").value);
+    const yedekTuru = document.getElementById("yedekTuru").value;
+    const buton = document.getElementById("baslatBtn");
+
+    if (!baslangicUrl) { alert("Lütfen geçerli bir web adresi girin."); return; }
+
+    buton.disabled = true;
+    ziyaretEdilenler.clear();
+    indirilenVarliklar.clear();
+    document.getElementById("gunlukKutusu").innerHTML = "";
+
+    const zip = new JSZip();
+    const anaAlanAdi = new URL(baslangicUrl).hostname;
+    const anaKlasor = `${alanAdiTemizle(baslangicUrl)}/`;
+    const klasorZip = zip.folder(anaKlasor.replace(/\/$/, ""));
+
+    gunlukEkle(`Arşivleme başlatıldı: ${baslangicUrl}`);
+    gunlukEkle(`Ana Klasör: /${anaKlasor}`);
+
+    const kuyruk = [{ url: baslangicUrl, derinlik: 1 }];
+    const sayfaHaritasi = new Map();
+
+    while (kuyruk.length > 0 && ziyaretEdilenler.size < maksSayfa) {
+      const guncel = kuyruk.shift();
+      if (ziyaretEdilenler.has(guncel.url)) continue;
+      ziyaretEdilenler.add(guncel.url);
+
+      gunlukEkle(`[${guncel.derinlik}. Derece] İndiriliyor: ${guncel.url}`);
+      document.getElementById("sayacMetni").textContent = `${ziyaretEdilenler.size} sayfa tarandı...`;
+
+      try {
+        const hamHtml = await baglantiGetir(guncel.url, "text");
+        const ayrıştırıcı = new DOMParser();
+        const belge = ayrıştırıcı.parseFromString(hamHtml, "text/html");
+
+        if (guncel.derinlik < derinlik) {
+          const baglantilar = Array.from(belge.querySelectorAll("a[href]"));
+          for (const baglanti of baglantilar) {
+            try {
+              const tamBaglanti = new URL(baglanti.getAttribute("href"), guncel.url).href;
+              const linkNesnesi = new URL(tamBaglanti);
+              if (linkNesnesi.hostname === anaAlanAdi && !ziyaretEdilenler.has(tamBaglanti)) {
+                kuyruk.push({ url: tamBaglanti, derinlik: guncel.derinlik + 1 });
+              }
+            } catch (e) {}
+          }
+        }
+
+        sayfaHaritasi.set(guncel.url, { belge, anaSayfaMi: guncel.url === baslangicUrl });
+      } catch (hata) {
+        gunlukEkle(`Sayfa Hatası (${guncel.url}): ${hata.message}`, "uyari");
+      }
+    }
+
+    gunlukEkle(`Toplam ${sayfaHaritasi.size} sayfa bulundu. Varlıklar toplanıyor...`, "basarili");
+
+    const cevrimdisiAktif = document.getElementById("secCevrimdisi").checked;
+    const alCss = document.getElementById("secCss").checked;
+    const alJs = document.getElementById("secJs").checked;
+    const alGorsel = document.getElementById("secGorsel").checked;
+    const alFont = document.getElementById("secFont").checked;
+
+    for (const [sayfaUrl, { belge, anaSayfaMi }] of sayfaHaritasi) {
+      const yolOnEk = anaSayfaMi ? "./" : "../";
+
+      // CSS Dosyaları
+      if (alCss) {
+        for (const stil of belge.querySelectorAll('link[rel="stylesheet"][href]')) {
+          const href = stil.getAttribute("href");
+          try {
+            const varlikUrl = new URL(href, sayfaUrl).href;
+            const dosyaAdi = dosyaAdiTemizle(varlikUrl, ".css");
+            if (!indirilenVarliklar.has(varlikUrl)) {
+              let cssIcerik = await baglantiGetir(varlikUrl, "text");
+
+              // CSS Font & Arka Plan
+              if (alFont || alGorsel) {
+                const urlEslesmeleri = [...cssIcerik.matchAll(/url\((?:['"]?)(.*?)(?:['"]?)\)/g)];
+                for (const eslesme of urlEslesmeleri) {
+                  const hamYol = eslesme[1];
+                  if (!hamYol.startsWith("data:") && !hamYol.startsWith("#")) {
+                    try {
+                      const icUrl = new URL(hamYol, varlikUrl).href;
+                      const fontMu = /\.(woff2|woff|ttf|eot|otf)/i.test(icUrl);
+                      const altKlasor = fontMu ? "assets/fonts" : "assets/images";
+                      const icDosyaAdi = dosyaAdiTemizle(icUrl, fontMu ? ".woff2" : ".png");
+
+                      if (!indirilenVarliklar.has(icUrl)) {
+                        const ikiliVeri = await baglantiGetir(icUrl, "arraybuffer");
+                        klasorZip.file(`${altKlasor}/${icDosyaAdi}`, ikiliVeri);
+                        indirilenVarliklar.set(icUrl, `${altKlasor}/${icDosyaAdi}`);
+                        gunlukEkle(`Klasöre yazıldı: ${altKlasor}/${icDosyaAdi}`);
+                      }
+                      if (cevrimdisiAktif) {
+                        cssIcerik = cssIcerik.replaceAll(hamYol, `../${fontMu ? 'fonts' : 'images'}/${icDosyaAdi}`);
+                      }
+                    } catch (e) {}
+                  }
+                }
+              }
+
+              klasorZip.file(`assets/css/${dosyaAdi}`, cssIcerik);
+              indirilenVarliklar.set(varlikUrl, `assets/css/${dosyaAdi}`);
+              gunlukEkle(`CSS kaydedildi: assets/css/${dosyaAdi}`);
+            }
+            if (cevrimdisiAktif) stil.setAttribute("href", `${yolOnEk}assets/css/${dosyaAdi}`);
+          } catch (e) {}
+        }
+      }
+
+      // JS Dosyaları
+      if (alJs) {
+        for (const betik of belge.querySelectorAll("script[src]")) {
+          const src = betik.getAttribute("src");
+          try {
+            const varlikUrl = new URL(src, sayfaUrl).href;
+            const dosyaAdi = dosyaAdiTemizle(varlikUrl, ".js");
+            if (!indirilenVarliklar.has(varlikUrl)) {
+              const jsIcerik = await baglantiGetir(varlikUrl, "text");
+              klasorZip.file(`assets/js/${dosyaAdi}`, jsIcerik);
+              indirilenVarliklar.set(varlikUrl, `assets/js/${dosyaAdi}`);
+              gunlukEkle(`JS kaydedildi: assets/js/${dosyaAdi}`);
+            }
+            if (cevrimdisiAktif) betik.setAttribute("src", `${yolOnEk}assets/js/${dosyaAdi}`);
+          } catch (e) {}
+        }
+      }
+
+      // Görseller ve İkonlar
+      if (alGorsel) {
+        for (const resim of belge.querySelectorAll("img[src], link[rel*='icon']")) {
+          const ozellik = resim.hasAttribute("src") ? "src" : "href";
+          const kaynak = resim.getAttribute(ozellik);
+          if (kaynak && !kaynak.startsWith("data:")) {
+            try {
+              const varlikUrl = new URL(kaynak, sayfaUrl).href;
+              const dosyaAdi = dosyaAdiTemizle(varlikUrl, ".png");
+              if (!indirilenVarliklar.has(varlikUrl)) {
+                const veri = await baglantiGetir(varlikUrl, "arraybuffer");
+                klasorZip.file(`assets/images/${dosyaAdi}`, veri);
+                indirilenVarliklar.set(varlikUrl, `assets/images/${dosyaAdi}`);
+                gunlukEkle(`Görsel kaydedildi: assets/images/${dosyaAdi}`);
+              }
+              if (cevrimdisiAktif) resim.setAttribute(ozellik, `${yolOnEk}assets/images/${dosyaAdi}`);
+            } catch (e) {}
+          }
+        }
+      }
+
+      // Bağlantıları Yerelleştir
+      if (cevrimdisiAktif) {
+        for (const a of belge.querySelectorAll("a[href]")) {
+          try {
+            const hedef = new URL(a.getAttribute("href"), sayfaUrl).href;
+            if (sayfaHaritasi.has(hedef)) {
+              const hedefAnaSayfaMi = sayfaHaritasi.get(hedef).anaSayfaMi;
+              const hedefAd = hedefAnaSayfaMi ? "index.html" : dosyaAdiTemizle(hedef, ".html");
+              a.setAttribute("href", hedefAnaSayfaMi ? (anaSayfaMi ? "./index.html" : "../index.html") : (anaSayfaMi ? `./pages/${hedefAd}` : `./${hedefAd}`));
+            }
+          } catch (e) {}
+        }
+      }
+
+      // HTML Sayfasını Klasöre Yaz
+      const ciktiYolu = anaSayfaMi ? "index.html" : `pages/${dosyaAdiTemizle(sayfaUrl, ".html")}`;
+      klasorZip.file(ciktiYolu, "<!DOCTYPE html>\n" + belge.documentElement.outerHTML);
+    }
+
+    // İndirme veya GitHub'a Gönderme
+    if (yedekTuru === "zip") {
+      gunlukEkle("ZIP dosyası oluşturuluyor...");
+      const zipVerisi = await zip.generateAsync({ type: "blob" });
+      saveAs(zipVerisi, `${alanAdiTemizle(baslangicUrl)}_yedek.zip`);
+      gunlukEkle("Yedek ZIP paketi başarıyla indirildi!", "basarili");
+    } else {
+      await githubaGonder(klasorZip, anaKlasor);
+    }
+
+    buton.disabled = false;
+    document.getElementById("sayacMetni").textContent = "Tamamlandı";
+  }
+
+  async function githubaGonder(klasorZip, anaKlasor) {
+    const token = document.getElementById("ghToken").value.trim();
+    const repo = document.getElementById("ghRepo").value.trim();
+    const dal = document.getElementById("ghDal").value.trim() || "main";
+
+    if (!token || !repo) {
+      gunlukEkle("GitHub Token veya Repo alanı eksik!", "uyari");
+      return;
+    }
+
+    gunlukEkle(`GitHub'a aktarılıyor (${repo} -> ${dal})...`);
+    for (const bagilYol in klasorZip.files) {
+      const dosya = klasorZip.files[bagilYol];
+      if (dosya.dir) continue;
+
+      const repoIciYol = `${anaKlasor}${bagilYol}`;
+      const icerikBase64 = await dosya.async("base64");
+
+      try {
+        const kontrolYanit = await fetch(`https://api.github.com/repos/${repo}/contents/${repoIciYol}?ref=${dal}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        let sha = null;
+        if (kontrolYanit.ok) {
+          const json = await kontrolYanit.json();
+          sha = json.sha;
+        }
+
+        const yuklemeYanit = await fetch(`https://api.github.com/repos/${repo}/contents/${repoIciYol}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message: `Yedekleme: ${repoIciYol}`,
+            content: icerikBase64,
+            branch: dal,
+            sha: sha || undefined
+          })
+        });
+
+        if (yuklemeYanit.ok) {
+          gunlukEkle(`GitHub'a yüklendi: ${repoIciYol}`, "basarili");
+        } else {
+          gunlukEkle(`GitHub Hatası (${repoIciYol})`, "uyari");
+        }
+      } catch (hata) {
+        gunlukEkle(`API Hatası (${repoIciYol}): ${hata.message}`, "uyari");
+      }
+    }
+    gunlukEkle("GitHub yükleme işlemi tamamlandı!", "basarili");
+  }
+</script>
+</body>
+</html>
