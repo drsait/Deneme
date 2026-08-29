@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web Sitesi Yedekleyici ve Arşivleyici</title>
+  <title>GitHub Pages Web Yedekleyici - drsait/Deneme</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
@@ -17,12 +17,15 @@
       --vurgu-hover: #1d4ed8;
       --basari: #10b981;
       --uyari: #f59e0b;
+      --ozel-etiket: #8b5cf6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--arkaplan); color: var(--metin); padding: 24px; min-height: 100vh; }
-    .kapsayici { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+    .kapsayici { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
     .kart { background: var(--kart-arkaplan); border: 1px solid var(--kenarlik); border-radius: 12px; padding: 20px; }
-    h1 { font-size: 1.4rem; color: #fff; margin-bottom: 6px; }
+    .baslik-kutusu { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px; }
+    h1 { font-size: 1.35rem; color: #fff; }
+    .hedef-etiket { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid var(--ozel-etiket); padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
     p.aciklama { font-size: 0.85rem; color: var(--ikincil-metin); margin-bottom: 18px; }
     .izgara { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
     label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--ikincil-metin); margin-bottom: 6px; }
@@ -52,45 +55,48 @@
 <body>
 <div class="kapsayici">
   <div class="kart">
-    <h1>Web Sayfası ve Varlık Arşivleyici</h1>
-    <p class="aciklama">2. derece bağlantıları, stilleri (CSS), betikleri (JS), görselleri ve fontları yerel klasör hiyerarşisinde toplayarak kaydeder.</p>
+    <div class="baslik-kutusu">
+      <h1>GitHub Pages Web Yedekleyici</h1>
+      <span class="hedef-etiket">Hedef: drsait / Deneme</span>
+    </div>
+    <p class="aciklama">İndirilen siteleri <code>drsait/Deneme</code> reposunda klasörler halinde depolar. Yüklenen sitelere doğrudan <code>https://drsait.github.io/Deneme/[site-adi]/</code> adresinden erişebilirsiniz.</p>
 
     <div class="izgara">
       <div style="grid-column: span 2;">
-        <label for="hedefAdres">Hedef Web Adresi (URL)</label>
+        <label for="hedefAdres">Kopyalanacak Web Adresi (URL)</label>
         <input id="hedefAdres" type="url" placeholder="https://ornek-site.com" value="https://example.com" />
       </div>
       <div>
         <label for="derinlik">Tarama Derinliği</label>
         <select id="derinlik">
           <option value="1">1. Derece (Yalnızca Ana Sayfa)</option>
-          <option value="2" selected>2. Derece (Ana Sayfa + Alt Sayfalar)</option>
+          <option value="2" selected>2. Derece (Ana Sayfa + Bağlı Sayfalar)</option>
         </select>
       </div>
       <div>
-        <label for="sayfaSiniri">Maksimum Sayfa Sayısı</label>
+        <label for="sayfaSiniri">Maksimum Sayfa</label>
         <input id="sayfaSiniri" type="number" value="10" min="1" max="50" />
       </div>
     </div>
 
     <div class="izgara">
       <div>
-        <label for="yedekTuru">Yedekleme Yöntemi</label>
-        <select id="yedekTuru" onchange="githubAlanlariniGoster()">
-          <option value="zip">Klasörlü ZIP Dosyası Olarak İndir</option>
-          <option value="github">Doğrudan GitHub Reposuna Gönder</option>
+        <label for="yedekTuru">Kaydetme Modu</label>
+        <select id="yedekTuru" onchange="ayarGuncelle()">
+          <option value="github" selected>Doğrudan drsait/Deneme Reposuna Yükle</option>
+          <option value="zip">Klasörlü ZIP Olarak Bilgisayara İndir</option>
         </select>
       </div>
-      <div id="ghTokenAlan" style="display:none;">
-        <label for="ghToken">GitHub Erişim Belirteci (Token)</label>
-        <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" />
+      <div id="ghTokenAlan">
+        <label for="ghToken">GitHub Personal Access Token (PAT)</label>
+        <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
       </div>
-      <div id="ghRepoAlan" style="display:none;">
-        <label for="ghRepo">Repo Adresi (kullanici/repo-adi)</label>
-        <input id="ghRepo" type="text" placeholder="kullanici/proje" />
+      <div id="ghRepoAlan">
+        <label for="ghRepo">Repo</label>
+        <input id="ghRepo" type="text" value="drsait/Deneme" />
       </div>
-      <div id="ghDalAlan" style="display:none;">
-        <label for="ghDal">GitHub Dalı (Branch)</label>
+      <div id="ghDalAlan">
+        <label for="ghDal">Branch</label>
         <input id="ghDal" type="text" value="main" />
       </div>
     </div>
@@ -100,15 +106,15 @@
       <label class="secenek-etiket"><input id="secJs" type="checkbox" checked /> JavaScript Kodları</label>
       <label class="secenek-etiket"><input id="secGorsel" type="checkbox" checked /> Görseller ve Favicon</label>
       <label class="secenek-etiket"><input id="secFont" type="checkbox" checked /> CSS url() Fontları</label>
-      <label class="secenek-etiket"><input id="secCevrimdisi" type="checkbox" checked /> Çevrimdışı Link Dönüştürücü</label>
+      <label class="secenek-etiket"><input id="secCevrimdisi" type="checkbox" checked /> Çevrimdışı / Pages Link Dönüştürücü</label>
     </div>
 
-    <button id="baslatBtn" class="ana-buton" onclick="arsivlemeyiBaslat()">Arşivlemeyi ve İndirmeyi Başlat</button>
+    <button id="baslatBtn" class="ana-buton" onclick="arsivlemeyiBaslat()">Arşivlemeyi ve GitHub'a Yüklemeyi Başlat</button>
   </div>
 
   <div class="kart">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-      <label style="margin: 0;">İşlem ve Klasörleme Durumu</label>
+      <label style="margin: 0;">İşlem Akışı ve Canlı Durum</label>
       <span id="sayacMetni" style="font-size: 0.8rem; color: var(--ikincil-metin);">Hazır</span>
     </div>
     <div id="gunlukKutusu" class="gunluk-kutusu"></div>
@@ -120,7 +126,7 @@
   let ziyaretEdilenler = new Set();
   let indirilenVarliklar = new Map();
 
-  function githubAlanlariniGoster() {
+  function ayarGuncelle() {
     const ghAktif = document.getElementById("yedekTuru").value === "github";
     document.getElementById("ghTokenAlan").style.display = ghAktif ? "block" : "none";
     document.getElementById("ghRepoAlan").style.display = ghAktif ? "block" : "none";
@@ -178,11 +184,11 @@
 
     const zip = new JSZip();
     const anaAlanAdi = new URL(baslangicUrl).hostname;
-    const anaKlasor = `${alanAdiTemizle(baslangicUrl)}/`;
-    const klasorZip = zip.folder(anaKlasor.replace(/\/$/, ""));
+    const siteKlasoru = `${alanAdiTemizle(baslangicUrl)}/`;
+    const klasorZip = zip.folder(siteKlasoru.replace(/\/$/, ""));
 
     gunlukEkle(`Arşivleme başlatıldı: ${baslangicUrl}`);
-    gunlukEkle(`Ana Klasör: /${anaKlasor}`);
+    gunlukEkle(`Hedef Klasör Yolu: ${siteKlasoru}`);
 
     const kuyruk = [{ url: baslangicUrl, derinlik: 1 }];
     const sayfaHaritasi = new Map();
@@ -219,7 +225,7 @@
       }
     }
 
-    gunlukEkle(`Toplam ${sayfaHaritasi.size} sayfa bulundu. Varlıklar toplanıyor...`, "basarili");
+    gunlukEkle(`Toplam ${sayfaHaritasi.size} sayfa ayrıştırıldı. Varlıklar toplanıyor...`, "basarili");
 
     const cevrimdisiAktif = document.getElementById("secCevrimdisi").checked;
     const alCss = document.getElementById("secCss").checked;
@@ -240,7 +246,6 @@
             if (!indirilenVarliklar.has(varlikUrl)) {
               let cssIcerik = await baglantiGetir(varlikUrl, "text");
 
-              // CSS Font & Arka Plan
               if (alFont || alGorsel) {
                 const urlEslesmeleri = [...cssIcerik.matchAll(/url\((?:['"]?)(.*?)(?:['"]?)\)/g)];
                 for (const eslesme of urlEslesmeleri) {
@@ -256,7 +261,7 @@
                         const ikiliVeri = await baglantiGetir(icUrl, "arraybuffer");
                         klasorZip.file(`${altKlasor}/${icDosyaAdi}`, ikiliVeri);
                         indirilenVarliklar.set(icUrl, `${altKlasor}/${icDosyaAdi}`);
-                        gunlukEkle(`Klasöre yazıldı: ${altKlasor}/${icDosyaAdi}`);
+                        gunlukEkle(`Klasöre eklendi: ${altKlasor}/${icDosyaAdi}`);
                       }
                       if (cevrimdisiAktif) {
                         cssIcerik = cssIcerik.replaceAll(hamYol, `../${fontMu ? 'fonts' : 'images'}/${icDosyaAdi}`);
@@ -268,14 +273,14 @@
 
               klasorZip.file(`assets/css/${dosyaAdi}`, cssIcerik);
               indirilenVarliklar.set(varlikUrl, `assets/css/${dosyaAdi}`);
-              gunlukEkle(`CSS kaydedildi: assets/css/${dosyaAdi}`);
+              gunlukEkle(`CSS eklendi: assets/css/${dosyaAdi}`);
             }
             if (cevrimdisiAktif) stil.setAttribute("href", `${yolOnEk}assets/css/${dosyaAdi}`);
           } catch (e) {}
         }
       }
 
-      // JS Dosyaları
+      // JS Kodları
       if (alJs) {
         for (const betik of belge.querySelectorAll("script[src]")) {
           const src = betik.getAttribute("src");
@@ -286,7 +291,7 @@
               const jsIcerik = await baglantiGetir(varlikUrl, "text");
               klasorZip.file(`assets/js/${dosyaAdi}`, jsIcerik);
               indirilenVarliklar.set(varlikUrl, `assets/js/${dosyaAdi}`);
-              gunlukEkle(`JS kaydedildi: assets/js/${dosyaAdi}`);
+              gunlukEkle(`JS eklendi: assets/js/${dosyaAdi}`);
             }
             if (cevrimdisiAktif) betik.setAttribute("src", `${yolOnEk}assets/js/${dosyaAdi}`);
           } catch (e) {}
@@ -306,7 +311,7 @@
                 const veri = await baglantiGetir(varlikUrl, "arraybuffer");
                 klasorZip.file(`assets/images/${dosyaAdi}`, veri);
                 indirilenVarliklar.set(varlikUrl, `assets/images/${dosyaAdi}`);
-                gunlukEkle(`Görsel kaydedildi: assets/images/${dosyaAdi}`);
+                gunlukEkle(`Görsel eklendi: assets/images/${dosyaAdi}`);
               }
               if (cevrimdisiAktif) resim.setAttribute(ozellik, `${yolOnEk}assets/images/${dosyaAdi}`);
             } catch (e) {}
@@ -328,32 +333,30 @@
         }
       }
 
-      // HTML Sayfasını Klasöre Yaz
       const ciktiYolu = anaSayfaMi ? "index.html" : `pages/${dosyaAdiTemizle(sayfaUrl, ".html")}`;
       klasorZip.file(ciktiYolu, "<!DOCTYPE html>\n" + belge.documentElement.outerHTML);
     }
 
-    // İndirme veya GitHub'a Gönderme
     if (yedekTuru === "zip") {
-      gunlukEkle("ZIP dosyası oluşturuluyor...");
+      gunlukEkle("ZIP dosyası paketleniyor...");
       const zipVerisi = await zip.generateAsync({ type: "blob" });
-      saveAs(zipVerisi, `${alanAdiTemizle(baslangicUrl)}_yedek.zip`);
+      saveAs(zipVerisi, `${alanAdiTemizle(baslangicUrl)}_arsiv.zip`);
       gunlukEkle("Yedek ZIP paketi başarıyla indirildi!", "basarili");
     } else {
-      await githubaGonder(klasorZip, anaKlasor);
+      await githubaGonder(klasorZip, siteKlasoru);
     }
 
     buton.disabled = false;
     document.getElementById("sayacMetni").textContent = "Tamamlandı";
   }
 
-  async function githubaGonder(klasorZip, anaKlasor) {
+  async function githubaGonder(klasorZip, siteKlasoru) {
     const token = document.getElementById("ghToken").value.trim();
     const repo = document.getElementById("ghRepo").value.trim();
     const dal = document.getElementById("ghDal").value.trim() || "main";
 
-    if (!token || !repo) {
-      gunlukEkle("GitHub Token veya Repo alanı eksik!", "uyari");
+    if (!token) {
+      gunlukEkle("Hata: GitHub Token (PAT) girilmedi!", "uyari");
       return;
     }
 
@@ -362,7 +365,7 @@
       const dosya = klasorZip.files[bagilYol];
       if (dosya.dir) continue;
 
-      const repoIciYol = `${anaKlasor}${bagilYol}`;
+      const repoIciYol = `${siteKlasoru}${bagilYol}`;
       const icerikBase64 = await dosya.async("base64");
 
       try {
@@ -392,13 +395,13 @@
         if (yuklemeYanit.ok) {
           gunlukEkle(`GitHub'a yüklendi: ${repoIciYol}`, "basarili");
         } else {
-          gunlukEkle(`GitHub Hatası (${repoIciYol})`, "uyari");
+          gunlukEkle(`Yükleme Hatası (${repoIciYol})`, "uyari");
         }
       } catch (hata) {
         gunlukEkle(`API Hatası (${repoIciYol}): ${hata.message}`, "uyari");
       }
     }
-    gunlukEkle("GitHub yükleme işlemi tamamlandı!", "basarili");
+    gunlukEkle(`Yükleme tamamlandı! Sayfa adresiniz: https://drsait.github.io/Deneme/${siteKlasoru}`, "basarili");
   }
 </script>
 </body>
