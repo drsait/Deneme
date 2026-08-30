@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Niyokki Mardin Antik Kent | Dijital Menü</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #007514;
+      --primary-dark: #005a10;
+      --primary-light: #e8f5e9;
+      --accent: #ff9800;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Quicksand', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      padding-bottom: 70px;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #ffffff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+    }
+
+    .header-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-badge {
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    /* Search Bar */
+    .search-box {
+      padding: 10px 16px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: #f1f5f9;
+      font-size: 0.95rem;
+      outline: none;
+      position: relative;
+    }
+
+    .search-wrapper {
+      position: relative;
+    }
+
+    .search-wrapper svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    /* Category Slider */
+    .category-nav {
+      position: sticky;
+      top: 56px;
+      z-index: 40;
+      background: var(--primary);
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .category-nav::-webkit-scrollbar { display: none; }
+
+    .category-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.85);
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .category-btn.active, .category-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.15);
+      border-bottom: 3px solid #ffffff;
+    }
+
+    /* Menu Container */
+    .menu-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      background: var(--primary);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      margin: 24px 0 14px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+    }
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    /* Product Card */
+    .product-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .card-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/2;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .card-img-wrap svg {
+      width: 48px;
+      height: 48px;
+      opacity: 0.75;
+    }
+
+    .new-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: #22c55e;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .price-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    }
+
+    .card-content {
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: white;
+      max-width: 450px;
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+      animation: pop 0.2s ease-out;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      position: relative;
+      background: var(--primary-light);
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .modal-body {
+      padding: 16px 20px 24px;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .modal-price {
+      color: var(--primary);
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .modal-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <button class="header-btn" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Başa Dön">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="logo-container">
+      <div class="logo-badge">NIYOKKI</div>
+    </div>
+    <div style="width: 36px;"></div>
+  </header>
+
+  <!-- Search -->
+  <div class="search-box">
+    <div class="search-wrapper">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Menüde ara (makarna, pizza, kahve...)" oninput="filterMenu()">
+    </div>
+  </div>
+
+  <!-- Category Nav -->
+  <nav class="category-nav" id="catNav"></nav>
+
+  <!-- Menu Content -->
+  <main class="menu-container" id="menuContainer"></main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal" onclick="closeModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div id="modalIcon"></div>
+      </div>
+      <div class="modal-body">
+        <h3 class="modal-title" id="modalTitle"></h3>
+        <div class="modal-price" id="modalPrice"></div>
+        <p class="modal-desc" id="modalDesc"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const icons = {
+      soup: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M8 32c0 14 10 24 24 24s24-10 24-24H8z"/><path d="M6 32h52M22 18c0-4 4-8 4-8s4 4 4 8M34 18c0-4 4-8 4-8s4 4 4 8M18 56h28"/></svg>`,
+      pasta: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M12 36c0 12 8 20 20 20s20-8 20-20H12z"/><path d="M20 24q6 12 12 0t12 0"/><path d="M16 28q8 12 16 0t16 0"/><path d="M10 36h44"/></svg>`,
+      pizza: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M32 8L10 52a40 40 0 0 0 44 0L32 8z"/><circle cx="32" cy="30" r="3" fill="#007514"/><circle cx="26" cy="42" r="3" fill="#007514"/><circle cx="38" cy="40" r="3" fill="#007514"/></svg>`,
+      sushi: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><rect x="14" y="20" width="36" height="24" rx="12"/><circle cx="32" cy="32" r="6" fill="#007514"/></svg>`,
+      burger: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M16 28a16 16 0 0 1 32 0H16z"/><rect x="14" y="32" width="36" height="4" rx="2" fill="#007514"/><path d="M16 40h32a6 6 0 0 1-6 6H22a6 6 0 0 1-6-6z"/></svg>`,
+      drink: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M18 16l6 36h16l6-36H18z"/><path d="M14 16h36M36 10l-4 6"/></svg>`,
+      coffee: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M14 20h28v20a10 10 0 0 1-10 10H24a10 10 0 0 1-10-10V20z"/><path d="M42 26h6a5 5 0 0 1 0 10h-6M10 54h36"/></svg>`,
+      salad: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M12 30c0 14 9 24 20 24s20-10 20-24H12z"/><path d="M22 24c4-4 10-4 10 6M34 22c3-5 8-4 8 8"/></svg>`,
+      market: `<svg viewBox="0 0 64 64" fill="none" stroke="#007514" stroke-width="3"><path d="M12 20h40l-4 28H16L12 20z"/><path d="M24 20v-6a8 8 0 0 1 16 0v6"/></svg>`
+    };
+
+    const menuData = [
+      {
+        category: "Aperatifler",
+        icon: "soup",
+        items: [
+          { name: "211-Kremalı Porçini Mantar Çorbası", price: "260₺", desc: "Kremalı mantar çorbası, kruton ekmek ile", isNew: false },
+          { name: "Zuppa Fresh Çorba", price: "260₺", desc: "Fregola zerdeçallı, süzme yoğurt, dereotu, sarımsak, nane kuru, zeytinyağ, ceviz, toz kırmızı biber", isNew: true },
+          { name: "Otlu Peynirli Kızarmış Palle", price: "310₺", desc: "Kadayıf kaplamalı mozzarella ve maydanozlu lezzet topları, pesto sos ile", isNew: true },
+          { name: "Cheddar Dolgulu Kızarmış Palle", price: "330₺", desc: "Kadayıf kaplamalı, cheddar dolgulu lezzet topları, tatlı ekşi sos ile", isNew: true },
+          { name: "Jalapeno ve Peynir Dolgulu Kızarmış Palle", price: "340₺", desc: "Kadayıf kaplamalı jalapeno ve peynir dolgulu lezzet topları, kokteyl sos ile", isNew: true },
+          { name: "Edamame", price: "345₺", desc: "Soya fasulyesi, atıştırmalık kaya tuzu ile servis edilir. İsteğe göre acılı sunulur.", isNew: true },
+          { name: "Niyokki Mix Peynir Sticks", price: "350₺", desc: "4 adet cheddarlı, 4 adet mozzarellalı, pesto sos ile", isNew: true },
+          { name: "213-Bruschetta Mozzarella (4 Dilim)", price: "350₺", desc: "Rende mozzarella peyniri, pesto sos, kuru domates, roka, cherry domates ve parmesan peyniri", isNew: false },
+          { name: "214-Bruschetta Füme Kaburga (4 Dilim)", price: "390₺", desc: "Füme kaburga dilimleri, hellim peyniri, roka, cherry domates ve parmesan peyniri", isNew: false },
+          { name: "216-Bruschetta Füme Somon (4 Dilim)", price: "410₺", desc: "Füme somon, labne, avokado, kapari, roka, cherry domates ve parmesan peyniri", isNew: false },
+          { name: "217-Capresse Mozzarella", price: "450₺", desc: "Suda mozzarella peyniri, dilim domates, roka pesto sos ile", isNew: false },
+          { name: "219-Tavuk Mongola", price: "460₺", desc: "Frita edilmiş ve biber ezmesi ile kaplanmış kalça tavuk, rock’n roll sos", isNew: false },
+          { name: "223-Patates Tava", price: "250₺", desc: "Kızarmış parmak patates, kajun baharatı", isNew: false },
+          { name: "224-Cheddar Soslu Patates Tava", price: "265₺", desc: "Kızarmış parmak patates, kajun baharatı, cheddar sos ile", isNew: false },
+          { name: "Corn Tempura", price: "340₺", desc: "Tempura edilmiş taze mısır taneleri, trüf mayonez sos ile", isNew: false },
+          { name: "Karides Tempura", price: "580₺", desc: "Tempura edilmiş jumbo karides, rock'n roll sos ile", isNew: false },
+          { name: "Niyokki Mix Sepeti", price: "440₺", desc: "Sosis, soğan halkası, çıtır tavuk topları, parmak patates kızartması", isNew: false }
+        ]
+      },
+      {
+        category: "Mac'n Cheese",
+        icon: "pasta",
+        items: [
+          { name: "117-Burger Mac", price: "550₺", desc: "Sedani makarna, kavrulmuş dana kıyma, beşamel, muskat, cheddar sos, kibrit patates, karamelize soğan, krema, mozzarella", isNew: false },
+          { name: "116-Cheddar Mac", price: "500₺", desc: "Sedani makarna, cheddar sos, muskat, beşamel, rende mozzarella, kibrit patates, krema", isNew: false },
+          { name: "120-Çıtır Tavuklu Mac", price: "520₺", desc: "Sedani makarna, çıtır tavuk topları, cheddar sos, krema, beşamel, kibrit patates", isNew: false },
+          { name: "127-Dana Antrikotlu Mac", price: "600₺", desc: "Sedani makarna, dana antrikot, cheddar sos, beşamel, kibrit patates, mozzarella", isNew: false },
+          { name: "Beş Peynirli Mac", price: "515₺", desc: "Sedani makarna, parmesan, mozzarella, labne, tulum peyniri, cheddar sos", isNew: false },
+          { name: "126-Izgara Tavuk Mac", price: "520₺", desc: "Sedani makarna, ızgara tavuk, beşamel, cheddar sos, krema, kibrit patates", isNew: false },
+          { name: "128-Misket Köfteli Mac", price: "545₺", desc: "Sedani makarna, misket köfte, cheddar sos, rende mozzarella, beşamel", isNew: false },
+          { name: "Tandırlı Mac", price: "610₺", desc: "Sedani makarna, fırınlanmış dana tandır eti, cheddar sos, rende mozzarella", isNew: false },
+          { name: "Kavurmalı Mac", price: "600₺", desc: "Sedani makarna, dana kavurma, cheddar sos, rende mozzarella, beşamel", isNew: false },
+          { name: "Beş Mantarlı Mac", price: "550₺", desc: "Sedani makarna, cheddar sos, 5 mantar mix (nameko, shitake, trumpet, istiridye, kayın), sarımsak", isNew: true },
+          { name: "Lolita Tavuklu Mac", price: "520₺", desc: "Sedani makarna, cheddar sos, tavuk döner, misket domates, iskender sosu", isNew: true },
+          { name: "Miskender Mac", price: "570₺", desc: "Sedani makarna, cheddar sos, et döner (100 gr), rende mozzarella, iskender sosu", isNew: true },
+          { name: "General Tavuklu Mac", price: "530₺", desc: "Sedani makarna, cheddar sos, tavuk göğüs, mozzarella, genova sos", isNew: true }
+        ]
+      },
+      {
+        category: "Güveç Makarnalar",
+        icon: "pasta",
+        items: [
+          { name: "Amatriciana Usulü Sedani", price: "660₺", desc: "Sedani, dana füme, San Marzano sos, acı biber ezmesi, mozzarella", isNew: true },
+          { name: "Pastırmalı Gigli", price: "660₺", desc: "Sedani, çemensiz pastırma, labne peynir, tereyağ, mozzarella, beşamel", isNew: true },
+          { name: "Kavurmalı Buratta", price: "660₺", desc: "Sedani, dana kavurma, labne, sarımsak, rende mozzarella, beşamel", isNew: true },
+          { name: "Rimini Çaça", price: "600₺", desc: "Sedani, köri toz, tavuk göğüs, mantar, mozzarella, krema", isNew: true },
+          { name: "Toskana Usulü Tavuk Dönerli Sedani", price: "610₺", desc: "Sedani, tavuk döner, Toskano sos, mozzarella, San Marzano sos", isNew: true },
+          { name: "Dana Antrikotlu Sedani", price: "650₺", desc: "Sedani, dana antrikot, acı biber ezmesi, mozzarella, San Marzano sos", isNew: true },
+          { name: "Çıtır Tavuklu Sedani", price: "600₺", desc: "Sedani, tavuk göğüs, sıvı krema, labne peynir, mozzarella", isNew: true },
+          { name: "Tepsi Tandır Etli Sedani", price: "680₺", desc: "Sedani, dana tandırlık et, sarımsak, mozzarella, beşamel", isNew: true },
+          { name: "Et Dönerli Güveç Sedani", price: "640₺", desc: "Sedani, et döner, Toskano sos, mozzarella, San Marzano sos", isNew: true }
+        ]
+      },
+      {
+        category: "Niyokki (Gnocchi)",
+        icon: "pasta",
+        items: [
+          { name: "Tavuk Mantarlı Niyokki", price: "570₺", desc: "Niyokki, bitkisel krema, kültür mantarı, piliç bonfile, muskat, parmesan", isNew: false },
+          { name: "Bolonez Soslu Niyokki", price: "610₺", desc: "Örgü niyokki, dana kıyma, biberler, ev yapımı domates sos, sarımsak", isNew: false },
+          { name: "Antrikotlu Bibita", price: "640₺", desc: "Kalem niyokki, dana eti, kuru soğan, biberler, soya sos, tereyağ", isNew: false },
+          { name: "Çıtır Tavuklu Niyokki", price: "570₺", desc: "Niyokki, çıtır tavuk, bitkisel krema, muskat, mozzarella", isNew: false },
+          { name: "Dilediğin Sos İle Niyokki", price: "460₺", desc: "Dört Peynir / Pesto / Köz Patlıcan / Napoliten / Krema Mantar / Arabiatta / Cheddar sos seçenekleriyle", isNew: false },
+          { name: "Acılı Antrikotlu Niyokki", price: "645₺", desc: "Niyokki, istiridye mantarı, hot chili sos, dilim antrikot", isNew: false },
+          { name: "Biftekli Cheddarlı Niyokki", price: "640₺", desc: "Klasik niyokki, dana biftek, cheddar sos, krema, parmesan", isNew: false },
+          { name: "Tandır Etli Niyokki", price: "670₺", desc: "Klasik niyokki, fırınlanmış dana tandır eti, ev yapımı domates sos", isNew: false },
+          { name: "Karidesli Somonlu Niyokki", price: "680₺", desc: "Niyokki, jumbo karides, somon kırıntı, sebzeler, rock'n roll sos", isNew: true },
+          { name: "Kajun Tavuklu Teriyaki Soslu Niyokki", price: "570₺", desc: "Niyokki, tavuk bonfile, sebzeler, teriyaki sos", isNew: true },
+          { name: "Çıtır Et Dönerli Niyokki", price: "640₺", desc: "Niyokki, yoğurt, iskender sos, et döner, tereyağ", isNew: true },
+          { name: "Çıtır Tavuk Dönerli Niyokki", price: "570₺", desc: "Niyokki, yoğurt, iskender sos, tavuk döner, tereyağ", isNew: true },
+          { name: "Beş Mantarlı Niyokki", price: "560₺", desc: "Niyokki, 5 mantar mix, Milano sos, baharatlar", isNew: true }
+        ]
+      },
+      {
+        category: "Pizzalar",
+        icon: "pizza",
+        items: [
+          { name: "BBQ Tavuklu Pizza", price: "570₺", desc: "Pizza sos, mozzarella, tane mısır, kırmızı soğan, ızgara tavuk, bbq sos", isNew: false },
+          { name: "Dana Antrikotlu Pizza", price: "650₺", desc: "Pizza sos, mozzarella, karamelize soğan, dana antrikot, roka", isNew: false },
+          { name: "Dört Peynirli (Quattro Formaggi)", price: "560₺", desc: "Pizza sos, mozzarella, ricotta, cheddar, parmesan peyniri", isNew: false },
+          { name: "Tandır Etli Pizza", price: "660₺", desc: "Pizza sos, dana tandır, mozzarella, taze soğan, turşu, roka", isNew: false },
+          { name: "Kavurmalı Pizza", price: "660₺", desc: "Pizza sos, dana kavurma, kapya biber, mozzarella, kornişon turşu", isNew: false },
+          { name: "Karidesli Pizza", price: "660₺", desc: "Pizza sos, çimçim karides, kapari, kırmızı soğan, mozzarella", isNew: false },
+          { name: "Füme Kaburgalı Pizza", price: "660₺", desc: "Pizza sos, mozzarella, dana kaburga füme, parmesan, roka", isNew: false },
+          { name: "Margherita Pizza", price: "550₺", desc: "Pizza sos, mozzarella, cherry domates, pesto sos", isNew: false },
+          { name: "Şarküteri Pizza", price: "595₺", desc: "Pizza sos, mozzarella, dana salam, dana sosis, dana sucuk, zeytin, mısır", isNew: false },
+          { name: "Çıtır Tavuklu Kajun Pizza", price: "575₺", desc: "Pizza sos, mozzarella, tavuk bonfile, rock'n roll sos, taze soğan", isNew: true },
+          { name: "Beş Mantarlı Etna Pizza", price: "560₺", desc: "Pizza sos, mozzarella, 5 mantar mix, kapya biber, roka", isNew: true },
+          { name: "Et Dönerli Lucca Pizza", price: "630₺", desc: "Pizza sos, mozzarella, et döner, aspava sos, tereyağ", isNew: true },
+          { name: "Tavuk Dönerli Grande Pizza", price: "570₺", desc: "Pizza sos, mozzarella, tavuk döner, aspava sos, tereyağ", isNew: true }
+        ]
+      },
+      {
+        category: "Mama Mia Sushi",
+        icon: "sushi",
+        items: [
+          { name: "California Roll", price: "505₺", desc: "Karides, yengeç surimi, avokado, salatalık, mayonez, susam", isNew: false },
+          { name: "Crazy Chef Roll", price: "490₺", desc: "Salatalık, krem peynir, karides, yengeç, havuç, çıtır patates", isNew: false },
+          { name: "Philadelphia Roll", price: "500₺", desc: "Krem peynir, yengeç, somon, salatalık, crazy sos", isNew: false },
+          { name: "Crunch Roll", price: "475₺", desc: "Salatalık, havuç, aysberg, somon, tempura çıtır kaplama", isNew: false },
+          { name: "Kyoto California Roll", price: "515₺", desc: "Yengeç, mayonez, salatalık, avokado, turuncu tobiko havyar", isNew: false },
+          { name: "Akinato Roll", price: "515₺", desc: "Yengeç, somon, havuç, salatalık, yeşil tobiko havyar", isNew: false },
+          { name: "Dragon Pink Roll", price: "505₺", desc: "Pembe yosun yaprağı, karides, salatalık, havuç, krem peynir, avokado", isNew: false },
+          { name: "Chiba Roll", price: "535₺", desc: "Sarı soya kağıdı, tempura karides, krem peynir, trüf mayonez, çıtır patates", isNew: true },
+          { name: "Ebi Nigiri", price: "290₺", desc: "Pirinç, karides, yosun, wasabi, zencefil turşusu", isNew: true },
+          { name: "Green Dragon Roll", price: "530₺", desc: "Yengeç salatası, avokado, yeşil panko, füme somon, rock'n roll sos", isNew: true },
+          { name: "Sake Avokado Nigiri", price: "280₺", desc: "Pirinç, somon, avokado, yosun, wasabi", isNew: true },
+          { name: "Süper Rock'n Roll", price: "530₺", desc: "Pirinç, yengeç, avokado, krem peynir, teriyaki, somon, kırmızı panko", isNew: true }
+        ]
+      },
+      {
+        category: "Bun & Burger",
+        icon: "burger",
+        items: [
+          { name: "Dana Antrikotlu Bun", price: "510₺", desc: "Bun ekmeği (2 adet), dana antrikot, kıvırcık, domates, turşu, patates tava", isNew: true },
+          { name: "Dana Tandırlı Bun", price: "520₺", desc: "Bun ekmeği (2 adet), dana tandır, rock'n roll sos, turşu, patates tava", isNew: true },
+          { name: "Tavuklu Lolita Bun", price: "460₺", desc: "Bun ekmeği (2 adet), tavuk döner, aspava sos, yeşillik, patates tava", isNew: true },
+          { name: "Çıtır Tavuklu Bun", price: "460₺", desc: "Bun ekmeği (2 adet), tavuk bonfile, rock'n roll sos, patates tava", isNew: true },
+          { name: "Chicken Burger Bun", price: "465₺", desc: "Bun burger ekmeği (2 adet), tavuk bonfile, aspava sos, patates tava", isNew: true }
+        ]
+      },
+      {
+        category: "Salatalar",
+        icon: "salad",
+        items: [
+          { name: "Didikli Tavuk Salatası", price: "460₺", desc: "Mevsim yeşilliği, didilmiş tavuk eti, mısır, zeytin, cherry domates, limon sos", isNew: false },
+          { name: "Izgara Tavuklu Salata", price: "485₺", desc: "Mevsim yeşilliği, ızgara tavuk bonfile, közlenmiş biber, balzamik sos", isNew: false },
+          { name: "Izgara Biftek Salata", price: "535₺", desc: "Mevsim yeşilliği, ızgara biftek, köz biber, çeri domates, zeytinyağ", isNew: false },
+          { name: "Roka Tulum Salata", price: "445₺", desc: "Roka yaprakları, kuru domates, tulum peyniri, ceviz içi, balzamik sirke", isNew: false },
+          { name: "Ton Balıklı Salata", price: "485₺", desc: "Mevsim yeşilliği, ton balığı, mısır, kırmızı soğan, turşu, limon", isNew: false },
+          { name: "Sezar Salata", price: "490₺", desc: "Mevsim yeşilliği, ızgara tavuk, sezar sos, kruton ekmek, parmesan", isNew: false },
+          { name: "Keçi Peynirli Sicilya Salatası", price: "485₺", desc: "Karışık yeşillik, keçi peyniri, köz kapya, ceviz, susam, özel sos", isNew: true }
+        ]
+      },
+      {
+        category: "İçecekler & Kahveler",
+        icon: "drink",
+        items: [
+          { name: "Demleme Çay", price: "45₺", desc: "Taze demlenmiş geleneksel çay", isNew: false },
+          { name: "Türk Kahvesi", price: "140₺", desc: "Geleneksel közde pişirilmiş Türk kahvesi", isNew: false },
+          { name: "Espresso", price: "120₺", desc: "Tek shot yoğun İtalyan espressosu", isNew: false },
+          { name: "Americano", price: "145₺", desc: "Espresso ve sıcak su", isNew: false },
+          { name: "Caffe Latte", price: "150₺", desc: "Espresso ve kadifemsi sıcak süt", isNew: false },
+          { name: "Ice Latte", price: "175₺", desc: "Buzlu süt ve espresso ferahlığı", isNew: false },
+          { name: "Ice Caramel Macchiato", price: "175₺", desc: "Karamel soslu soğuk latte keyfi", isNew: false },
+          { name: "Taze Portakal Suyu", price: "180₺", desc: "Taze sıkılmış doğal portakal suyu", isNew: false },
+          { name: "Ev Yapımı Limonata", price: "150₺", desc: "Taze nane ve limonlu özel tarif", isNew: false },
+          { name: "Coca Cola / Zero", price: "120₺", desc: "Kutu meşrubat (330ml)", isNew: false },
+          { name: "S. Pellegrino (Büyük)", price: "370₺", desc: "Doğal mineralli İtalyan maden suyu", isNew: false }
+        ]
+      },
+      {
+        category: "Niyokki Market",
+        icon: "market",
+        items: [
+          { name: "Antrikotlu Tortellini (600 gr)", price: "710₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Capello (600 gr)", price: "710₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Cavatelli (600 gr)", price: "310₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Fettucini (600 gr)", price: "310₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Fregola Zerdeçallı (600 gr)", price: "320₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Fusulli (600 gr)", price: "310₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Gigli (600 gr)", price: "310₺", desc: "Paketli taze el yapımı makarna", isNew: false },
+          { name: "Niyokki Bibita (600 gr)", price: "540₺", desc: "Paketli taze el yapımı gnocchi", isNew: false },
+          { name: "Niyokki Tutti (600 gr)", price: "540₺", desc: "Paketli taze el yapımı gnocchi", isNew: false }
+        ]
+      }
+    ];
+
+    function renderNav() {
+      const nav = document.getElementById("catNav");
+      nav.innerHTML = menuData.map((sec, idx) => `
+        <button class="category-btn ${idx === 0 ? 'active' : ''}" onclick="scrollToCategory('${sec.category}', this)">
+          ${sec.category}
+        </button>
+      `).join("");
+    }
+
+    function renderMenu(data = menuData) {
+      const container = document.getElementById("menuContainer");
+      container.innerHTML = data.map(sec => `
+        <section id="cat-${sec.category.replace(/\\s+/g, '')}">
+          <div class="section-title">${sec.category}</div>
+          <div class="grid">
+            ${sec.items.map(item => `
+              <div class="product-card" onclick="openModal('${escapeHtml(item.name)}', '${item.price}', '${escapeHtml(item.desc)}', '${sec.icon}')">
+                <div class="card-img-wrap">
+                  ${item.isNew ? '<span class="new-badge">Yeni</span>' : ''}
+                  ${icons[sec.icon] || icons.pasta}
+                  <span class="price-badge">${item.price}</span>
+                </div>
+                <div class="card-content">
+                  <h4 class="card-title">${item.name}</h4>
+                  <p class="card-desc">${item.desc || 'Özel sos ve taze malzemeler ile hazırlanır.'}</p>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `).join("");
+    }
+
+    function scrollToCategory(catName, btn) {
+      document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(`cat-${catName.replace(/\\s+/g, '')}`);
+      if (target) {
+        const offset = 120;
+        const bodyRect = document.body.getBoundingClientRect().top;
+        const elementRect = target.getBoundingClientRect().top;
+        const elementPosition = elementRect - bodyRect;
+        const offsetPosition = elementPosition - offset;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+      }
+    }
+
+    function filterMenu() {
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      if (!q) {
+        renderMenu(menuData);
+        return;
+      }
+      const filtered = menuData.map(sec => {
+        const items = sec.items.filter(i => 
+          i.name.toLowerCase().includes(q) || (i.desc && i.desc.toLowerCase().includes(q))
+        );
+        return { ...sec, items };
+      }).filter(sec => sec.items.length > 0);
+
+      renderMenu(filtered);
+    }
+
+    function openModal(name, price, desc, iconKey) {
+      document.getElementById("modalTitle").innerText = name;
+      document.getElementById("modalPrice").innerText = price;
+      document.getElementById("modalDesc").innerText = desc || 'Özel soslar ve taze malzemeler ile hazırlanmıştır.';
+      document.getElementById("modalIcon").innerHTML = icons[iconKey] || icons.pasta;
+      document.getElementById("modal").classList.add("active");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("active");
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // Init
+    renderNav();
+    renderMenu();
+  </script>
+</body>
+</html>
