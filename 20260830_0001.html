@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GitHub Pages Web Yedekleyici - drsait/Deneme</title>
+  <title>GitHub Pages Web Yedekleyici - Çoklu Proxy Desteği</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
@@ -17,6 +17,7 @@
       --vurgu-hover: #1d4ed8;
       --basari: #10b981;
       --uyari: #f59e0b;
+      --hata: #ef4444;
       --ozel-etiket: #8b5cf6;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -50,6 +51,7 @@
     .gunluk-satiri { margin-bottom: 4px; line-height: 1.4; word-break: break-all; }
     .basarili { color: var(--basari); }
     .uyari { color: var(--uyari); }
+    .hata { color: var(--hata); }
   </style>
 </head>
 <body>
@@ -59,12 +61,12 @@
       <h1>GitHub Pages Web Yedekleyici</h1>
       <span class="hedef-etiket">Hedef: drsait / Deneme</span>
     </div>
-    <p class="aciklama">İndirilen siteleri <code>drsait/Deneme</code> reposunda klasörler halinde depolar. Yüklenen sitelere doğrudan <code>https://drsait.github.io/Deneme/[site-adi]/</code> adresinden erişebilirsiniz.</p>
+    <p class="aciklama">CORS engellerini aşmak için çoklu vekil sunucu (proxy fallback) desteğiyle sayfaları çeker ve <code>drsait/Deneme</code> reposuna kaydeder.</p>
 
     <div class="izgara">
       <div style="grid-column: span 2;">
         <label for="hedefAdres">Kopyalanacak Web Adresi (URL)</label>
-        <input id="hedefAdres" type="url" placeholder="https://ornek-site.com" value="https://example.com" />
+        <input id="hedefAdres" type="url" placeholder="https://example.com" value="https://example.com" />
       </div>
       <div>
         <label for="derinlik">Tarama Derinliği</label>
@@ -122,7 +124,13 @@
 </div>
 
 <script>
-  const VEKIL_SUNUCU = "https://api.allorigins.win/raw?url=";
+  // Yedekli Çoklu Proxy Havuzu
+  const PROXY_HAVUZU = [
+    (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+  ];
+
   let ziyaretEdilenler = new Set();
   let indirilenVarliklar = new Map();
 
@@ -142,11 +150,25 @@
     kutu.scrollTop = kutu.scrollHeight;
   }
 
+  // Yedekli proxy istek motoru
   async function baglantiGetir(url, yanitTipi = "text") {
-    const vekilUrl = VEKIL_SUNUCU + encodeURIComponent(url);
-    const yanit = await fetch(vekilUrl);
-    if (!yanit.ok) throw new Error(`HTTP ${yanit.status}`);
-    return yanitTipi === "arraybuffer" ? await yanit.arrayBuffer() : await yanit.text();
+    let sonHata = null;
+    for (let i = 0; i < PROXY_HAVUZU.length; i++) {
+      try {
+        const vekilUrl = PROXY_HAVUZU[i](url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 sn zaman aşımı
+
+        const yanit = await fetch(vekilUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!yanit.ok) throw new Error(`HTTP ${yanit.status}`);
+        return yanitTipi === "arraybuffer" ? await yanit.arrayBuffer() : await yanit.text();
+      } catch (err) {
+        sonHata = err;
+      }
+    }
+    throw new Error(`Tüm proxy sunucuları başarısız oldu (${sonHata?.message || 'Bağlantı hatası'})`);
   }
 
   function alanAdiTemizle(urlMetni) {
@@ -188,7 +210,7 @@
     const klasorZip = zip.folder(siteKlasoru.replace(/\/$/, ""));
 
     gunlukEkle(`Arşivleme başlatıldı: ${baslangicUrl}`);
-    gunlukEkle(`Hedef Klasör Yolu: ${siteKlasoru}`);
+    gunlukEkle(`Hedef Klasör: ${siteKlasoru}`);
 
     const kuyruk = [{ url: baslangicUrl, derinlik: 1 }];
     const sayfaHaritasi = new Map();
@@ -221,8 +243,14 @@
 
         sayfaHaritasi.set(guncel.url, { belge, anaSayfaMi: guncel.url === baslangicUrl });
       } catch (hata) {
-        gunlukEkle(`Sayfa Hatası (${guncel.url}): ${hata.message}`, "uyari");
+        gunlukEkle(`Sayfa Çekilemedi (${guncel.url}): ${hata.message}`, "hata");
       }
+    }
+
+    if (sayfaHaritasi.size === 0) {
+      gunlukEkle("Hata: Hiçbir sayfa indirilemedi. Hedef site bot korumasına sahip olabilir veya adres hatalı.", "hata");
+      buton.disabled = false;
+      return;
     }
 
     gunlukEkle(`Toplam ${sayfaHaritasi.size} sayfa ayrıştırıldı. Varlıklar toplanıyor...`, "basarili");
@@ -236,7 +264,7 @@
     for (const [sayfaUrl, { belge, anaSayfaMi }] of sayfaHaritasi) {
       const yolOnEk = anaSayfaMi ? "./" : "../";
 
-      // CSS Dosyaları
+      // CSS
       if (alCss) {
         for (const stil of belge.querySelectorAll('link[rel="stylesheet"][href]')) {
           const href = stil.getAttribute("href");
@@ -280,7 +308,7 @@
         }
       }
 
-      // JS Kodları
+      // JS
       if (alJs) {
         for (const betik of belge.querySelectorAll("script[src]")) {
           const src = betik.getAttribute("src");
@@ -298,7 +326,7 @@
         }
       }
 
-      // Görseller ve İkonlar
+      // Görseller
       if (alGorsel) {
         for (const resim of belge.querySelectorAll("img[src], link[rel*='icon']")) {
           const ozellik = resim.hasAttribute("src") ? "src" : "href";
