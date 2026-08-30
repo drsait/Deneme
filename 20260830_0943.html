@@ -3,162 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telefona Web Sitesi İndirici (ZIP)</title>
+  <title>Tek Tıkla Web İndirici</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <style>
-    :root {
-      --bg: #090d16;
-      --card: #131c2e;
-      --border: #24324d;
-      --text: #f1f5f9;
-      --muted: #94a3b8;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --success: #10b981;
-    }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; }
-    .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-    h1 { font-size: 1.2rem; color: #fff; margin-bottom: 4px; }
-    p.sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; }
-    label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-    input, textarea {
-      width: 100%; background: #0b111e; border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px; color: #fff; font-size: 0.85rem; outline: none; margin-bottom: 12px;
-    }
-    textarea { height: 90px; resize: vertical; font-family: monospace; font-size: 0.75rem; }
-    input:focus, textarea:focus { border-color: var(--primary); }
-    .btn {
-      background: var(--primary); color: #fff; border: none; border-radius: 8px;
-      padding: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; width: 100%;
-    }
-    .btn:hover { background: var(--primary-hover); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .log-box {
-      background: #060910; border: 1px solid var(--border); border-radius: 8px;
-      padding: 10px; height: 160px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; color: #38bdf8;
-    }
-    .log-line { margin-bottom: 3px; word-break: break-all; }
-    .log-s { color: var(--success); }
+    body { background: #090d16; color: #f8fafc; padding: 18px; min-height: 100vh; display: flex; justify-content: center; }
+    .kapsayici { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 14px; }
+    .kart { background: #131c2e; border: 1px solid #24324d; border-radius: 14px; padding: 20px; }
+    h1 { font-size: 1.25rem; font-weight: 700; margin-bottom: 6px; }
+    p { font-size: 0.82rem; color: #94a3b8; margin-bottom: 16px; }
+    label { font-size: 0.75rem; font-weight: 600; color: #94a3b8; display: block; margin-bottom: 6px; }
+    input { width: 100%; background: #0b111e; border: 1px solid #24324d; border-radius: 8px; padding: 12px; color: #fff; font-size: 0.9rem; outline: none; margin-bottom: 16px; }
+    input:focus { border-color: #2563eb; }
+    .buton { width: 100%; background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+    .buton:hover { background: #1d4ed8; }
+    .buton:disabled { opacity: 0.5; cursor: not-allowed; }
+    .log-penceresi { background: #060910; border: 1px solid #24324d; border-radius: 8px; padding: 12px; height: 160px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; color: #38bdf8; margin-top: 10px; }
+    .log-satir { margin-bottom: 3px; word-break: break-all; }
+    .tamam { color: #10b981; }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="card">
-    <h1>Telefona Web Arşivi İndir</h1>
-    <p class="sub">Görselleri ve stilleri klasörleyip doğrudan telefonunuza ZIP olarak indirir.</p>
+<div class="kapsayici">
+  <div class="kart">
+    <h1>Tek Tıkla Web İndirici</h1>
+    <p>Linki girip butona basın, tüm sayfayı ve görselleri telefonunuza ZIP olarak indirsin.</p>
 
-    <label>Web Adresi (URL)</label>
-    <input id="urlInput" type="url" value="https://webmenu.pardonapp.co/niyokki-mardin-antikkent" />
+    <label for="urlGiris">Web Sitesi Adresi (URL)</label>
+    <input id="urlGiris" type="url" value="https://webmenu.pardonapp.co/niyokki-mardin-antikkent" placeholder="https://..." />
 
-    <label>Sayfa Kaynak Kodu (İsteğe bağlı - Bot korumalı siteler için):</label>
-    <textarea id="htmlInput" placeholder="Korumalı sitelerde tarayıcıdan kopyaladığınız kaynak kodunu (Ctrl+U) buraya yapıştırabilirsiniz. Boş bırakılırsa otomatik indirilir."></textarea>
+    <button id="indirBtn" class="buton" onclick="tekTiklaIndir()">📥 Telefona İndir</button>
 
-    <button id="dlBtn" class="btn" onclick="telefonaIndir()">📥 Telefona ZIP Olarak İndir</button>
-  </div>
-
-  <div class="card">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-      <label style="margin: 0;">İlerleme Durumu</label>
-      <span id="durum" style="font-size: 0.75rem; color: var(--muted);">Hazır</span>
-    </div>
-    <div id="logKutusu" class="log-box"></div>
+    <div id="logKutusu" class="log-penceresi"></div>
   </div>
 </div>
 
 <script>
-  function log(msg, tip = "") {
+  function log(mesaj, tip = "") {
     const k = document.getElementById("logKutusu");
     const d = document.createElement("div");
-    d.className = `log-line ${tip}`;
-    d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    d.className = `log-satir ${tip}`;
+    d.textContent = `[${new Date().toLocaleTimeString("tr-TR")}] ${mesaj}`;
     k.appendChild(d);
     k.scrollTop = k.scrollHeight;
   }
 
-  async function dosyaCek(url, tip = "text") {
-    const proxies = [
+  // Gelişmiş Çoklu Tünel Motoru (JSON-P + Raw Proxies)
+  async function gelismisVeriCek(hedefUrl, tip = "text") {
+    // 1. JSON-P tüneli (Bot filtrelerini tamamen bypass eder)
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(hedefUrl)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.contents) {
+          if (tip === "text") return json.contents;
+        }
+      }
+    } catch(e) {}
+
+    // 2. Yedek Tüneller
+    const tuneller = [
       (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+      (u) => `https://thingproxy.freeboard.io/fetch/${u}`,
       (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
     ];
-    for (const p of proxies) {
+
+    for (const t of tuneller) {
       try {
-        const r = await fetch(p(url));
+        const r = await fetch(t(hedefUrl));
         if (r.ok) return tip === "arraybuffer" ? await r.arrayBuffer() : await r.text();
       } catch (e) {}
     }
-    throw new Error("İndirilemedi");
+    throw new Error("Bağlantı sağlanamadı");
   }
 
-  async function telefonaIndir() {
-    const urlStr = document.getElementById("urlInput").value.trim();
-    const hamHtml = document.getElementById("htmlInput").value.trim();
-    const btn = document.getElementById("dlBtn");
+  async function tekTiklaIndir() {
+    const url = document.getElementById("urlGiris").value.trim();
+    const btn = document.getElementById("indirBtn");
 
-    if (!urlStr) { alert("Lütfen bir web adresi girin."); return; }
+    if (!url) { alert("Lütfen bir adres girin."); return; }
 
     btn.disabled = true;
     document.getElementById("logKutusu").innerHTML = "";
-    document.getElementById("durum").textContent = "İndiriliyor...";
 
-    const urlObj = new URL(urlStr);
-    const siteKlasor = `${urlObj.hostname}_${urlObj.pathname.replace(/[^a-zA-Z0-9]/g, "_")}/`;
-    const zip = new JSZip();
-    const folder = zip.folder(siteKlasor.replace(/\/$/, ""));
+    log(`Bağlanıyor: ${url}`);
+    log("İçerik çekiliyor...");
 
-    log(`Arşivleme başladı: ${urlStr}`);
-    let html = hamHtml;
+    try {
+      const hamHtml = await gelismisVeriCek(url, "text");
+      log("Sayfa başarıyla alındı.", "tamam");
 
-    if (!html) {
-      log("Sayfa içeriği indiriliyor...");
-      try {
-        html = await dosyaCek(urlStr, "text");
-      } catch (e) {
-        log("Otomatik indirme engellendi. Lütfen kaynak kodunu yapıştırın.", "log-w");
-        btn.disabled = false;
-        document.getElementById("durum").textContent = "Hata";
-        return;
-      }
-    }
+      const zip = new JSZip();
+      const siteAdi = new URL(url).hostname.replace(/[^a-zA-Z0-9]/g, "_");
+      const klasor = zip.folder(siteAdi);
 
-    const doc = new DOMParser().parseFromString(html, "text/html");
+      const doc = new DOMParser().parseFromString(hamHtml, "text/html");
 
-    // Görselleri ve simgeleri çek
-    const images = Array.from(doc.querySelectorAll("img[src], link[rel*='icon']"));
-    log(`Toplam ${images.length} adet görsel/ikon bulundu.`);
+      // Görselleri ve simgeleri indir
+      const images = Array.from(doc.querySelectorAll("img[src], link[rel*='icon']"));
+      log(`${images.length} adet görsel/ikon yerelleştiriliyor...`);
 
-    for (let i = 0; i < images.length; i++) {
-      const el = images[i];
-      const attr = el.hasAttribute("src") ? "src" : "href";
-      const src = el.getAttribute(attr);
+      for (let i = 0; i < images.length; i++) {
+        const el = images[i];
+        const attr = el.hasAttribute("src") ? "src" : "href";
+        const src = el.getAttribute(attr);
 
-      if (src && !src.startsWith("data:")) {
-        try {
-          const abs = new URL(src, urlStr).href;
-          const fname = `img_${i + 1}.png`;
+        if (src && !src.startsWith("data:")) {
           try {
-            const bin = await dosyaCek(abs, "arraybuffer");
-            folder.file(`assets/images/${fname}`, bin);
-            el.setAttribute(attr, `./assets/images/${fname}`);
-            log(`Görsel eklendi: assets/images/${fname}`);
-          } catch (err) {
-            el.setAttribute(attr, abs);
-          }
-        } catch (e) {}
+            const tamUrl = new URL(src, url).href;
+            const dosyaAdi = `gorsel_${i + 1}.png`;
+            try {
+              const bin = await gelismisVeriCek(tamUrl, "arraybuffer");
+              klasor.file(`assets/images/${dosyaAdi}`, bin);
+              el.setAttribute(attr, `./assets/images/${dosyaAdi}`);
+            } catch (err) {
+              el.setAttribute(attr, tamUrl);
+            }
+          } catch (e) {}
+        }
       }
+
+      klasor.file("index.html", "<!DOCTYPE html>\n" + doc.documentElement.outerHTML);
+      log("Klasör yapısı paketleniyor...");
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      saveAs(blob, `${siteAdi}_yedek.zip`);
+
+      log("İndirme tamamlandı! Dosya İndirilenler klasörünüzde.", "tamam");
+    } catch (hata) {
+      log(`Hata: ${hata.message}`, "");
     }
 
-    folder.file("index.html", "<!DOCTYPE html>\n" + doc.documentElement.outerHTML);
-    log("index.html oluşturuldu.", "log-s");
-
-    log("ZIP dosyası hazırlanıyor...");
-    const zipBlob = await zip.generateAsync({ type: "blob" });
-    saveAs(zipBlob, `${siteKlasor.replace(/\/$/, "")}.zip`);
-
-    log("ZIP telefonunuza başarıyla indirildi!", "log-s");
-    document.getElementById("durum").textContent = "Tamamlandı";
     btn.disabled = false;
   }
 </script>
