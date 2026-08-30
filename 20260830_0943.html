@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telefona Web Sitesi İndirici (ZIP)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131c2e;
+      --border: #24324d;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding: 16px; min-height: 100vh; }
+    .container { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    h1 { font-size: 1.2rem; color: #fff; margin-bottom: 4px; }
+    p.sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; }
+    label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    input, textarea {
+      width: 100%; background: #0b111e; border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px; color: #fff; font-size: 0.85rem; outline: none; margin-bottom: 12px;
+    }
+    textarea { height: 90px; resize: vertical; font-family: monospace; font-size: 0.75rem; }
+    input:focus, textarea:focus { border-color: var(--primary); }
+    .btn {
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      padding: 14px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; width: 100%;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .log-box {
+      background: #060910; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px; height: 160px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; color: #38bdf8;
+    }
+    .log-line { margin-bottom: 3px; word-break: break-all; }
+    .log-s { color: var(--success); }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Telefona Web Arşivi İndir</h1>
+    <p class="sub">Görselleri ve stilleri klasörleyip doğrudan telefonunuza ZIP olarak indirir.</p>
+
+    <label>Web Adresi (URL)</label>
+    <input id="urlInput" type="url" value="https://webmenu.pardonapp.co/niyokki-mardin-antikkent" />
+
+    <label>Sayfa Kaynak Kodu (İsteğe bağlı - Bot korumalı siteler için):</label>
+    <textarea id="htmlInput" placeholder="Korumalı sitelerde tarayıcıdan kopyaladığınız kaynak kodunu (Ctrl+U) buraya yapıştırabilirsiniz. Boş bırakılırsa otomatik indirilir."></textarea>
+
+    <button id="dlBtn" class="btn" onclick="telefonaIndir()">📥 Telefona ZIP Olarak İndir</button>
+  </div>
+
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+      <label style="margin: 0;">İlerleme Durumu</label>
+      <span id="durum" style="font-size: 0.75rem; color: var(--muted);">Hazır</span>
+    </div>
+    <div id="logKutusu" class="log-box"></div>
+  </div>
+</div>
+
+<script>
+  function log(msg, tip = "") {
+    const k = document.getElementById("logKutusu");
+    const d = document.createElement("div");
+    d.className = `log-line ${tip}`;
+    d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    k.appendChild(d);
+    k.scrollTop = k.scrollHeight;
+  }
+
+  async function dosyaCek(url, tip = "text") {
+    const proxies = [
+      (u) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+      (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
+    ];
+    for (const p of proxies) {
+      try {
+        const r = await fetch(p(url));
+        if (r.ok) return tip === "arraybuffer" ? await r.arrayBuffer() : await r.text();
+      } catch (e) {}
+    }
+    throw new Error("İndirilemedi");
+  }
+
+  async function telefonaIndir() {
+    const urlStr = document.getElementById("urlInput").value.trim();
+    const hamHtml = document.getElementById("htmlInput").value.trim();
+    const btn = document.getElementById("dlBtn");
+
+    if (!urlStr) { alert("Lütfen bir web adresi girin."); return; }
+
+    btn.disabled = true;
+    document.getElementById("logKutusu").innerHTML = "";
+    document.getElementById("durum").textContent = "İndiriliyor...";
+
+    const urlObj = new URL(urlStr);
+    const siteKlasor = `${urlObj.hostname}_${urlObj.pathname.replace(/[^a-zA-Z0-9]/g, "_")}/`;
+    const zip = new JSZip();
+    const folder = zip.folder(siteKlasor.replace(/\/$/, ""));
+
+    log(`Arşivleme başladı: ${urlStr}`);
+    let html = hamHtml;
+
+    if (!html) {
+      log("Sayfa içeriği indiriliyor...");
+      try {
+        html = await dosyaCek(urlStr, "text");
+      } catch (e) {
+        log("Otomatik indirme engellendi. Lütfen kaynak kodunu yapıştırın.", "log-w");
+        btn.disabled = false;
+        document.getElementById("durum").textContent = "Hata";
+        return;
+      }
+    }
+
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    // Görselleri ve simgeleri çek
+    const images = Array.from(doc.querySelectorAll("img[src], link[rel*='icon']"));
+    log(`Toplam ${images.length} adet görsel/ikon bulundu.`);
+
+    for (let i = 0; i < images.length; i++) {
+      const el = images[i];
+      const attr = el.hasAttribute("src") ? "src" : "href";
+      const src = el.getAttribute(attr);
+
+      if (src && !src.startsWith("data:")) {
+        try {
+          const abs = new URL(src, urlStr).href;
+          const fname = `img_${i + 1}.png`;
+          try {
+            const bin = await dosyaCek(abs, "arraybuffer");
+            folder.file(`assets/images/${fname}`, bin);
+            el.setAttribute(attr, `./assets/images/${fname}`);
+            log(`Görsel eklendi: assets/images/${fname}`);
+          } catch (err) {
+            el.setAttribute(attr, abs);
+          }
+        } catch (e) {}
+      }
+    }
+
+    folder.file("index.html", "<!DOCTYPE html>\n" + doc.documentElement.outerHTML);
+    log("index.html oluşturuldu.", "log-s");
+
+    log("ZIP dosyası hazırlanıyor...");
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    saveAs(zipBlob, `${siteKlasor.replace(/\/$/, "")}.zip`);
+
+    log("ZIP telefonunuza başarıyla indirildi!", "log-s");
+    document.getElementById("durum").textContent = "Tamamlandı";
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>
