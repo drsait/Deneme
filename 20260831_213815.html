@@ -7,9 +7,7 @@
 </head>
 <body>
 <script>
-/* =========================================================
-   AÇIK VERİ KATMANI (ASM & AHB BİLGİLERİ)
-   ========================================================= */
+// 1. AÇIK VERİ
 const _d = [
   {"ilce":"Artuklu","asm":"ARTUKLU YENİYOL ASM","ahb":"470101"},
   {"ilce":"Artuklu","asm":"ARTUKLU YENİYOL ASM","ahb":"470102"},
@@ -323,23 +321,16 @@ const _d = [
   {"ilce":"Yeşilli","asm":"YEŞİLLİ BAHÇE BAŞI ASM","ahb":"471004"}
 ];
 
-/* =========================================================
-   GİZLENMİŞ VE KORUMALI ÇEKİRDEK UYGULAMA MOTORU
-   ========================================================= */
+// 2. GİZLENMİŞ GÖRÜNÜM VE ARAYÜZ MOTORU
 (function() {
-  const _c = "CiAgICA6cm9vdCB7CiAgICAgIC0tcHJpbWFyeTogIzFkNGVkODsKICAgICAgLS1wcmltYXJ5LWxpZ2h0OiAjZGJlYWZlOwogICAgICAtLWJnOiAjZjhmYWZjOwogICAgICAtLWNhcmQ6ICNmZmZmZmY7CiAgICAgIC0tdGV4dDogIzBmMTcyYTsKICAgICAgLS1tdXRlZDogIzY0NzQ4YjsKICAgICAgLS1ib3JkZXI6ICNlMmU4ZjA7CiAgICB9CiAgICAqIHsgYm94LXNpemluZzogYm9yZGVyLWJveDsgbWFyZ2luOiAwOyBwYWRkaW5nOiAwOyBmYW1pbHk6IHN5c3RlbS11aSwgLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCAiU2Vnb2UgVUkiLCBSb2JvdG8sIHNhbnMtc2VyaWY7IH0KICAgIGJvZHkgeyBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1iZyk7IGNvbG9yOiB2YXIoLS10ZXh0KTsgcGFkZGluZzogMTZweDsgbWluLWhlaWdodDogMTAwdmg7IGRpc3BsYXk6IGZsZXg7IGZsZXgtZGlyZWN0aW9uOiBjb2x1bW47IH0KICAgIC5jb250YWluZXIgeyBtYXgtd2lkdGg6IDgwMHB4OyBtYXJnaW46IDAgYXV0bzsgd2lkdGg6IDEwMCU7IGZsZXg6IDE7IGRpc3BsYXk6IGZsZXg7IGZsZXgtZGlyZWN0aW9uOiBjb2x1bW47IH0KICAgIC5zZWFyY2gtcGFuZWwgewogICAgICBiYWNrZ3JvdW5kOiB2YXIoLS1jYXJkKTsKICAgICAgYm9yZGVyOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsKICAgICAgYm9yZGVyLXJhZGl1czogMTJweDsKICAgICAgcGFkZGluZzogMTZweDsKICAgICAgbWFyZ2luLWJvdHRvbTogMTZweDsKICAgICAgYm94LXNoYWRvdzogMCAxcHggM3B4IHJnYmEoMCwwLDAsMC4wNSk7CiAgICB9CiAgICAuaW5wdXRzIHsgZGlzcGxheTogZmxleDsgZ2FwOiAxMHB4OyBmbGV4LXdyYXA6IHdyYXA7IH0KICAgIC5zZWFyY2gtaW5wdXQgewogICAgICBmbGV4OiAxOwogICAgICBtaW4td2lkdGg6IDIyMHB4OwogICAgICBwYWRkaW5nOiAxMHB4IDE0cHg7CiAgICAgIGJvcmRlcjogMnB4IHNvbGlkIHZhcigtLWJvcmRlcik7CiAgICAgIGJvcmRlci1yYWRpdXM6IDhweDsKICAgICAgZm9udC1zaXplOiAxcmVtOwogICAgICBvdXRsaW5lOiBub25lOwogICAgfQogICAgLnNlYXJjaC1pbnB1dDpmb2N1cyB7IGJvcmRlci1jb2xvcjogdmFyKC0tcHJpbWFyeSk7IH0KICAgIC5kaXN0cmljdC1zZWxlY3QgewogICAgICBwYWRkaW5nOiAxMHB4IDE0cHg7CiAgICAgIGJvcmRlcjogMnB4IHNvbGlkIHZhcigtLWJvcmRlcik7CiAgICAgIGJvcmRlci1yYWRpdXM6IDhweDsKICAgICAgZm9udC1zaXplOiAwLjk1cmVtOwogICAgICBiYWNrZ3JvdW5kOiAjZmZmOwogICAgICBvdXRsaW5lOiBub25lOwogICAgICBjdXJzb3I6IHBvaW50ZXI7CiAgICB9CiAgICAuZGlzdHJpY3Qtc2VsZWN0OmZvY3VzIHsgYm9yZGVyLWNvbG9yOiB2YXIoLS1wcmltYXJ5KTsgfQogICAgLnN0YXR1cy1iYXIgewogICAgICBmb250LXNpemU6IDAuODVyZW07CiAgICAgIGNvbG9yOiB2YXIoLS1tdXRlZCk7CiAgICAgIG1hcmdpbi10b3A6IDEwcHg7CiAgICAgIGRpc3BsYXk6IGZsZXg7CiAgICAgIGp1c3RpZnktY29udGVudDogc3BhY2UtYmV0d2VlbjsKICAgIH0KICAgIC5hc20tbGlzdCB7IGRpc3BsYXk6IGZsZXg7IGZsZXgtZGlyZWN0aW9uOiBjb2x1bW47IGdhcDogMTJweDsgZmxleDogMTsgfQogICAgLmFzbS1jYXJkIHsKICAgICAgYmFja2dyb3VuZDogdmFyKC0tY2FyZCk7CiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHZhcigtLWJvcmRlcik7CiAgICAgIGJvcmRlci1yYWRpdXM6IDEwcHg7CiAgICAgIHBhZGRpbmc6IDE0cHggMTZweDsKICAgICAgYm94LXNoYWRvdzogMCAxcHggM3B4IHJnYmEoMCwwLDAsMC4wMyk7CiAgICB9CiAgICAuYXNtLWhlYWRlciB7CiAgICAgIGRpc3BsYXk6IGZsZXg7CiAgICAgIGp1c3RpZnktY29udGVudDogc3BhY2UtYmV0d2VlbjsKICAgICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgICAgZ2FwOiAxMnB4OwogICAgICBtYXJnaW4tYm90dG9tOiAxMHB4OwogICAgICBib3JkZXItYm90dG9tOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsKICAgICAgcGFkZGluZy1ib3R0b206IDhweDsKICAgIH0KICAgIC5hc20tdGl0bGUgeyBmb250LXNpemU6IDEuMDVyZW07IGZvbnQtd2VpZ2h0OiA3MDA7IGNvbG9yOiAjMWUyOTNiOyB9CiAgICAuaW5mby1idG4gewogICAgICBiYWNrZ3JvdW5kOiAjZjFmNWY5OwogICAgICBib3JkZXI6IDFweCBzb2xpZCAjY2JkNTVlMTsKICAgICAgY29sb3I6IHZhcigtLXByaW1hcnkpOwogICAgICBmb250LXNpemU6IDAuOHJlbTsKICAgICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgICAgcGFkZGluZzogNXB4IDEwcHg7CiAgICAgIGJvcmRlci1yYWRpdXM6IDZweDsKICAgICAgdGV4dC1kZWNvcmF0aW9uOiBub25lOwogICAgICB3aGl0ZS1zcGFjZTogbm93cmFwOwogICAgICB0cmFuc2l0aW9uOiBhbGwgMC4ycyBlYXNlOwogICAgfQogICAgLmluZm8tYnRuOmhvdmVyIHsKICAgICAgYmFja2dyb3VuZDogdmFyKC0tcHJpbWFyeSk7CiAgICAgIGNvbG9yOiAjZmZmZmZmOwogICAgICBib3JkZXItY29sb3I6IHZhcigtLXByaW1hcnkpOwogICAgfQogICAgLmFoYi1ncm91cCB7IGRpc3BsYXk6IGZsZXg7IGZsZXgtd3JhcDogd3JhcDsgZ2FwOiA2cHg7IH0KICAgIC5haGItcGlsbCB7CiAgICAgIGJhY2tncm91bmQ6IHZhcigtLXByaW1hcnktbGlnaHQpOwogICAgICBjb2xvcjogdmFyKC0tcHJpbWFyeSk7CiAgICAgIGZvbnQtd2VpZ2h0OiA2MDA7CiAgICAgIGZvbnQtc2l6ZTogMC44NXJlbTsKICAgICAgcGFkZGluZzogNHB4IDEwcHg7CiAgICAgIGJvcmRlci1yYWRpdXM6IDZweDsKICAgIH0KICAgIC5haGItcGlsbC5oaWdobGlnaHQgewogICAgICBiYWNrZ3JvdW5kOiB2YXIoLS1wcmltYXJ5KTsKICAgICAgY29sb3I6ICNmZmZmZmY7CiAgICAgIGJveC1zaGFkb3c6IDAgMCAwIDJweCAjOTNjNWZkOwogICAgfQogICAgLmVtcHR5IHsKICAgICAgdGV4dC1hbGlnbjogY2VudGVyOwogICAgICBwYWRkaW5nOiAzMHB4OwogICAgICBiYWNrZ3JvdW5kOiAjZmZmOwogICAgICBib3JkZXItcmFkaXVzOiAxMHB4OwogICAgICBjb2xvcjogdmFyKC0tbXV0ZWQpOwogICAgICBib3JkZXI6IDFweCBkYXNoZWQgdmFyKC0tYm9yZGVyKTsKICAgIH0KICAgICNzeXMtbWV0YS1sYXllciB7CiAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICAgICAgbWFyZ2luLXRvcDogMzJweDsKICAgICAgcGFkZGluZzogMTZweCAwOwogICAgfQogICAgLnN5cy1idG4gewogICAgICBiYWNrZ3JvdW5kOiB0cmFuc3BhcmVudDsKICAgICAgYm9yZGVyOiAxcHggc29saWQgdmFyKC0tYm9yZGVyKTsKICAgICAgY29sb3I6IHZhcigtLW11dGVkKTsKICAgICAgZm9udC1zaXplOiAwLjg1cmVtOwogICAgICBwYWRkaW5nOiA3cHggMTRweDsKICAgICAgYm9yZGVyLXJhZGl1czogMjBweDsKICAgICAgY3Vyc29yOiBwb2ludGVyOwogICAgICBkaXNwbGF5OiBpbmxpbmUtZmxleDsKICAgICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgICAgZ2FwOiA2cHg7CiAgICB9CiAgICAuc3lzLWJ0bjpob3ZlciB7IGJhY2tncm91bmQ6ICNmZmY7IGNvbG9yOiB2YXIoLS1wcmltYXJ5KTsgfQogICAgLnN5cy1ib3ggewogICAgICBtYXJnaW4tdG9wOiAxMHB4OwogICAgICBmb250LXNpemU6IDAuODVyZW07CiAgICAgIGNvbG9yOiAjMWUyOTNiOwogICAgICBiYWNrZ3JvdW5kOiAjZmZmOwogICAgICBib3JkZXI6IDFweCBzb2xpZCB2YXIoLS1ib3JkZXIpOwogICAgICBkaXNwbGF5OiBpbmxpbmUtYmxvY2s7CiAgICAgIHBhZGRpbmc6IDhweCAxNnB4OwogICAgICBib3JkZXItcmFkaXVzOiA4cHg7CiAgICB9";
-  const _h = "PGRpdiBjbGFzcz0iY29udGFpbmVyIiBpZD0iYXBwUm9vdCI+ICA8ZGl2IGNsYXNzPSJzZWFyY2gtcGFuZWwiPiAgICA8ZGl2IGNsYXNzPSJpbnB1dHMiPiAgICAgIDxpbnB1dCB0eXBlPSJ0ZXh0IiBpZD0ic2VhcmNoSW5wdXQiIGNsYXNzPSJzZWFyY2gtaW5wdXQiIHBsYWNlaG9sZGVyPSJBSEIgTm8gKMO2cm46IDQ3MDEwMSkgdmV5YSBBU00gQWTEsSBnaXJpbi4uLiIgYXV0b2ZvY3VzPiAgICAgIDxzZWxlY3QgaWQ9ImRpc3RyaWN0U2VsZWN0IiBjbGFzcz0iZGlzdHJpY3Qtc2VsZWN0Ij4gICAgICAgIDxvcHRpb24gdmFsdWU9IiI+VMO8bSDEsGzDp2VsZXI8L29wdGlvbj4gICAgICA8L3NlbGVjdD4gICAgPC9kaXY+ICAgIDxkaXYgY2xhc3M9InN0YXR1cy1iYXIiPiAgICAgIDxzcGFuIGlkPSJyZXN1bHRDb3VudCI+WcO8a2xlbml5b3IuLi48L3NwYW4+ICAgICAgPHNwYW4+TWFyZGluIMSwbCBHZW5lbGk8L3NwYW4+ICAgIDwvZGl2PiAgPC9kaXY+ICA8ZGl2IGlkPSJhc21MaXN0IiBjbGFzcz0iYXNtLWxpc3QiPjwvZGl2PiAgPGRpdiBpZD0ic3lzLW1ldGEtbGF5ZXIiPjwvZGl2PjwvZGl2Pg==";
-  const _k = [68,114,46,32,83,97,105,116,32,75,117,114,116,32,116,97,114,97,102,305,110,100,97,110,32,100,252,122,101,110,108,101,110,109,105,351,116,105,114,46];
+  const _css = "CiAgICAqIHsgYm94LXNpemluZzogYm9yZGVyLWJveDsgbWFyZ2luOiAwOyBwYWRkaW5nOiAwOyBmb250LWZhbWlseTogc3lzdGVtLXVpLCAtYXBwbGUtc3lzdGVtLCBzYW5zLXNlcmlmOyB9CiAgICBib2R5IHsgYmFja2dyb3VuZDogI2Y4ZmFmYzsgY29sb3I6ICMwZjE3MmE7IHBhZGRpbmc6IDE2cHg7IH0KICAgIC5jb250YWluZXIgeyBtYXgtd2lkdGg6IDgwMHB4OyBtYXJnaW46IDAgYXV0bzsgfQogICAgLnNlYXJjaC1wYW5lbCB7IGJhY2tncm91bmQ6ICNmZmZmZmY7IGJvcmRlcjogMXB4IHNvbGlkICNlMmU4ZjA7IGJvcmRlci1yYWRpdXM6IDEycHg7IHBhZGRpbmc6IDE2cHg7IG1hcmdpbi1ib3R0b206IDE2cHg7IH0KICAgIC5pbnB1dHMgeyBkaXNwbGF5OiBmbGV4OyBnYXA6IDEwcHg7IGZsZXgtd3JhcDogd3JhcDsgfQogICAgLnNlYXJjaC1pbnB1dCB7IGZsZXg6IDE7IG1pbi13aWR0aDogMjIwcHg7IHBhZGRpbmc6IDEwcHggMTRweDsgYm9yZGVyOiAycHggc29saWQgI2UyZThmMDsgYm9yZGVyLXJhZGl1czogOHB4OyBmb250LXNpemU6IDFyZW07IG91dGxpbmU6IG5vbmU7IH0KICAgIC5zZWFyY2gtaW5wdXQ6Zm9jdXMsIC5kaXN0cmljdC1zZWxlY3Q6Zm9jdXMgeyBib3JkZXItY29sb3I6ICMxZDRlZDg7IH0KICAgIC5kaXN0cmljdC1zZWxlY3QgeyBwYWRkaW5nOiAxMHB4IDE0cHg7IGJvcmRlcjogMnB4IHNvbGlkICNlMmU4ZjA7IGJvcmRlci1yYWRpdXM6IDhweDsgZm9udC1zaXplOiAwLjk1cmVtOyBiYWNrZ3JvdW5kOiAjZmZmOyBvdXRsaW5lOiBub25lOyBjdXJzb3I6IHBvaW50ZXI7IH0KICAgIC5zdGF0dXMtYmFyIHsgZm9udC1zaXplOiAwLjg1cmVtOyBjb2xvcjogIzY0NzQ4YjsgbWFyZ2luLXRvcDogMTBweDsgZGlzcGxheTogZmxleDsganVzdGlmeS1jb250ZW50OiBzcGFjZS1iZXR3ZWVuOyBmb250LXdlaWdodDogNTAwOyB9CiAgICAuYXNtLWxpc3QgeyBkaXNwbGF5OiBmbGV4OyBmbGV4LWRpcmVjdGlvbjogY29sdW1uOyBnYXA6IDEycHg7IH0KICAgIC5hc20tY2FyZCB7IGJhY2tncm91bmQ6ICNmZmZmZmY7IGJvcmRlcjogMXB4IHNvbGlkICNlMmU4ZjA7IGJvcmRlci1yYWRpdXM6IDEwcHg7IHBhZGRpbmc6IDE0cHggMTZweDsgeyBiYWNrZ3JvdW5kOiAjZjFmNWY5OyBib3JkZXI6IDFweCBzb2xpZCAjY2JkNTVlMTsgY29sb3I6ICMxZDRlZDg7IGZvbnQtc2l6ZTogMC44cmVtOyBmb250LXdlaWdodDogNjAwOyBwYWRkaW5nOiA1cHggMTBweDsgYm9yZGVyLXJhZGl1czogNnB4OyB0ZXh0LWRlY29yYXRpb246IG5vbmU7IHdoaXRlLXNwYWNlOiBub3dyYXA7IH0KICAgIC5hc20taGVhZGVyIHsgZGlzcGxheTogZmxleDsganVzdGlmeS1jb250ZW50OiBzcGFjZS1iZXR3ZWVuOyBhbGlnbi1pdGVtczogY2VudGVyOyBnYXA6IDEycHg7IG1hcmdpbi1ib3R0b206IDEwcHg7IGJvcmRlci1ib3R0b206IDFweCBzb2xpZCAjZTJlOGYwOyBwYWRkaW5nLWJvdHRvbTogOHB4OyB9CiAgICAuYXNtLXRpdGxlIHsgZm9udC1zaXplOiAxLjA1cmVtOyBmb250LXdlaWdodDogNzAwOyBjb2xvcjogIzFlMjkzYjsgfQogICAgLmluZm8tYnRuIHsgYmFja2dyb3VuZDogI2YxZjVmOTsgYm9yZGVyOiAxcHggc29saWQgI2NiZDU1ZTE7IGNvbG9yOiAjMWQ0ZWQ4OyBmb250LXNpemU6IDAuOHJlbTsgZm9udC13ZWlnaHQ6IDYwMDsgcGFkZGluZzogNXB4IDEwcHg7IGJvcmRlci1yYWRpdXM6IDZweDsgdGV4dC1kZWNvcmF0aW9uOiBub25lOyB3aGl0ZS1zcGFjZTogbm93cmFwOyB9CiAgICAuaW5mby1idG46aG92ZXIgeyBiYWNrZ3JvdW5kOiAjMWQ0ZWQ4OyBjb2xvcjogI2ZmZmZmZjsgYm9yZGVyLWNvbG9yOiAjMWQ0ZWQ4OyB9CiAgICAuYWhiLWdyb3VwIHsgZGlzcGxheTogZmxleDsgZmxleC13cmFwOiB3cmFwOyBnYXA6IDZweDsgfQogICAgLmFoYi1waWxsIHsgYmFja2dyb3VuZDogI2RiZWFmZTsgY29sb3I6ICMxZDRlZDg7IGZvbnQtd2VpZ2h0OiA2MDA7IGZvbnQtc2l6ZTogMC44NXJlbTsgcGFkZGluZzogNHB4IDEwcHg7IGJvcmRlci1yYWRpdXM6IDZweDsgfQogICAgLmFoYi1waWxsLmhpZ2hsaWdodCB7IGJhY2tncm91bmQ6ICMxZDRlZDg7IGNvbG9yOiAjZmZmZmZmOyB9CiAgICAuZW1wdHkgeyB0ZXh0LWFsaWduOiBjZW50ZXI7IHBhZGRpbmc6IDMwcHg7IGJhY2tncm91bmQ6ICNmZmY7IGJvcmRlci1yYWRpdXM6IDEwcHg7IGNvbG9yOiAjNjQ3NDhiOyBib3JkZXI6IDFweCBkYXNoZWQgI2UyZThmMDsgfQ==";
+  const _html = "PGRpdiBjbGFzcz0iY29udGFpbmVyIj4gIDxkaXYgY2xhc3M9InNlYXJjaC1wYW5lbCI+ICAgIDxkaXYgY2xhc3M9ImlucHV0cyI+ICAgICAgPGlucHV0IHR5cGU9InRleHQiIGlkPSJzZWFyY2hJbnB1dCIgY2xhc3M9InNlYXJjaC1pbnB1dCIgcGxhY2Vob2xkZXI9IkFIQiBObyDDtnJuOiA0NzAxMDEgdmV5YSBBU00gQWTEsS4uLiIgYXV0b2ZvY3VzPiAgICAgIDxzZWxlY3QgaWQ9ImRpc3RyaWN0U2VsZWN0IiBjbGFzcz0iZGlzdHJpY3Qtc2VsZWN0Ij4gICAgICAgIDxvcHRpb24gdmFsdWU9IiI+VMO8bSDEsGzDp2VsZXI8L29wdGlvbj4gICAgICA8L3NlbGVjdD4gICAgPC9kaXY+ICAgIDxkaXYgY2xhc3M9InN0YXR1cy1iYXIiPiAgICAgIDxzcGFuIGlkPSJyZXN1bHRDb3VudCI+PC9zcGFuPiAgICAgIDxzcGFuPk1hcmRpbiDEsGwgR2VuZWxpPC9zcGFuPiAgICA8L2Rpdj4gIDwvZGl2PiAgPGRpdiBpZD0iYXNtTGlzdCIgY2xhc3M9ImFzbS1saXN0Ij48L2Rpdj48L2Rpdj4=";
 
-  const _uDec = (s) => decodeURIComponent(atob(s).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+  const style = document.createElement('style');
+  style.textContent = atob(_css);
+  document.head.appendChild(style);
+  document.body.innerHTML = decodeURIComponent(escape(atob(_html)));
 
-  // Stil ve DOM Yapısının Çözülerek Enjeksiyonu
-  const st = document.createElement('style');
-  st.textContent = atob(_c);
-  document.head.appendChild(st);
-  document.body.innerHTML = _uDec(_h);
-
-  const _sig = _k.map(c => String.fromCharCode(c)).join('');
   const map = {};
   _d.forEach(i => {
     const k = `${i.ilce}_${i.asm}`;
@@ -352,38 +343,8 @@ const _d = [
   const districtSelect = document.getElementById('districtSelect');
   const asmList = document.getElementById('asmList');
   const resultCount = document.getElementById('resultCount');
-  const metaLayer = document.getElementById('sys-meta-layer');
 
-  function initSecurityLayer() {
-    if (!metaLayer) return;
-    const btn = document.createElement('button');
-    btn.className = 'sys-btn';
-    btn.innerHTML = '<span>©</span> Telif & Bilgi';
-    
-    const box = document.createElement('div');
-    box.className = 'sys-box';
-    box.style.display = 'none';
-    box.textContent = _sig;
-    
-    btn.onclick = () => {
-      box.style.display = box.style.display === 'none' ? 'inline-block' : 'none';
-    };
-    
-    metaLayer.appendChild(btn);
-    metaLayer.appendChild(document.createElement('br'));
-    metaLayer.appendChild(box);
-  }
-
-  function verifyIntegrity() {
-    if (!metaLayer || !metaLayer.innerHTML.includes('©')) {
-      document.body.innerHTML = '<div style="padding:40px;text-align:center;font-weight:bold;color:red;">Sistem bütünlüğü doğrulanamadı. Kod üzerinde yetkisiz değişiklik tespit edildi.</div>';
-      return false;
-    }
-    return true;
-  }
-
-  const dists = [...new Set(list.map(i => i.ilce))].sort();
-  dists.forEach(d => {
+  [...new Set(list.map(i => i.ilce))].sort().forEach(d => {
     const opt = document.createElement('option');
     opt.value = d;
     opt.textContent = d;
@@ -391,50 +352,41 @@ const _d = [
   });
 
   function render(records, query = '') {
-    if (!verifyIntegrity()) return;
-    resultCount.textContent = `${records.length} ASM listeleniyor`;
+    const totalAHB = records.reduce((sum, item) => sum + item.ahbler.length, 0);
+    resultCount.textContent = `${records.length} ASM, ${totalAHB} AHB listeleniyor`;
+
     if (records.length === 0) {
       asmList.innerHTML = `<div class="empty">Eşleşen ASM veya AHB bulunamadı.</div>`;
       return;
     }
 
-    asmList.innerHTML = records.map(i => {
-      const searchUrl = `https://www.google.com/search?udm=50&q=${encodeURIComponent('Mardin '+ i.asm + ' iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı çalıştığı birimin numarasıyla birlikte bul ve tablo yap detaylı ve ayrıntılı olsun. tüm birimleri ayrı ayrı yaz')}`;
-      return `
-        <div class="asm-card">
-          <div class="asm-header">
-            <div class="asm-title">${i.asm}</div>
-            <a href="${searchUrl}" target="_blank" rel="noopener noreferrer" class="info-btn">İletişim Bilgileri</a>
-          </div>
-          <div class="ahb-group">
-            ${i.ahbler.map(ahb => {
-              const match = query && ahb.includes(query);
-              return `<span class="ahb-pill ${match ? 'highlight' : ''}">${ahb} Nolu AHB</span>`;
-            }).join('')}
-          </div>
+    asmList.innerHTML = records.map(i => `
+      <div class="asm-card">
+        <div class="asm-header">
+          <div class="asm-title">${i.asm}</div>
+          <a href="https://www.google.com/search?udm=50&q=${encodeURIComponent('Mardin '+ i.asm + ' iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı çalıştığı birimin numarasıyla birlikte bul ve tablo yap detaylı ve ayrıntılı olsun. tüm birimleri ayrı ayrı yaz')}" target="_blank" rel="noopener noreferrer" class="info-btn">İletişim Bilgileri</a>
         </div>
-      `;
-    }).join('');
+        <div class="ahb-group">
+          ${i.ahbler.map(ahb => `<span class="ahb-pill ${query && ahb.includes(query) ? 'highlight' : ''}">${ahb} Nolu AHB</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
   }
 
   function handleFilter() {
     const q = searchInput.value.trim().toLowerCase();
     const dist = districtSelect.value;
-
     const filtered = list.filter(item => {
       const matchDist = !dist || item.ilce === dist;
       const matchASM = item.asm.toLowerCase().includes(q);
       const matchAHB = item.ahbler.some(ahb => ahb.toLowerCase().includes(q));
       return matchDist && (matchASM || matchAHB);
     });
-
     render(filtered, q);
   }
 
   searchInput.addEventListener('input', handleFilter);
   districtSelect.addEventListener('change', handleFilter);
-
-  initSecurityLayer();
   render(list);
 })();
 </script>
