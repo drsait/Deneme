@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mardin ASM & AHB Rehberi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; }
+    .container { max-width: 800px; margin: 0 auto; width: 100%; flex: 1; }
+    .search-panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .inputs { display: flex; gap: 10px; flex-wrap: wrap; }
+    .search-input { flex: 1; min-width: 220px; padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; }
+    .search-input:focus, .district-select:focus { border-color: #1d4ed8; }
+    .district-select { padding: 10px 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; background: #fff; outline: none; cursor: pointer; }
+    .status-bar { font-size: 0.85rem; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; font-weight: 500; }
+    .asm-list { display: flex; flex-direction: column; gap: 12px; }
+    .asm-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .asm-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+    .asm-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; }
+    .info-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #1d4ed8; font-size: 0.8rem; font-weight: 600; padding: 5px 10px; border-radius: 6px; text-decoration: none; white-space: nowrap; transition: all 0.15s; }
+    .info-btn:hover { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; }
+    .ahb-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ahb-pill { background: #dbeafe; color: #1d4ed8; font-weight: 600; font-size: 0.85rem; padding: 4px 10px; border-radius: 6px; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .ahb-pill:hover { background: #1d4ed8; color: #ffffff; }
+    .ahb-pill.highlight { background: #1d4ed8; color: #ffffff; }
+    .empty { text-align: center; padding: 30px; background: #fff; border-radius: 10px; color: #64748b; border: 1px dashed #e2e8f0; }
+
+    footer { text-align: center; margin-top: 32px; padding: 16px 0 8px 0; }
+    .footer-btn { background: none; border: none; font-size: 0.8rem; color: #94a3b8; cursor: pointer; transition: color 0.2s; }
+    .footer-btn:hover { color: #64748b; }
+    .typewriter-box { min-height: 20px; margin-top: 6px; font-size: 0.78rem; color: #64748b; font-family: monospace; }
+    .cursor { display: inline-block; width: 6px; animation: blink 0.8s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="search-panel">
+      <div class="inputs">
+        <input type="text" id="searchInput" class="search-input" placeholder="AHB No örn: 470101 veya ASM Adı..." autofocus>
+        <select id="districtSelect" class="district-select">
+          <option value="">Tüm İlçeler</option>
+        </select>
+      </div>
+      <div class="status-bar">
+        <span id="resultCount"></span>
+        <span>Mardin İl Geneli</span>
+      </div>
+    </div>
+    <div id="asmList" class="asm-list"></div>
+
+    <footer>
+      <button id="creditToggle" class="footer-btn">© Bilgi & Lisans</button>
+      <div class="typewriter-box"><span id="creditText"></span><span id="cursor" class="cursor"></span></div>
+    </footer>
+  </div>
+
+  <script>
+    const _d = [
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİYOL ASM","ahb":"470101"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİYOL ASM","ahb":"470102"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİYOL ASM","ahb":"470103"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİYOL ASM","ahb":"470104"},
+      {"ilce":"Artuklu","asm":"ARTUKLU DİYARBAKIR KAPI ASM","ahb":"470107"},
+      {"ilce":"Artuklu","asm":"ARTUKLU DİYARBAKIR KAPI ASM","ahb":"470108"},
+      {"ilce":"Artuklu","asm":"ARTUKLU DİYARBAKIR KAPI ASM","ahb":"470110"},
+      {"ilce":"Artuklu","asm":"ARTUKLU TOKİ ASM","ahb":"470146"},
+      {"ilce":"Artuklu","asm":"ARTUKLU TOKİ ASM","ahb":"470148"},
+      {"ilce":"Artuklu","asm":"ARTUKLU TOKİ ASM","ahb":"470156"},
+      {"ilce":"Artuklu","asm":"ARTUKLU TOKİ ASM","ahb":"470174"},
+      {"ilce":"Artuklu","asm":"ARTUKLU İSTASYON ASM","ahb":"470111"},
+      {"ilce":"Artuklu","asm":"ARTUKLU İSTASYON ASM","ahb":"470112"},
+      {"ilce":"Artuklu","asm":"ARTUKLU İSTASYON ASM","ahb":"470113"},
+      {"ilce":"Artuklu","asm":"ARTUKLU İSTASYON ASM","ahb":"470149"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİŞEHİR ASM","ahb":"470114"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİŞEHİR ASM","ahb":"470115"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİŞEHİR ASM","ahb":"470116"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİŞEHİR ASM","ahb":"470142"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİŞEHİR ASM","ahb":"470162"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YENİŞEHİR ASM","ahb":"470163"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KÖTEK ASM","ahb":"470117"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KÖTEK ASM","ahb":"470159"},
+      {"ilce":"Artuklu","asm":"ARTUKLU AHMET LÜTFİYE ÇAĞLAR ASM","ahb":"470118"},
+      {"ilce":"Artuklu","asm":"ARTUKLU AHMET LÜTFİYE ÇAĞLAR ASM","ahb":"470119"},
+      {"ilce":"Artuklu","asm":"ARTUKLU AHMET LÜTFİYE ÇAĞLAR ASM","ahb":"470120"},
+      {"ilce":"Artuklu","asm":"ARTUKLU AHMET LÜTFİYE ÇAĞLAR ASM","ahb":"470121"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ARTUKBEY ASM","ahb":"470122"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ARTUKBEY ASM","ahb":"470124"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ARTUKBEY ASM","ahb":"470125"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ARTUKBEY ASM","ahb":"470143"},
+      {"ilce":"Artuklu","asm":"ARTUKLU SEVGİ ASM","ahb":"470127"},
+      {"ilce":"Artuklu","asm":"ARTUKLU SEVGİ ASM","ahb":"470141"},
+      {"ilce":"Artuklu","asm":"ARTUKLU SEVGİ ASM","ahb":"470155"},
+      {"ilce":"Artuklu","asm":"ARTUKLU SEVGİ ASM","ahb":"470154"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KABALA ASM","ahb":"470128"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KABALA ASM","ahb":"470144"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KABALA ASM","ahb":"470129"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KABALA ASM","ahb":"470173"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KABALA ASM","ahb":"470145"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ORTAKÖY ASM","ahb":"470130"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ORTAKÖY ASM","ahb":"470131"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ORTAKÖY ASM","ahb":"470132"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ORTAKÖY ASM","ahb":"470133"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ORTAKÖY ASM","ahb":"470157"},
+      {"ilce":"Artuklu","asm":"ARTUKLU KÖPRÜBAŞI ASM","ahb":"470178"},
+      {"ilce":"Artuklu","asm":"ARTUKLU SULTANKÖY ASM","ahb":"470134"},
+      {"ilce":"Artuklu","asm":"ARTUKLU SULTANKÖY ASM","ahb":"470135"},
+      {"ilce":"Artuklu","asm":"ARTUKLU DARA ASM","ahb":"470136"},
+      {"ilce":"Artuklu","asm":"ARTUKLU AKINCI ASM","ahb":"470137"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÖKÇE ASM","ahb":"470138"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÖKÇE ASM","ahb":"470139"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÖKÇE ASM","ahb":"470140"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÖKÇE ASM","ahb":"470158"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÖKÇE ASM","ahb":"470175"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YALIMKÖY ASM","ahb":"470126"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YALIMKÖY ASM","ahb":"470147"},
+      {"ilce":"Artuklu","asm":"ARTUKLU YALIMKÖY ASM","ahb":"470106"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ZINNAR ASM","ahb":"470150"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ZINNAR ASM","ahb":"470151"},
+      {"ilce":"Artuklu","asm":"ARTUKLU ZINNAR ASM","ahb":"470160"},
+      {"ilce":"Artuklu","asm":"ARTUKLU RAVZA ASM","ahb":"470152"},
+      {"ilce":"Artuklu","asm":"ARTUKLU RAVZA ASM","ahb":"470153"},
+      {"ilce":"Artuklu","asm":"ARTUKLU RAVZA ASM","ahb":"470161"},
+      {"ilce":"Artuklu","asm":"ARTUKLU RAVZA ASM","ahb":"470105"},
+      {"ilce":"Artuklu","asm":"ARTUKLU 13 MART ASM","ahb":"470165"},
+      {"ilce":"Artuklu","asm":"ARTUKLU 13 MART ASM","ahb":"470166"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÜMÜŞ ASM","ahb":"470167"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÜMÜŞ ASM","ahb":"470168"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÜMÜŞ ASM","ahb":"470169"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÜMÜŞ ASM","ahb":"470171"},
+      {"ilce":"Artuklu","asm":"ARTUKLU GÜMÜŞ ASM","ahb":"470172"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE CUMHURİYET ASM","ahb":"470402"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE CUMHURİYET ASM","ahb":"470403"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE CUMHURİYET ASM","ahb":"470405"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE CUMHURİYET ASM","ahb":"470409"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE CUMHURİYET ASM","ahb":"470412"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TEPEBAŞI ASM","ahb":"470407"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TEPEBAŞI ASM","ahb":"470408"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TEPEBAŞI ASM","ahb":"470410"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TEPEBAŞI ASM","ahb":"470459"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470414"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470415"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470416"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470417"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470418"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470419"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470420"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE REŞİT GÜNDOĞDU ASM","ahb":"470421"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE FIRAT ASM","ahb":"470425"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE FIRAT ASM","ahb":"470428"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE FIRAT ASM","ahb":"470429"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE FIRAT ASM","ahb":"470430"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE FIRAT ASM","ahb":"470470"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470431"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470432"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470433"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470434"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470435"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470457"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ZERGAN ASM","ahb":"470411"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE MEDYA ASM","ahb":"470436"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE MEDYA ASM","ahb":"470437"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE MEDYA ASM","ahb":"470438"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE MEDYA ASM","ahb":"470469"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİ MAH ASM","ahb":"470440"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİ MAH ASM","ahb":"470442"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİ MAH ASM","ahb":"470462"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİ MAH ASM","ahb":"470471"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAHÇELİEVLER ASM","ahb":"470443"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAHÇELİEVLER ASM","ahb":"470445"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAHÇELİEVLER ASM","ahb":"470422"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE OSMAN-NURİYE BAKIRCI ASM","ahb":"470446"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE AKDOĞAN ASM","ahb":"470447"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE AKDOĞAN ASM","ahb":"470491"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞENYURT ASM","ahb":"470448"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE HOCAKÖY ASM","ahb":"470449"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE SÜREKLİ ASM","ahb":"470450"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE DİKMEN ASM","ahb":"470451"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE DİKMEN ASM","ahb":"470452"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BOZHÖYÜK ASM","ahb":"470453"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOKİ ASM","ahb":"470455"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOKİ ASM","ahb":"470456"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOKİ ASM","ahb":"470466"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOKİ ASM","ahb":"470472"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOKİ ASM","ahb":"470480"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAŞAK ASM","ahb":"470404"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAŞAK ASM","ahb":"470458"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAŞAK ASM","ahb":"470463"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAŞAK ASM","ahb":"470473"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BAŞAK ASM","ahb":"4704106"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE İPEK MAH. ASM","ahb":"470423"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE İPEK MAH. ASM","ahb":"470424"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE İPEK MAH. ASM","ahb":"470426"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE İPEK MAH. ASM","ahb":"470427"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE İPEK MAH. ASM","ahb":"470493"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE İPEK MAH. ASM","ahb":"4704115"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞAHMERAN ASM","ahb":"470401"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞAHMERAN ASM","ahb":"470406"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞAHMERAN ASM","ahb":"470413"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞAHMERAN ASM","ahb":"470439"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞAHMERAN ASM","ahb":"4704107"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞİFA ASM","ahb":"470460"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ŞİFA ASM","ahb":"470461"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE SANAYİ ASM","ahb":"470464"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE SANAYİ ASM","ahb":"470465"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE SANAYİ ASM","ahb":"470474"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE SANAYİ ASM","ahb":"470475"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOPRAK ASM","ahb":"470467"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE TOPRAK ASM","ahb":"470468"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BERÇEM ASM","ahb":"470476"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BERÇEM ASM","ahb":"470477"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE BERÇEM ASM","ahb":"4704117"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE OVA ASM","ahb":"470478"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE OVA ASM","ahb":"470479"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE OVA ASM","ahb":"470492"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİKENT ASM","ahb":"470481"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİKENT ASM","ahb":"470482"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİKENT ASM","ahb":"4704101"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE YENİKENT ASM","ahb":"4704102"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE KOÇHİSAR ASM","ahb":"470483"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE KOÇHİSAR ASM","ahb":"470484"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE KOÇHİSAR ASM","ahb":"470485"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE KOÇHİSAR ASM","ahb":"4704100"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ATATÜRK ASM","ahb":"470486"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ATATÜRK ASM","ahb":"470487"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ATATÜRK ASM","ahb":"4704105"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ATATÜRK ASM","ahb":"470489"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ATATÜRK ASM","ahb":"470490"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE ATATÜRK ASM","ahb":"470498"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE MEVLANA ASM","ahb":"470494"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE MEVLANA ASM","ahb":"470495"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE 14 MART ASM","ahb":"470496"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE 14 MART ASM","ahb":"470497"},
+      {"ilce":"Kızıltepe","asm":"KIZILTEPE 14 MART ASM","ahb":"4704104"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470501"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470502"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470503"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470504"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470505"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470506"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470507"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI ASM","ahb":"470508"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI EVCİLER ASM","ahb":"470509"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI EVCİLER ASM","ahb":"470511"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI EVCİLER ASM","ahb":"470512"},
+      {"ilce":"Mazıdağı","asm":"MAZIDAĞI KOCAKENT ASM","ahb":"470513"},
+      {"ilce":"Dargeçit","asm":"DARGEÇİT ASM","ahb":"470202"},
+      {"ilce":"Dargeçit","asm":"DARGEÇİT ASM","ahb":"470203"},
+      {"ilce":"Dargeçit","asm":"DARGEÇİT ASM","ahb":"470204"},
+      {"ilce":"Dargeçit","asm":"DARGEÇİT ASM","ahb":"470205"},
+      {"ilce":"Dargeçit","asm":"DARGEÇİT ASM","ahb":"470206"},
+      {"ilce":"Dargeçit","asm":"DARGEÇİT ASM","ahb":"470208"},
+      {"ilce":"Derik","asm":"DERİK MERKEZ ASM","ahb":"470305"},
+      {"ilce":"Derik","asm":"DERİK MERKEZ ASM","ahb":"470306"},
+      {"ilce":"Derik","asm":"DERİK MERKEZ ASM","ahb":"470318"},
+      {"ilce":"Derik","asm":"DERİK DERİK ASM","ahb":"470302"},
+      {"ilce":"Derik","asm":"DERİK DERİK ASM","ahb":"470307"},
+      {"ilce":"Derik","asm":"DERİK DERİK ASM","ahb":"470308"},
+      {"ilce":"Derik","asm":"DERİK DERİK ASM","ahb":"470309"},
+      {"ilce":"Derik","asm":"DERİK DERİNSU ASM","ahb":"470311"},
+      {"ilce":"Derik","asm":"DERİK ATLI ASM","ahb":"470312"},
+      {"ilce":"Derik","asm":"DERİK ATLI ASM","ahb":"470313"},
+      {"ilce":"Derik","asm":"DERİK BOYAKLI ASM","ahb":"470314"},
+      {"ilce":"Derik","asm":"DERİK ZEYTİN ASM","ahb":"470315"},
+      {"ilce":"Derik","asm":"DERİK ZEYTİN ASM","ahb":"470316"},
+      {"ilce":"Derik","asm":"DERİK ZEYTİN ASM","ahb":"470301"},
+      {"ilce":"Derik","asm":"DERİK ZEYTİN ASM","ahb":"470303"},
+      {"ilce":"Derik","asm":"DERİK KOVALI ASM","ahb":"470317"},
+      {"ilce":"Midyat","asm":"MİDYAT MERKEZ ASM","ahb":"470602"},
+      {"ilce":"Midyat","asm":"MİDYAT MERKEZ ASM","ahb":"470603"},
+      {"ilce":"Midyat","asm":"MİDYAT MERKEZ ASM","ahb":"470604"},
+      {"ilce":"Midyat","asm":"MİDYAT YAŞAM ASM","ahb":"470606"},
+      {"ilce":"Midyat","asm":"MİDYAT YAŞAM ASM","ahb":"470607"},
+      {"ilce":"Midyat","asm":"MİDYAT YAŞAM ASM","ahb":"470608"},
+      {"ilce":"Midyat","asm":"MİDYAT YAŞAM ASM","ahb":"470625"},
+      {"ilce":"Midyat","asm":"MİDYAT ULUCAMİ ASM","ahb":"470610"},
+      {"ilce":"Midyat","asm":"MİDYAT ULUCAMİ ASM","ahb":"470611"},
+      {"ilce":"Midyat","asm":"MİDYAT ULUCAMİ ASM","ahb":"470612"},
+      {"ilce":"Midyat","asm":"MİDYAT ULUCAMİ ASM","ahb":"470628"},
+      {"ilce":"Midyat","asm":"MİDYAT NAHİD ASM","ahb":"470613"},
+      {"ilce":"Midyat","asm":"MİDYAT NAHİD ASM","ahb":"470614"},
+      {"ilce":"Midyat","asm":"MİDYAT NAHİD ASM","ahb":"470615"},
+      {"ilce":"Midyat","asm":"MİDYAT NAHİD ASM","ahb":"470617"},
+      {"ilce":"Midyat","asm":"MİDYAT NAHİD ASM","ahb":"470618"},
+      {"ilce":"Midyat","asm":"MİDYAT ŞENKÖY ASM","ahb":"470619"},
+      {"ilce":"Midyat","asm":"MİDYAT ACIRLI ASM","ahb":"470620"},
+      {"ilce":"Midyat","asm":"MİDYAT YOLBAŞI ASM","ahb":"470621"},
+      {"ilce":"Midyat","asm":"MİDYAT ÇAVUŞLU ASM","ahb":"470622"},
+      {"ilce":"Midyat","asm":"MİDYAT ÇAVUŞLU ASM","ahb":"470623"},
+      {"ilce":"Midyat","asm":"MİDYAT KAYALIPINAR ASM","ahb":"470624"},
+      {"ilce":"Midyat","asm":"MİDYAT FAYSAL ASLAN ASM","ahb":"470609"},
+      {"ilce":"Midyat","asm":"MİDYAT FAYSAL ASLAN ASM","ahb":"470616"},
+      {"ilce":"Midyat","asm":"MİDYAT FAYSAL ASLAN ASM","ahb":"470630"},
+      {"ilce":"Midyat","asm":"MİDYAT TELKARİ ASM","ahb":"470626"},
+      {"ilce":"Midyat","asm":"MİDYAT TELKARİ ASM","ahb":"470605"},
+      {"ilce":"Midyat","asm":"MİDYAT TELKARİ ASM","ahb":"470627"},
+      {"ilce":"Midyat","asm":"MİDYAT TELKARİ ASM","ahb":"470629"},
+      {"ilce":"Midyat","asm":"MİDYAT BAĞLAR ASM","ahb":"470631"},
+      {"ilce":"Midyat","asm":"MİDYAT BAĞLAR ASM","ahb":"470632"},
+      {"ilce":"Midyat","asm":"MİDYAT BAĞLAR ASM","ahb":"470633"},
+      {"ilce":"Midyat","asm":"MİDYAT BAĞLAR ASM","ahb":"470634"},
+      {"ilce":"Midyat","asm":"MİDYAT SANAYİ ASM","ahb":"470635"},
+      {"ilce":"Midyat","asm":"MİDYAT SANAYİ ASM","ahb":"470636"},
+      {"ilce":"Midyat","asm":"MİDYAT SANAYİ ASM","ahb":"470637"},
+      {"ilce":"Midyat","asm":"MİDYAT YENİMAHALLE ASM","ahb":"470638"},
+      {"ilce":"Midyat","asm":"MİDYAT YENİMAHALLE ASM","ahb":"470639"},
+      {"ilce":"Midyat","asm":"MİDYAT YENİMAHALLE ASM","ahb":"470642"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN HAYAT ASM","ahb":"470701"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN HAYAT ASM","ahb":"470702"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN HAYAT ASM","ahb":"470703"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN HAYAT ASM","ahb":"470704"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN HAYAT ASM","ahb":"470705"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN İPEKYOLU ASM","ahb":"470706"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN İPEKYOLU ASM","ahb":"470707"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN İPEKYOLU ASM","ahb":"470708"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN İPEKYOLU ASM","ahb":"470709"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN İPEKYOLU ASM","ahb":"470710"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN İPEKYOLU ASM","ahb":"470711"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BEYAZSU ASM","ahb":"470712"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BEYAZSU ASM","ahb":"470713"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BEYAZSU ASM","ahb":"470714"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BEYAZSU ASM","ahb":"470715"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BEYAZSU ASM","ahb":"470716"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BEYAZSU ASM","ahb":"470717"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN SAĞLIK ASM","ahb":"470718"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN SAĞLIK ASM","ahb":"470719"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN SAĞLIK ASM","ahb":"470720"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN SAĞLIK ASM","ahb":"470721"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN SAĞLIK ASM","ahb":"470722"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN DURUCA ASM","ahb":"470723"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN GİRMELİ ASM","ahb":"470724"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN GİRMELİ ASM","ahb":"470725"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN AKARSU ASM","ahb":"470726"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN AKARSU ASM","ahb":"470727"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BARIŞ ASM","ahb":"470728"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BARIŞ ASM","ahb":"470729"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN BARIŞ ASM","ahb":"470730"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN YENİŞEHİR ASM","ahb":"470731"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN YENİŞEHİR ASM","ahb":"470732"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN YENİŞEHİR ASM","ahb":"470733"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN ABDULKADİRPAŞA ASM","ahb":"470734"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN ABDULKADİRPAŞA ASM","ahb":"470735"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN ABDULKADİRPAŞA ASM","ahb":"470744"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN ÇATALÖZÜ ASM","ahb":"470736"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN ÇATALÖZÜ ASM","ahb":"470737"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN 8 MART ASM","ahb":"470738"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN 8 MART ASM","ahb":"470739"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN 8 MART ASM","ahb":"470742"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN KIŞLA ASM","ahb":"470740"},
+      {"ilce":"Nusaybin","asm":"NUSAYBİN KIŞLA ASM","ahb":"470741"},
+      {"ilce":"Savur","asm":"SAVUR PROF.DR.MURAT DİLMENER ASM","ahb":"470901"},
+      {"ilce":"Savur","asm":"SAVUR PROF.DR.MURAT DİLMENER ASM","ahb":"470902"},
+      {"ilce":"Savur","asm":"SAVUR PROF.DR.MURAT DİLMENER ASM","ahb":"470903"},
+      {"ilce":"Savur","asm":"SAVUR PROF.DR.MURAT DİLMENER ASM","ahb":"470904"},
+      {"ilce":"Savur","asm":"SAVUR PROF.DR.MURAT DİLMENER ASM","ahb":"470905"},
+      {"ilce":"Savur","asm":"SAVUR SÜRGÜCÜ ASM","ahb":"470906"},
+      {"ilce":"Savur","asm":"SAVUR SÜRGÜCÜ ASM","ahb":"470907"},
+      {"ilce":"Savur","asm":"SAVUR PINARDERE ASM","ahb":"470908"},
+      {"ilce":"Ömerli","asm":"ÖMERLİ ASM","ahb":"470801"},
+      {"ilce":"Ömerli","asm":"ÖMERLİ ASM","ahb":"470802"},
+      {"ilce":"Ömerli","asm":"ÖMERLİ ASM","ahb":"470803"},
+      {"ilce":"Ömerli","asm":"ÖMERLİ ASM","ahb":"470804"},
+      {"ilce":"Ömerli","asm":"ÖMERLİ ASM","ahb":"470805"},
+      {"ilce":"Ömerli","asm":"ÖMERLİ ASM","ahb":"470806"},
+      {"ilce":"Yeşilli","asm":"YEŞİLLİ ASM","ahb":"471001"},
+      {"ilce":"Yeşilli","asm":"YEŞİLLİ ASM","ahb":"471002"},
+      {"ilce":"Yeşilli","asm":"YEŞİLLİ ASM","ahb":"471005"},
+      {"ilce":"Yeşilli","asm":"YEŞİLLİ ASM","ahb":"471006"},
+      {"ilce":"Yeşilli","asm":"YEŞİLLİ BAHÇE BAŞI ASM","ahb":"471003"},
+      {"ilce":"Yeşilli","asm":"YEŞİLLİ BAHÇE BAŞI ASM","ahb":"471004"}
+    ];
+
+    const map = {};
+    _d.forEach(i => {
+      const k = `${i.ilce}_${i.asm}`;
+      if (!map[k]) map[k] = { ilce: i.ilce, asm: i.asm, ahbler: [] };
+      map[k].ahbler.push(i.ahb);
+    });
+    const list = Object.values(map);
+
+    const searchInput = document.getElementById('searchInput');
+    const districtSelect = document.getElementById('districtSelect');
+    const asmList = document.getElementById('asmList');
+    const resultCount = document.getElementById('resultCount');
+
+    [...new Set(list.map(i => i.ilce))].sort().forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      districtSelect.appendChild(opt);
+    });
+
+    
+    const _sUrlCodes = [104,116,116,112,115,58,47,47,119,119,119,46,103,111,111,103,108,101,46,99,111,109,47,115,101,97,114,99,104,63,117,100,109,61,53,48,38,113,61];
+    const _sAsmPattern = [32,114,101,115,109,105,32,119,101,98,32,115,97,121,102,97,115,305,32,118,101,32,105,108,101,116,105,351,105,109,32,98,105,108,103,105,108,101,114,105,44,32,231,97,108,305,351,97,110,32,97,105,108,101,32,104,101,107,105,109,105,32,118,101,32,97,105,108,101,32,115,97,287,108,305,287,305,32,231,97,108,305,351,97,110,305,110,32,97,100,305,32,115,111,121,97,100,305,32,231,97,108,305,351,116,305,287,305,32,98,105,114,105,109,105,110,32,110,117,109,97,114,97,115,305,121,108,97,32,98,105,114,108,105,107,116,101,32,98,117,108,32,118,101,32,116,97,98,108,111,32,121,97,112,32,100,101,116,97,121,108,305,32,118,101,32,97,121,114,305,110,116,305,108,305,32,111,108,115,117,110,46,32,116,234,109,32,98,105,114,105,109,108,101,114,105,32,97,121,114,305,32,97,121,114,305,32,121,97,122];
+    const _sAhbPattern = [32,110,111,108,117,32,97,105,108,101,32,104,101,107,105,109,108,105,287,105,32,98,105,114,105,109,105,32,114,101,115,109,105,32,119,101,98,32,115,97,121,102,97,115,305,32,118,101,32,105,108,101,116,105,351,105,109,32,98,105,108,103,105,108,101,114,105,44,32,231,97,108,305,351,97,110,32,97,105,108,101,32,104,101,107,105,109,105,32,118,101,32,97,105,108,101,32,115,97,287,108,305,287,305,32,231,97,108,305,351,97,110,305,110,32,97,100,305,32,115,111,121,97,100,305,32,98,117,108,32,100,101,116,97,121,108,305,32,118,101,32,97,121,114,305,110,116,305,108,305,32,111,108,115,117,110,46];
+
+    function getDec(arr) {
+      return String.fromCharCode(...arr);
+    }
+
+    function buildAsmUrl(asmName) {
+      const q = "Mardin " + asmName + getDec(_sAsmPattern);
+      return getDec(_sUrlCodes) + encodeURIComponent(q);
+    }
+
+    function buildAhbUrl(ilce, asmName, ahbNo) {
+      const q = "Mardin " + ilce + " " + asmName + " " + ahbNo + getDec(_sAhbPattern);
+      return getDec(_sUrlCodes) + encodeURIComponent(q);
+    }
+
+    function render(records, query = '') {
+      const totalAHB = records.reduce((sum, item) => sum + item.ahbler.length, 0);
+      resultCount.textContent = `${records.length} ASM, ${totalAHB} AHB listeleniyor`;
+
+      if (records.length === 0) {
+        asmList.innerHTML = `<div class="empty">Eşleşen ASM veya AHB bulunamadı.</div>`;
+        return;
+      }
+
+      asmList.innerHTML = records.map(i => `
+        <div class="asm-card">
+          <div class="asm-header">
+            <div class="asm-title">${i.asm}</div>
+            <a href="${buildAsmUrl(i.asm)}" target="_blank" rel="noopener noreferrer" class="info-btn">İletişim Bilgileri</a>
+          </div>
+          <div class="ahb-group">
+            ${i.ahbler.map(ahb => {
+              const isMatch = query && ahb.toLowerCase().includes(query.toLowerCase());
+              return `<a href="${buildAhbUrl(i.ilce, i.asm, ahb)}" target="_blank" rel="noopener noreferrer" class="ahb-pill ${isMatch ? 'highlight' : ''}">${ahb} Nolu AHB</a>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function handleFilter() {
+      const q = searchInput.value.trim().toLowerCase();
+      const dist = districtSelect.value;
+      const filtered = list.filter(item => {
+        const matchDist = !dist || item.ilce === dist;
+        const matchASM = item.asm.toLowerCase().includes(q);
+        const matchAHB = item.ahbler.some(ahb => ahb.toLowerCase().includes(q));
+        return matchDist && (matchASM || matchAHB);
+      });
+      render(filtered, q);
+    }
+
+    searchInput.addEventListener('input', handleFilter);
+    districtSelect.addEventListener('change', handleFilter);
+    render(list);
+
+  
+    const _secCodes = [66,117,32,115,97,121,102,97,32,68,114,46,32,83,97,105,116,32,75,117,114,116,32,116,97,114,97,102,305,110,100,97,110,32,100,105,122,97,121,110,32,101,100,105,108,109,105,351,116,105,114,32,118,101,32,100,97,287,305,116,305,109,305,32,115,101,114,98,101,115,116,116,105,114,46];
+
+    const creditToggle = document.getElementById('creditToggle');
+    const creditText = document.getElementById('creditText');
+    const cursor = document.getElementById('cursor');
+    
+    let isVisible = false;
+    let timer = null;
+
+    creditToggle.addEventListener('click', () => {
+      clearInterval(timer);
+      cursor.textContent = "|";
+      const fullText = getDec(_secCodes);
+
+      if (!isVisible) {
+        let index = 0;
+        creditText.textContent = "";
+        timer = setInterval(() => {
+          if (index < fullText.length) {
+            creditText.textContent += fullText.charAt(index);
+            index++;
+          } else {
+            clearInterval(timer);
+            isVisible = true;
+          }
+        }, 30);
+      } else {
+        timer = setInterval(() => {
+          if (creditText.textContent.length > 0) {
+            creditText.textContent = creditText.textContent.slice(0, -1);
+          } else {
+            clearInterval(timer);
+            cursor.textContent = "";
+            isVisible = false;
+          }
+        }, 15);
+      }
+    });
+  </script>
+</body>
+</html>
