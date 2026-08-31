@@ -229,7 +229,7 @@
     }
 
     asmList.innerHTML = records.map(function(i) {
-      var gUrl = 'https://www.google.com/search?udm=50?q=' + encodeURIComponent('Mardin ' + i.asm + 'resmi web sayfasını bul');
+      var gUrl = 'https://www.google.com/search?udm=50&q=' + encodeURIComponent('Mardin ' + i.asm + 'resmi web sayfasını bul');
       var ahbHtml = i.ahbler.map(function(ahb) {
         var match = query && ahb.indexOf(query) !== -1;
         return '<span class="ahb-pill ' + (match ? 'highlight' : '') + '">' + ahb + ' Nolu AHB</span>';
