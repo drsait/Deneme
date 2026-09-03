@@ -101,7 +101,7 @@
       color: #fff;
       font-size: 1.1rem;
       font-weight: bold;
-      width: 110px;
+      width: 125px;
       text-align: right;
       outline: none;
       text-shadow: 0 0 5px #000;
@@ -230,7 +230,7 @@
         <div class="input-row">
           <label for="numInput">Yüzeyden Yükseklik</label>
           <div class="num-box">
-            <input type="number" id="numInput" min="0" max="100000" value="0">
+            <input type="text" id="numInput" value="0" autocomplete="off">
             <span>km</span>
           </div>
         </div>
@@ -440,25 +440,36 @@
     const range = document.getElementById('rangeInput');
     const num = document.getElementById('numInput');
 
+    function formatNumber(val) {
+      return Number(val).toLocaleString('tr-TR');
+    }
+
     range.addEventListener('input', (e) => {
-      num.value = e.target.value;
+      num.value = formatNumber(e.target.value);
       calculateAll(e.target.value);
     });
 
     num.addEventListener('input', (e) => {
-      let val = e.target.value;
-      if (val === '') return;
-      range.value = Math.min(val, 100000);
-      calculateAll(val);
+      let rawVal = e.target.value.replace(/\D/g, '');
+      if (rawVal === '') {
+        e.target.value = '';
+        calculateAll(0);
+        return;
+      }
+      let numVal = parseInt(rawVal, 10);
+      e.target.value = formatNumber(numVal);
+      range.value = Math.min(numVal, 100000);
+      calculateAll(numVal);
     });
 
     function applyVal(v) {
-      range.value = v;
-      num.value = v;
+      range.value = Math.min(v, 100000);
+      num.value = formatNumber(v);
       calculateAll(v);
     }
 
     renderList();
+    applyVal(0);
   </script>
 </body>
 </html>
