@@ -6,17 +6,17 @@
   <title>Pregnancy Calculator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #f8f9fa; color: #212529; overflow-x: hidden; }
+    body { background: #f8f9fa; color: #212529; overflow-x: hidden; user-select: none; }
 
-    /* Üst Sekmeler - Tıklama alanı 2 katına çıkarıldı */
+    /* Üst Sekmeler */
     .tabs-wrap { background: #2196f3; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .tabs { display: flex; position: relative; max-width: 480px; margin: 0 auto; }
-    .tab { flex: 1; text-align: center; padding: 20px 0; color: #b3e5fc; font-size: 14px; font-weight: bold; cursor: pointer; user-select: none; }
+    .tab { flex: 1; text-align: center; padding: 20px 0; color: #b3e5fc; font-size: 14px; font-weight: bold; cursor: pointer; }
     .tab.active { color: #fff; }
     .line { position: absolute; bottom: 0; left: 0; width: 25%; height: 4px; background: #ffeb3b; transition: transform .3s ease; }
 
     /* Kaydırma Motoru */
-    .viewport { width: 100%; overflow: hidden; }
+    .viewport { width: 100%; overflow: hidden; touch-action: pan-y; }
     .slider { display: flex; width: 400%; transition: transform .3s ease; }
     .page { width: 25%; flex-shrink: 0; }
     .wrap { max-width: 480px; margin: 0 auto; padding: 0 10px 20px; }
@@ -58,7 +58,7 @@
     </div>
   </div>
 
-  <div class="viewport">
+  <div class="viewport" id="viewport">
     <div class="slider" id="slider">
 
       <!-- SAT -->
@@ -171,12 +171,51 @@
   <script>
     const M = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
     let S = { sd: 5, sm: 4, ud: 4, um: 4, uw: 9, ufd: 5 };
+    let curTab = 0;
 
     function go(idx) {
+      if (idx < 0) idx = 0;
+      if (idx > 3) idx = 3;
+      curTab = idx;
       document.getElementById('slider').style.transform = `translateX(-${idx * 25}%)`;
       document.getElementById('line').style.transform = `translateX(${idx * 100}%)`;
       document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
     }
+
+    // Sağa/Sola Kaydırma (Swipe/Drag) Dinleyicisi
+    const vp = document.getElementById('viewport');
+    let startX = 0, startY = 0, dist = 0, isDragging = false;
+
+    vp.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    vp.addEventListener('touchend', e => {
+      const diffX = e.changedTouches[0].clientX - startX;
+      const diffY = e.changedTouches[0].clientY - startY;
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+        if (diffX < 0) go(curTab + 1); // sola çekildi -> sonraki sekme
+        else go(curTab - 1);           // sağa çekildi -> önceki sekme
+      }
+    }, { passive: true });
+
+    vp.addEventListener('mousedown', e => {
+      startX = e.clientX;
+      startY = e.clientY;
+      isDragging = true;
+    });
+
+    window.addEventListener('mouseup', e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diffX = e.clientX - startX;
+      const diffY = e.clientY - startY;
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 40) {
+        if (diffX < 0) go(curTab + 1);
+        else go(curTab - 1);
+      }
+    });
 
     function gen(id, s, e, cur, cb, sub = false) {
       const el = document.getElementById(id);
