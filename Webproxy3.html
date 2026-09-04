@@ -110,7 +110,7 @@
 
       btn.disabled = true;
       status.style.display = 'block';
-      status.textContent = 'Sayfa ve medya proxyleniyor...';
+      status.textContent = 'Sayfa yükleniyor...';
 
       try {
         const res = await fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
@@ -120,6 +120,14 @@
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
         const baseUrl = new URL(url);
+
+        // Orijinal siteyi kök alan adı olarak ekle
+        let baseEl = doc.querySelector('base');
+        if (!baseEl) {
+          baseEl = doc.createElement('base');
+          doc.head.prepend(baseEl);
+        }
+        baseEl.href = baseUrl.origin + '/';
 
         // Resimleri ve medya öğelerini proxy'ye yönlendir
         doc.querySelectorAll('img, source, video, audio').forEach(el => {
@@ -134,14 +142,20 @@
           if (href) el.setAttribute('href', toProxyUrl(href, baseUrl));
         });
 
-        // Link tıklamalarını ana pencereye yönlendiren dinleyici
+        // Link tıklamalarını yakalayıp hedef sitenin tam kök adresiyle birleştiren dinleyici
         const interceptor = doc.createElement('script');
         interceptor.textContent = `
           document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
-            if (link && link.href && !link.href.startsWith('javascript:')) {
-              e.preventDefault();
-              window.parent.postMessage({ type: 'PROXY_NAVIGATE', url: link.href }, '*');
+            if (link) {
+              const rawHref = link.getAttribute('href');
+              if (rawHref && !rawHref.startsWith('javascript:') && !rawHref.startsWith('#')) {
+                e.preventDefault();
+                try {
+                  const absoluteUrl = new URL(rawHref, "${baseUrl.origin}").href;
+                  window.parent.postMessage({ type: 'PROXY_NAVIGATE', url: absoluteUrl }, '*');
+                } catch(err) {}
+              }
             }
           }, true);
         `;
@@ -159,7 +173,6 @@
     window.addEventListener('message', (e) => {
       if (e.data && e.data.type === 'PROXY_NAVIGATE') {
         let rawTarget = e.data.url;
-        // Eğer link zaten proxy URL'si halindeyse asıl adresi ayıkla
         if (rawTarget.includes('?url=')) {
           const parsed = new URL(rawTarget);
           rawTarget = parsed.searchParams.get('url') || rawTarget;
