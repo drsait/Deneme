@@ -8,15 +8,18 @@
     .card { background: #1c2333; padding: 20px; border-radius: 8px; max-width: 450px; margin: auto; }
     label { display: block; margin-top: 10px; font-size: 13px; color: #aaa; }
     input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; background: #0e121a; border: 1px solid #334; color: #fff; border-radius: 4px; }
-    button { width: 100%; padding: 12px; margin-top: 20px; background: #ffaa00; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #ffbb22; }
+    button { width: 100%; padding: 12px; margin-top: 10px; border: none; font-weight: bold; border-radius: 4px; cursor: pointer; }
+    .btn-geo { background: #2563eb; color: #fff; margin-top: 15px; }
+    .btn-geo:hover { background: #1d4ed8; }
+    .btn-download { background: #ffaa00; color: #000; }
+    .btn-download:hover { background: #ffbb22; }
     p { font-size: 12px; color: #889; line-height: 1.4; }
   </style>
 </head>
 <body>
   <div class="card">
     <h3>☀️ Güneş Sistemi Konumlandırıcı</h3>
-    <p>Google Earth URL'sindeki <code>@37.313...,40.738...</code> kısmından enlem ve boylamı yapıştır, o bölgenin KML dosyasını indir.</p>
+    <p>Cihaz konumunu kullanabilir veya koordinatları elle girebilirsin.</p>
     
     <label>Güneş Merkez Enlemi (Latitude):</label>
     <input type="text" id="lat" value="37.313345">
@@ -27,7 +30,8 @@
     <label>Yörünge Düzlem Yüksekliği (Metre):</label>
     <input type="number" id="alt" value="1200">
 
-    <button onclick="generateKML()">Yeni KML Dosyasını İndir</button>
+    <button class="btn-geo" onclick="useCurrentLocation()">📍 Cihazımın Konumunu Al</button>
+    <button class="btn-download" onclick="generateKML()">Yeni KML Dosyasını İndir</button>
   </div>
 
   <script>
@@ -41,6 +45,21 @@
       { name: "Uranüs", rStr: "3.6 cm", a: 2061.45, e: 0.0472, color: "ffffff00", size: 1.1 },
       { name: "Neptün", rStr: "3.5 cm", a: 3230.02, e: 0.0086, color: "ffff00aa", size: 1.1 }
     ];
+
+    function useCurrentLocation() {
+      if (!navigator.geolocation) {
+        alert("Tarayıcınız konum servisini desteklemiyor.");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById('lat').value = pos.coords.latitude.toFixed(6);
+          document.getElementById('lng').value = pos.coords.longitude.toFixed(6);
+        },
+        (err) => alert("Konum alınamadı: " + err.message),
+        { enableHighAccuracy: true }
+      );
+    }
 
     function generateKML() {
       const cLat = parseFloat(document.getElementById('lat').value);
@@ -66,7 +85,6 @@
         <Style id="style_${pId}"><IconStyle><scale>${p.size}</scale><color>${p.color}</color><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle></Style>
         <Style id="orbit_${pId}"><LineStyle><color>${p.color}</color><width>2</width></LineStyle></Style>`;
 
-        // Gezegen gövdesi konumu (başlangıç)
         const initLng = cLng + (p.a * mDegLng);
         bodyPlacemarks += `
         <Placemark>
@@ -75,10 +93,9 @@
           <Point><altitudeMode>absolute</altitudeMode><coordinates>${initLng.toFixed(6)},${cLat.toFixed(6)},${alt}</coordinates></Point>
         </Placemark>`;
 
-        // Yörünge elips koordinatları (36 nokta)
         let coords = "";
         const b = p.a * Math.sqrt(1 - p.e * p.e);
-        const c = p.a * p.e; // Odak kayması
+        const c = p.a * p.e;
 
         for (let i = 0; i <= 36; i++) {
           const theta = (i / 36) * Math.PI * 2;
