@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kod Klonlayıcı & Editör</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 850px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+    }
+    input, textarea {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+      transition: 0.2s;
+      width: 100%;
+    }
+    input:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+    textarea {
+      height: 280px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      color: #fff;
+      background: var(--border);
+    }
+    button:active { transform: scale(0.98); }
+    .btn-accent { background: var(--accent); white-space: nowrap; }
+    .btn-accent:hover { background: var(--accent-hover); }
+    .btn-success { background: var(--success); }
+    .btn-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .preview-card {
+      margin-top: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .preview-header {
+      padding: 10px 16px;
+      background: #182234;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    iframe {
+      width: 100%;
+      height: 320px;
+      border: none;
+      background: #fff;
+      display: block;
+    }
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .input-group { flex-direction: column; }
+      .btn-accent { width: 100%; }
+      textarea { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="input-group">
+    <input type="text" id="targetUrl" placeholder="https://ornek.com">
+    <button class="btn-accent" onclick="fetchSource()">Kodu Çek</button>
+  </div>
+
+  <textarea id="codeEditor" placeholder="HTML kodları burada listelenecek..."></textarea>
+
+  <div class="btn-group">
+    <button onclick="downloadCode()">İndir</button>
+    <button onclick="runCode()">Çalıştır</button>
+    <button class="btn-success" onclick="uploadToGithub()">Yükle</button>
+  </div>
+
+  <input type="text" id="fileName" value="index.html" placeholder="Dosya adı (örn: index.html)">
+  <input type="password" id="ghToken" placeholder="GitHub Personal Access Token (repo izni)">
+
+  <div class="preview-card">
+    <div class="preview-header">Canlı Önizleme</div>
+    <iframe id="preview"></iframe>
+  </div>
+</div>
+
+<script>
+  const REPO = 'drsait/Deneme';
+
+  async function fetchSource() {
+    const url = document.getElementById('targetUrl').value.trim();
+    if (!url) return alert('Lütfen geçerli bir URL girin.');
+    try {
+      const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`);
+      if (!res.ok) throw new Error('Sunucu yanıt vermedi');
+      const html = await res.text();
+      document.getElementById('codeEditor').value = html;
+    } catch (err) {
+      alert('Hata: ' + err.message);
+    }
+  }
+
+  function downloadCode() {
+    const content = document.getElementById('codeEditor').value;
+    const fileName = document.getElementById('fileName').value.trim() || 'index.html';
+    const blob = new Blob([content], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+  }
+
+  function runCode() {
+    const content = document.getElementById('codeEditor').value;
+    document.getElementById('preview').srcdoc = content;
+  }
+
+  async function uploadToGithub() {
+    const token = document.getElementById('ghToken').value.trim();
+    const path = document.getElementById('fileName').value.trim() || 'index.html';
+    const content = document.getElementById('codeEditor').value;
+
+    if (!token) return alert('Token alanı boş bırakılamaz.');
+
+    const encodedContent = btoa(unescape(encodeURIComponent(content)));
+    const apiUrl = `https://api.github.com/repos/${REPO}/contents/${path}`;
+
+    try {
+      let sha = null;
+      const checkRes = await fetch(apiUrl, {
+        headers: { 'Authorization': `token ${token}` }
+      });
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        sha = checkData.sha;
+      }
+
+      const res = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Update: ${path}`,
+          content: encodedContent,
+          sha: sha || undefined
+        })
+      });
+
+      if (res.ok) alert(`${REPO} reposuna başarıyla yüklendi!`);
+      else {
+        const err = await res.json();
+        alert('Yükleme hatası: ' + err.message);
+      }
+    } catch (e) {
+      alert('İşlem başarısız: ' + e.message);
+    }
+  }
+</script>
+</body>
+</html>
