@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pregnancy Calculator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #f8f9fa; color: #333; }
+
+    /* Üst Sekme Çubuğu */
+    .top-bar { display: flex; background: #2196F3; position: sticky; top: 0; z-index: 100; }
+    .tab-item { flex: 1; text-align: center; padding: 12px 0; color: #b3e5fc; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; letter-spacing: 0.5px; }
+    .tab-item.active { color: #ffffff; border-bottom: 3px solid #ffeb3b; }
+
+    /* Alt Gri Başlık Çubuğu */
+    .sub-bar { background-color: #d6d8db; color: #5a6268; font-size: 12.5px; padding: 8px 12px; margin-bottom: 8px; }
+
+    /* Sekme Alanları */
+    .tab-content { display: none; padding: 0 10px 20px; max-width: 480px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* Başlıklar */
+    .section-title { font-size: 15px; font-weight: 500; color: #212529; margin: 8px 0 4px; display: flex; align-items: center; gap: 5px; }
+    .info-icon { width: 14px; height: 14px; background: #2196F3; color: white; border-radius: 50%; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
+
+    /* Izgaralar */
+    .grid { display: grid; border-top: 1px solid #ced4da; border-left: 1px solid #ced4da; margin-bottom: 10px; background: #fff; }
+    .g-10 { grid-template-columns: repeat(10, 1fr); }
+    .g-6  { grid-template-columns: repeat(6, 1fr); }
+    .g-7  { grid-template-columns: repeat(7, 1fr); }
+
+    .cell { border-right: 1px solid #ced4da; border-bottom: 1px solid #ced4da; padding: 7px 0; text-align: center; font-size: 13px; color: #212529; cursor: pointer; user-select: none; }
+    .cell.active { background-color: #2196F3 !important; color: #fff !important; font-weight: 600; }
+    .cell-sub { font-size: 11px; display: block; line-height: 1.1; }
+
+    /* Bishop & Apgar Kart Yapısı */
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .group-col { display: flex; flex-direction: column; }
+    .group-label { font-size: 15px; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    
+    .card-box { border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; background: #fff; display: flex; flex-direction: column; }
+    .card-opt { border-bottom: 1px solid #ced4da; padding: 9px 8px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; min-height: 38px; color: #333; }
+    .card-opt:last-child { border-bottom: none; }
+    .card-opt.active { background-color: #2196F3 !important; color: #fff !important; }
+    .score-badge { font-weight: 600; font-size: 12px; }
+
+    /* Sonuç Alanı */
+    .result-section { margin-top: 16px; padding: 4px 2px; }
+    .res-label { font-size: 14px; color: #212529; margin-bottom: 2px; }
+    .res-value { font-size: 26px; font-weight: 500; color: #111; letter-spacing: -0.5px; }
+    .res-desc { font-size: 16px; color: #212529; margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="tab-item active" onclick="showTab('sat')">SAT</div>
+    <div class="tab-item" onclick="showTab('usg')">USG</div>
+    <div class="tab-item" onclick="showTab('bishop')">BISHOP</div>
+    <div class="tab-item" onclick="showTab('apgar')">APGAR</div>
+  </div>
+
+  <div id="tab-sat" class="tab-content active">
+    <div class="sub-bar">Son adet tarihine göre gebelik haftası hesaplama</div>
+    <div class="section-title">Gün <span class="info-icon">?</span></div>
+    <div class="grid g-10" id="sat-d"></div>
+    <div class="section-title">Ay <span class="info-icon">?</span></div>
+    <div class="grid g-6" id="sat-m"></div>
+    <div class="result-section">
+      <div class="res-label">Son adet tarihine göre haftası</div>
+      <div class="res-value" id="sat-out">-</div>
+    </div>
+  </div>
+
+  <div id="tab-usg" class="tab-content">
+    <div class="sub-bar">Ultrason çekimine göre gebelik haftası hesaplama</div>
+    <div class="section-title">Ultrason tarihi (gün) <span class="info-icon">?</span></div>
+    <div class="grid g-10" id="usg-d"></div>
+    <div class="section-title">Ultrason tarihi (ay) <span class="info-icon">?</span></div>
+    <div class="grid g-6" id="usg-m"></div>
+    <div class="section-title">Fetal ölçüm (hafta) <span class="info-icon">?</span></div>
+    <div class="grid g-10" id="usg-w"></div>
+    <div class="section-title">Fetal ölçüm (gün) <span class="info-icon">?</span></div>
+    <div class="grid g-7" id="usg-fd"></div>
+    <div class="result-section">
+      <div class="res-label">Ultrason tarihine göre haftası</div>
+      <div class="res-value" id="usg-out">-</div>
+    </div>
+  </div>
+
+  <div id="tab-bishop" class="tab-content">
+    <div class="sub-bar">Servikal olgunlaştırıcı kullanmadan vajinal doğum gerçekleşme ihtimali skoru</div>
+    <div class="card-row">
+      <div class="group-col">
+        <div class="group-label">Dilatasyon</div>
+        <div class="card-box" id="b-dil">
+          <div class="card-opt active" data-v="0"><span>Kapalı</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>1-2 cm</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>3-4 cm</span><span class="score-badge">+2</span></div>
+          <div class="card-opt" data-v="3"><span>≥5 cm</span><span class="score-badge">+3</span></div>
+        </div>
+      </div>
+      <div class="group-col">
+        <div class="group-label">Efasman</div>
+        <div class="card-box" id="b-efa">
+          <div class="card-opt" data-v="0"><span>0-30%</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>40-50%</span><span class="score-badge">+1</span></div>
+          <div class="card-opt active" data-v="2"><span>60-70%</span><span class="score-badge">+2</span></div>
+          <div class="card-opt" data-v="3"><span>≥80%</span><span class="score-badge">+3</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="group-col">
+        <div class="group-label">Seviye <span class="info-icon">?</span></div>
+        <div class="card-box" id="b-sev">
+          <div class="card-opt active" data-v="0"><span>-3</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>-2</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>-1,0</span><span class="score-badge">+2</span></div>
+          <div class="card-opt" data-v="3"><span>+1,+2</span><span class="score-badge">+3</span></div>
+        </div>
+      </div>
+      <div class="group-col">
+        <div class="group-label">Pozisyon</div>
+        <div class="card-box" id="b-poz">
+          <div class="card-opt" data-v="0"><span>Arka</span><span class="score-badge">0</span></div>
+          <div class="card-opt active" data-v="1"><span>Orta</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>Ön</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="group-col">
+        <div class="group-label">Kıvam</div>
+        <div class="card-box" id="b-kiv">
+          <div class="card-opt active" data-v="0"><span>Sert</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>Orta</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>Yumuşak</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="res-value" id="b-out">Bishop Skoru: 3</div>
+    </div>
+  </div>
+
+  <div id="tab-apgar" class="tab-content">
+    <div class="sub-bar">Yeni doğmuş bebeğin sağlık değerlendirmesi</div>
+    <div class="card-row">
+      <div class="group-col">
+        <div class="group-label">Aktivite <span class="info-icon">?</span></div>
+        <div class="card-box" id="a-akt">
+          <div class="card-opt active" data-v="0"><span>Yok (Tüm vücut ekstansiyonda)</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>Kollar ve bacaklar hafif bükülü</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>Aktif ve hareketli</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+      <div class="group-col">
+        <div class="group-label">Kalp atışı</div>
+        <div class="card-box" id="a-kalp">
+          <div class="card-opt active" data-v="0"><span>Yok</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>Dakikada 100'den az</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>Dakikada 100 veya daha fazla</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="group-col">
+        <div class="group-label">Refleks <span class="info-icon">?</span></div>
+        <div class="card-box" id="a-ref">
+          <div class="card-opt" data-v="0"><span>Yok veya gevşek</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>Yüz buruşturma, sızlanma, az tepki</span><span class="score-badge">+1</span></div>
+          <div class="card-opt active" data-v="2"><span>Güçlü ağlama, öksürük, hapşırık ve hızlı tepki</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+      <div class="group-col">
+        <div class="group-label">Görünüş <span class="info-icon">?</span></div>
+        <div class="card-box" id="a-gor">
+          <div class="card-opt" data-v="0"><span>Mor veya soluk</span><span class="score-badge">0</span></div>
+          <div class="card-opt" data-v="1"><span>Vücut pembe, kol ve bacaklar mor</span><span class="score-badge">+1</span></div>
+          <div class="card-opt active" data-v="2"><span>Tamamen pembe</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="group-col">
+        <div class="group-label">Solunum</div>
+        <div class="card-box" id="a-sol">
+          <div class="card-opt" data-v="0"><span>Yok</span><span class="score-badge">0</span></div>
+          <div class="card-opt active" data-v="1"><span>Yavaş ve düzensiz cılız ağlama, düzensiz soluma</span><span class="score-badge">+1</span></div>
+          <div class="card-opt" data-v="2"><span>Kuvvetli ağlama ve düzenli soluma</span><span class="score-badge">+2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <div class="res-value" id="a-out">APGAR Skoru: 5</div>
+      <div class="res-desc" id="a-desc">Hafif veya orta şiddette deprese</div>
+    </div>
+  </div>
+
+  <script>
+    const mNames = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
+    const state = { satD: 5, satM: 4, usgD: 4, usgM: 4, usgW: 9, usgFD: 5 };
+
+    function showTab(id) {
+      document.querySelectorAll('.tab-item').forEach((btn, idx) => {
+        btn.classList.toggle('active', ['sat', 'usg', 'bishop', 'apgar'][idx] === id);
+      });
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.toggle('active', c.id === 'tab-' + id);
+      });
+    }
+
+    function buildCells(containerId, start, end, activeVal, onSelect, subFn = null) {
+      const container = document.getElementById(containerId);
+      for (let i = start; i <= end; i++) {
+        const div = document.createElement('div');
+        div.className = 'cell' + (i === activeVal ? ' active' : '');
+        div.innerHTML = subFn ? `${subFn(i)}<span class="cell-sub">${i}</span>` : i;
+        div.onclick = () => {
+          container.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+          div.classList.add('active');
+          onSelect(i);
+        };
+        container.appendChild(div);
+      }
+    }
+
+    // Izgaraları oluştur
+    buildCells('sat-d', 1, 31, state.satD, v => { state.satD = v; calc(); });
+    buildCells('sat-m', 1, 12, state.satM, v => { state.satM = v; calc(); }, i => mNames[i-1]);
+
+    buildCells('usg-d', 1, 31, state.usgD, v => { state.usgD = v; calc(); });
+    buildCells('usg-m', 1, 12, state.usgM, v => { state.usgM = v; calc(); }, i => mNames[i-1]);
+    buildCells('usg-w', 5, 40, state.usgW, v => { state.usgW = v; calc(); });
+    buildCells('usg-fd', 0, 6, state.usgFD, v => { state.usgFD = v; calc(); });
+
+    // Seçim kutularını dinle
+    document.querySelectorAll('.card-box').forEach(box => {
+      box.querySelectorAll('.card-opt').forEach(opt => {
+        opt.onclick = () => {
+          box.querySelectorAll('.card-opt').forEach(o => o.classList.remove('active'));
+          opt.classList.add('active');
+          calc();
+        };
+      });
+    });
+
+    function calc() {
+      const now = new Date();
+      const curYear = now.getFullYear();
+
+      // 1. SAT
+      let dSat = new Date(curYear, state.satM - 1, state.satD);
+      if (dSat > now) dSat.setFullYear(curYear - 1);
+      const satDays = Math.floor((now - dSat) / (864e5));
+      document.getElementById('sat-out').innerText = `${Math.floor(satDays / 7)} Hafta ${satDays % 7} Gün`;
+
+      // 2. USG
+      let dUsg = new Date(curYear, state.usgM - 1, state.usgD);
+      if (dUsg > now) dUsg.setFullYear(curYear - 1);
+      const usgPassed = Math.floor((now - dUsg) / (864e5));
+      const totalUsgDays = (state.usgW * 7) + state.usgFD + usgPassed;
+      document.getElementById('usg-out').innerText = `${Math.floor(totalUsgDays / 7)} Hafta ${totalUsgDays % 7} Gün`;
+
+      // 3. BISHOP
+      let bScore = 0;
+      ['b-dil', 'b-efa', 'b-sev', 'b-poz', 'b-kiv'].forEach(id => {
+        bScore += parseInt(document.querySelector(`#${id} .card-opt.active`).dataset.v, 10);
+      });
+      document.getElementById('b-out').innerText = `Bishop Skoru: ${bScore}`;
+
+      // 4. APGAR
+      let aScore = 0;
+      ['a-akt', 'a-kalp', 'a-ref', 'a-gor', 'a-sol'].forEach(id => {
+        aScore += parseInt(document.querySelector(`#${id} .card-opt.active`).dataset.v, 10);
+      });
+      document.getElementById('a-out').innerText = `APGAR Skoru: ${aScore}`;
+      
+      const descEl = document.getElementById('a-desc');
+      if (aScore >= 7) {
+        descEl.innerText = "Normal (Sağlıklı)";
+      } else if (aScore >= 4) {
+        descEl.innerText = "Hafif veya orta şiddette deprese";
+      } else {
+        descEl.innerText = "Ciddi derecede deprese";
+      }
+    }
+
+    calc();
+  </script>
+</body>
+</html>
