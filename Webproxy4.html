@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tam Proxy Tarayıcı</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: var(--card);
+      padding: 10px 14px;
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+    .top-bar.hidden {
+      transform: translateY(-100%);
+    }
+    .input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: #0b1120;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 38px 10px 14px;
+      font-size: 14px;
+      outline: none;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    .btn-clear {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+      line-height: 1;
+    }
+    .btn-clear:hover { color: #fff; }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label input { cursor: pointer; accent-color: var(--accent); }
+    button.btn-go {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.btn-go:hover { background: var(--accent-hover); }
+    .viewport {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+    .hover-trigger {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      z-index: 999;
+    }
+    .status-badge {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hover-trigger" id="hoverArea"></div>
+
+  <div class="top-bar" id="topBar">
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        id="targetUrl" 
+        placeholder="https://example.com" 
+        oninput="toggleClearBtn()"
+        onkeydown="if(event.key==='Enter') navigate()"
+      >
+      <button class="btn-clear" id="btnClear" onclick="clearInput()">✕</button>
+    </div>
+
+    <label class="toggle-label" title="İşaretlenirse resim ve CSS'ler proxy sunucusundan geçer (engelli siteler için)">
+      <input type="checkbox" id="chkProxyMedia" checked>
+      Sunucudan Çek
+    </label>
+
+    <button class="btn-go" onclick="navigate()" id="btnGo">Git</button>
+  </div>
+
+  <div class="viewport">
+    <iframe id="proxyFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    <div id="statusBar" class="status-badge">Yükleniyor...</div>
+  </div>
+
+  <script>
+    const PROXY_URL = 'https://polished-snow-38e2.yenibirhesap047.workers.dev';
+    const topBar = document.getElementById('topBar');
+    const inputUrl = document.getElementById('targetUrl');
+    const btnClear = document.getElementById('btnClear');
+
+    function toggleClearBtn() {
+      btnClear.style.display = inputUrl.value.trim() ? 'block' : 'none';
+    }
+
+    function clearInput() {
+      inputUrl.value = '';
+      toggleClearBtn();
+      inputUrl.focus();
+    }
+
+    // Üst barın fare üst kısma geldiğinde görünmesi
+    document.getElementById('hoverArea').addEventListener('mouseenter', () => {
+      topBar.classList.remove('hidden');
+    });
+
+    function toProxyUrl(relativeOrAbsoluteUrl, baseUrl) {
+      try {
+        if (!relativeOrAbsoluteUrl || relativeOrAbsoluteUrl.startsWith('data:') || relativeOrAbsoluteUrl.startsWith('javascript:')) {
+          return relativeOrAbsoluteUrl;
+        }
+        const absolute = new URL(relativeOrAbsoluteUrl, baseUrl).href;
+        return `${PROXY_URL}?url=${encodeURIComponent(absolute)}`;
+      } catch {
+        return relativeOrAbsoluteUrl;
+      }
+    }
+
+    async function navigate(targetUrlOverride = null) {
+      let url = targetUrlOverride || inputUrl.value.trim();
+      if (!url) return;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      inputUrl.value = url;
+      toggleClearBtn();
+
+      const btn = document.getElementById('btnGo');
+      const status = document.getElementById('statusBar');
+      const frame = document.getElementById('proxyFrame');
+      const useProxyMedia = document.getElementById('chkProxyMedia').checked;
+
+      btn.disabled = true;
+      status.style.display = 'block';
+      status.textContent = 'Sayfa yükleniyor...';
+
+      try {
+        const res = await fetch(`${PROXY_URL}?url=${encodeURIComponent(url)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const html = await res.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const baseUrl = new URL(url);
+
+        let baseEl = doc.querySelector('base');
+        if (!baseEl) {
+          baseEl = doc.createElement('base');
+          doc.head.prepend(baseEl);
+        }
+        baseEl.href = baseUrl.origin + '/';
+
+        // Seçeneğe göre resim ve CSS'leri proxy'ye yönlendir veya direkt siteden al
+        if (useProxyMedia) {
+          doc.querySelectorAll('img, source, video, audio').forEach(el => {
+            const src = el.getAttribute('src');
+            if (src) el.setAttribute('src', toProxyUrl(src, baseUrl));
+            el.removeAttribute('srcset');
+          });
+
+          doc.querySelectorAll('link[rel="stylesheet"]').forEach(el => {
+            const href = el.getAttribute('href');
+            if (href) el.setAttribute('href', toProxyUrl(href, baseUrl));
+          });
+        }
+
+        // İframe içindeki kaydırma (scroll) ve tıklama olaylarını yakalayan kod
+        const interceptor = doc.createElement('script');
+        interceptor.textContent = `
+          let lastY = window.scrollY;
+          window.addEventListener('scroll', function() {
+            const currentY = window.scrollY;
+            if (currentY > lastY && currentY > 50) {
+              window.parent.postMessage({ type: 'SCROLL_DOWN' }, '*');
+            } else if (currentY < lastY) {
+              window.parent.postMessage({ type: 'SCROLL_UP' }, '*');
+            }
+            lastY = currentY;
+          }, { passive: true });
+
+          document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link) {
+              const rawHref = link.getAttribute('href');
+              if (rawHref && !rawHref.startsWith('javascript:') && !rawHref.startsWith('#')) {
+                e.preventDefault();
+                try {
+                  const absoluteUrl = new URL(rawHref, "${baseUrl.origin}").href;
+                  window.parent.postMessage({ type: 'PROXY_NAVIGATE', url: absoluteUrl }, '*');
+                } catch(err) {}
+              }
+            }
+          }, true);
+        `;
+        doc.head.appendChild(interceptor);
+
+        frame.srcdoc = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+        status.style.display = 'none';
+      } catch (err) {
+        status.textContent = 'Hata: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    window.addEventListener('message', (e) => {
+      if (!e.data) return;
+      if (e.data.type === 'SCROLL_DOWN') {
+        topBar.classList.add('hidden');
+      } else if (e.data.type === 'SCROLL_UP') {
+        topBar.classList.remove('hidden');
+      } else if (e.data.type === 'PROXY_NAVIGATE') {
+        let rawTarget = e.data.url;
+        if (rawTarget.includes('?url=')) {
+          const parsed = new URL(rawTarget);
+          rawTarget = parsed.searchParams.get('url') || rawTarget;
+        }
+        navigate(rawTarget);
+      }
+    });
+  </script>
+</body>
+</html>
