@@ -76,18 +76,10 @@
       padding: 10px; display: flex; flex-direction: column;
       flex-shrink: 0; position: relative; gap: 4px;
     }
-    .editor-wrapper {
-      position: relative; width: 100%; display: flex;
-    }
-    #archiveModal.fs-mode .modal-body {
-      flex: 1; min-height: 0; padding: 10px;
-    }
-    #archiveModal.fs-mode .editor-wrapper {
-      height: 100%;
-    }
-    #archiveModal.fs-mode .modal-footer-clean {
-      display: none;
-    }
+    .editor-wrapper { position: relative; width: 100%; display: flex; }
+    #archiveModal.fs-mode .modal-body { flex: 1; min-height: 0; padding: 10px; }
+    #archiveModal.fs-mode .editor-wrapper { height: 100%; }
+    #archiveModal.fs-mode .modal-footer-clean { display: none; }
     textarea {
       width: 100%; height: 130px; min-height: 80px; max-height: 65vh;
       background: #0b1120; border: 1px solid var(--border);
@@ -96,9 +88,7 @@
       font-size: 12px; line-height: 1.4; outline: none;
       resize: vertical; overflow-y: auto;
     }
-    #archiveModal.fs-mode textarea {
-      height: 100% !important; max-height: 100% !important; resize: none;
-    }
+    #archiveModal.fs-mode textarea { height: 100% !important; max-height: 100% !important; resize: none; }
     .btn-fs-pill {
       position: absolute; top: 8px; right: 14px;
       background: rgba(30, 41, 59, 0.85); border: 1px solid var(--border);
