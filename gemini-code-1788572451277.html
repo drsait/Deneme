@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Web Arşiv</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: var(--card);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+    .top-bar.hidden { transform: translateY(-100%); }
+    .top-bar-row1 { width: 100%; display: flex; }
+    .top-bar-row2 {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .input-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: #0b1120;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px 36px 9px 12px;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    .btn-clear {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 15px;
+      cursor: pointer;
+      display: none;
+      line-height: 1;
+    }
+    .btn-clear:hover { color: #fff; }
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-label input {
+      cursor: pointer;
+      accent-color: var(--accent);
+      width: 15px;
+      height: 15px;
+    }
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+      color: #fff;
+    }
+    button:active { transform: scale(0.98); }
+    .btn-accent { background: var(--accent); }
+    .btn-accent:hover { background: var(--accent-hover); }
+    .btn-success { background: var(--success); }
+    .btn-outline { background: var(--border); }
+    .btn-outline:hover { background: #475569; }
+    .viewport { flex: 1; width: 100%; height: 100%; position: relative; }
+    iframe { width: 100%; height: 100%; border: none; background: #fff; }
+    .hover-trigger { position: fixed; top: 0; left: 0; width: 100%; height: 15px; z-index: 999; }
+    .status-badge {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+      z-index: 10;
+    }
+    #archiveModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 2000;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+    .modal-header-clean {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .modal-header-top, .modal-header-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+    .modal-body {
+      flex: 1;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+    .editor-wrapper { flex: 1; display: flex; min-height: 0; }
+    textarea {
+      width: 100%;
+      height: 100%;
+      background: #0b1120;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      resize: none;
+      outline: none;
+    }
+    .modal-footer-clean {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 10px;
+    }
+    .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    @media (max-width: 500px) {
+      .btn-grid { grid-template-columns: repeat(2, 1fr); }
+      .inputs-grid { grid-template-columns: 1fr; }
+    }
+    #previewModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #fff;
+      z-index: 99999;
+    }
+    #previewModal iframe { width: 100%; height: 100%; border: none; }
+    #floatingCloseBtn {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--danger);
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      border: 2px solid #fff;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      cursor: grab;
+      z-index: 100000;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hover-trigger" id="hoverArea"></div>
+
+  <div class="top-bar" id="topBar">
+    <div class="top-bar-row1">
+      <div class="input-wrapper">
+        <input 
+          type="text" 
+          id="targetUrl" 
+          placeholder="https://example.com" 
+          oninput="toggleClearBtn()" 
+          onkeydown="if(event.key==='Enter') navigate()"
+        >
+        <button class="btn-clear" id="btnClear" onclick="clearInput()">✕</button>
+      </div>
+    </div>
+    <div class="top-bar-row2">
+      <label class="toggle-label" title="İşaretlenirse resim ve CSS'ler proxy sunucusundan geçer">
+        <input type="checkbox" id="chkProxyMedia">Tam Proxy
+      </label>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-accent" onclick="navigate()" id="btnGo">Git</button>
+        <button class="btn-success" onclick="openArchiveTools()">📦 Web Arşiv</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewport">
+    <iframe id="proxyFrame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    <div id="statusBar" class="status-badge">Yükleniyor...</div>
+  </div>
+
+  <div id="archiveModal">
+    <div class="modal-header-clean">
+      <div class="modal-header-top">
+        <button class="btn-outline" onclick="closeArchiveModal()">⬅ Geri</button>
+        <span style="font-weight:600; font-size:14px;">Web Arşiv</span>
+        <button class="btn-outline" onclick="closeArchiveModal()">✕</button>
+      </div>
+      <div class="modal-header-bottom">
+        <label class="toggle-label">
+          <input type="checkbox" id="chkEmbedOffline" checked>Dosya Göm (Base64)
+        </label>
+        <button class="btn-accent" onclick="buildArchive()" style="padding: 6px 12px;">Paketle</button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <div class="editor-wrapper">
+        <textarea id="codeEditor" placeholder="Kaynak kodlar burada listelenecek..."></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer-clean">
+      <div class="btn-grid">
+        <button class="btn-outline" onclick="copyCode()" id="btnCopy">Kopyala</button>
+        <button class="btn-outline" onclick="downloadCode()">İndir</button>
+        <button class="btn-outline" onclick="runCode()">Çalıştır</button>
+        <button class="btn-success" onclick="uploadToGithub()">GitHub'a Yükle</button>
+      </div>
+      <div class="inputs-grid">
+        <input type="text" id="fileName" placeholder="Dosya adı">
+        <input type="password" id="ghToken" placeholder="GitHub Token">
+      </div>
+    </div>
+  </div>
+
+  <div id="previewModal">
+    <button id="floatingCloseBtn" title="Kapat">✕</button>
+    <iframe id="preview"></iframe>
+  </div>
+
+  <script>
+    const REPO = 'drsait/Deneme';
+    const PROXY_URL = 'https://polished-snow-38e2.yenibirhesap047.workers.dev';
+    
+    const topBar = document.getElementById('topBar');
+    const inputUrl = document.getElementById('targetUrl');
+    const btnClear = document.getElementById('btnClear');
+    let currentRawHtml = '', loadedUrl = '';
+
+    function toggleClearBtn() {
+      btnClear.style.display = inputUrl.value.trim() ? 'block' : 'none';
+    }
+
+    function clearInput() {
+      inputUrl.value = '';
+      toggleClearBtn();
+      inputUrl.focus();
+    }
+
+    document.getElementById('hoverArea').addEventListener('mouseenter', () => {
+      topBar.classList.remove('hidden');
+    });
+
+    function setDefaultFileName() {
+      const d = new Date(), p = n => String(n).padStart(2, '0');
+      document.getElementById('fileName').value = `web_arsiv_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}.html`;
+    }
+    setDefaultFileName();
+
+    function toProxyUrl(u, b) {
+      try {
+        if (!u || u.startsWith('data:') || u.startsWith('javascript:')) return u;
+        return `${PROXY_URL}?url=${encodeURIComponent(new URL(u, b).href)}`;
+      } catch {
+        return u;
+      }
+    }
+
+    async function fetchResource(u, b = false) {
+      try {
+        const r = await fetch(`${PROXY_URL}?url=${encodeURIComponent(u)}`);
+        if (!r.ok) return null;
+        if (!b) return await r.text();
+        const bl = await r.blob();
+        return new Promise(res => {
+          const fr = new FileReader();
+          fr.onloadend = () => res(fr.result);
+          fr.readAsDataURL(bl);
+        });
+      } catch {
+        return null;
+      }
+    }
+
+    async function navigate(override = null) {
+      let u = override || inputUrl.value.trim();
+      if (!u) return;
+      if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://' + u;
+      inputUrl.value = u;
+      loadedUrl = u;
+      toggleClearBtn();
+
+      const btn = document.getElementById('btnGo'),
+            st = document.getElementById('statusBar'),
+            fr = document.getElementById('proxyFrame'),
+            useProxy = document.getElementById('chkProxyMedia').checked;
+
+      btn.disabled = true;
+      st.style.display = 'block';
+      st.textContent = 'Sayfa yükleniyor...';
+
+      try {
+        const res = await fetch(`${PROXY_URL}?url=${encodeURIComponent(u)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        currentRawHtml = await res.text();
+
+        const doc = new DOMParser().parseFromString(currentRawHtml, 'text/html'),
+              base = new URL(u);
+
+        let be = doc.querySelector('base');
+        if (!be) {
+          be = doc.createElement('base');
+          doc.head.prepend(be);
+        }
+        be.href = base.origin + '/';
+
+        if (useProxy) {
+          st.textContent = 'Stiller gömülüyor...';
+          // CSS dosyalarını doğrudan <style> içine alarak MIME type engelini aş
+          const links = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+          for (const link of links) {
+            const href = link.getAttribute('href');
+            if (href) {
+              const abs = new URL(href, base).href;
+              const css = await fetchResource(abs, false);
+              if (css) {
+                const style = doc.createElement('style');
+                style.textContent = css;
+                link.replaceWith(style);
+              }
+            }
+          }
+
+          // Resimleri proxy adresine yönlendir
+          doc.querySelectorAll('img, source, video, audio').forEach(e => {
+            const s = e.getAttribute('src');
+            if (s) e.setAttribute('src', toProxyUrl(s, base));
+            e.removeAttribute('srcset');
+          });
+        }
+
+        const sc = doc.createElement('script');
+        sc.textContent = `
+          let lastY = window.scrollY;
+          window.addEventListener('scroll', function() {
+            const y = window.scrollY;
+            if (y > lastY && y > 50) window.parent.postMessage({type:'SCROLL_DOWN'},'*');
+            else if (y < lastY) window.parent.postMessage({type:'SCROLL_UP'},'*');
+            lastY = y;
+          }, {passive:true});
+
+          document.addEventListener('click', function(e) {
+            const l = e.target.closest('a');
+            if (l) {
+              const h = l.getAttribute('href');
+              if (h && !h.startsWith('javascript:') && !h.startsWith('#')) {
+                e.preventDefault();
+                try {
+                  window.parent.postMessage({type:'PROXY_NAVIGATE', url: new URL(h, "${base.origin}").href}, '*');
+                } catch(err){}
+              }
+            }
+          }, true);
+        `;
+        doc.head.appendChild(sc);
+
+        fr.srcdoc = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+        st.style.display = 'none';
+      } catch (err) {
+        st.textContent = 'Hata: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function buildArchive() {
+      let u = inputUrl.value.trim();
+      if (!u) return alert('Lütfen bir adres girin.');
+      if (!u.startsWith('http://') && !u.startsWith('https://')) u = 'https://' + u;
+      inputUrl.value = u;
+
+      const isOffline = document.getElementById('chkEmbedOffline').checked,
+            ed = document.getElementById('codeEditor');
+
+      ed.value = 'Sayfa kaynağı alınıyor...';
+      let rawHtml = currentRawHtml;
+      if (!rawHtml || loadedUrl !== u) {
+        rawHtml = await fetchResource(u, false);
+        if (!rawHtml) {
+          ed.value = 'Hata: Sayfa içeriği alınamadı.';
+          return;
+        }
+      }
+
+      const doc = new DOMParser().parseFromString(rawHtml, 'text/html'),
+            base = new URL(u);
+
+      if (isOffline) {
+        ed.value = 'Dosyalar gömülüyor, lütfen bekleyin...';
+        for (const l of Array.from(doc.querySelectorAll('link[rel="stylesheet"]'))) {
+          const h = l.getAttribute('href');
+          if (h) {
+            const css = await fetchResource(new URL(h, base).href, false);
+            if (css) {
+              const st = doc.createElement('style');
+              st.textContent = css;
+              l.replaceWith(st);
+            }
+          }
+        }
+        for (const m of Array.from(doc.querySelectorAll('img'))) {
+          const s = m.getAttribute('src');
+          if (s && !s.startsWith('data:')) {
+            const b64 = await fetchResource(new URL(s, base).href, true);
+            if (b64) {
+              m.setAttribute('src', b64);
+              m.removeAttribute('srcset');
+              m.removeAttribute('loading');
+            }
+          }
+        }
+        doc.querySelectorAll('base').forEach(b => b.remove());
+      } else {
+        let be = doc.querySelector('base');
+        if (!be) {
+          be = doc.createElement('base');
+          doc.head.prepend(be);
+        }
+        be.href = base.origin + '/';
+      }
+      ed.value = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+    }
+
+    function openArchiveTools() {
+      let u = inputUrl.value.trim();
+      if (!u) return alert('Lütfen bir URL girin.');
+      document.getElementById('archiveModal').style.display = 'flex';
+      setDefaultFileName();
+      buildArchive();
+    }
+
+    function closeArchiveModal() {
+      document.getElementById('archiveModal').style.display = 'none';
+    }
+
+    function copyCode() {
+      const v = document.getElementById('codeEditor').value;
+      if (!v) return alert('Kod yok.');
+      navigator.clipboard.writeText(v).then(() => {
+        const b = document.getElementById('btnCopy');
+        b.textContent = 'Kopyalandı!';
+        setTimeout(() => b.textContent = 'Kopyala', 1500);
+      });
+    }
+
+    function runCode() {
+      document.getElementById('preview').srcdoc = document.getElementById('codeEditor').value;
+      document.getElementById('previewModal').style.display = 'block';
+    }
+
+    function closePreview() {
+      document.getElementById('previewModal').style.display = 'none';
+    }
+
+    function downloadCode() {
+      const v = document.getElementById('codeEditor').value,
+            f = document.getElementById('fileName').value.trim() || 'web_arsiv.html',
+            a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([v], { type: 'text/html' }));
+      a.download = f;
+      a.click();
+    }
+
+    async function uploadToGithub() {
+      const t = document.getElementById('ghToken').value.trim(),
+            p = document.getElementById('fileName').value.trim() || 'web_arsiv.html',
+            c = document.getElementById('codeEditor').value;
+
+      if (!t) return alert('Token gerekli.');
+
+      const enc = btoa(unescape(encodeURIComponent(c))),
+            url = `https://api.github.com/repos/${REPO}/contents/${p}`;
+
+      try {
+        let sha = null;
+        const cr = await fetch(url, { headers: { Authorization: `token ${t}` } });
+        if (cr.ok) sha = (await cr.json()).sha;
+
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: { Authorization: `token ${t}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `Arşiv: ${p}`, content: enc, sha: sha || undefined })
+        });
+
+        if (res.ok) alert(`${REPO} reposuna yüklendi!`);
+        else alert('Hata: ' + (await res.json()).message);
+      } catch (e) {
+        alert('İşlem başarısız: ' + e.message);
+      }
+    }
+
+    const dragBtn = document.getElementById('floatingCloseBtn');
+    dragBtn.addEventListener('click', closePreview);
+
+    window.addEventListener('message', e => {
+      if (!e.data) return;
+      if (e.data.type === 'SCROLL_DOWN') topBar.classList.add('hidden');
+      else if (e.data.type === 'SCROLL_UP') topBar.classList.remove('hidden');
+      else if (e.data.type === 'PROXY_NAVIGATE') {
+        let rt = e.data.url;
+        if (rt.includes('?url=')) rt = new URL(rt).searchParams.get('url') || rt;
+        navigate(rt);
+      }
+    });
+  </script>
+</body>
+</html>
