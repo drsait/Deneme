@@ -21,12 +21,70 @@
         .stat-card { background: var(--card); border: 1px solid var(--border); padding: 14px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
         .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
-        textarea { width: 100%; height: 200px; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.95rem; outline: none; resize: vertical; margin-bottom: 12px; background: var(--card); }
+        
+        .editor-wrapper { position: relative; margin-bottom: 12px; }
+        textarea { width: 100%; height: 200px; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.95rem; outline: none; resize: vertical; background: var(--card); display: block; }
         textarea:focus { border-color: var(--primary); }
+        .nowrap { white-space: pre !important; overflow-x: auto !important; }
+
+        /* Tam Ekran Modu */
+        .editor-wrapper.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: var(--card);
+            margin: 0;
+            padding: 0;
+        }
+        .editor-wrapper.fullscreen textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0;
+            padding: 56px 20px 20px 20px;
+            resize: none;
+        }
+
+        /* Yüzen Şeffaf Kontrol Paneli */
+        .floating-toolbar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 5px 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        .tool-btn {
+            background: transparent;
+            border: none;
+            color: #f8fafc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tool-btn:hover { background: rgba(255, 255, 255, 0.2); }
+        .tool-btn.active { background: var(--primary); color: #ffffff; }
+
         .actions { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
-        button, .file-label { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; }
-        button:hover, .file-label:hover { background: #f1f5f9; }
+        button.action-btn, .file-label { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; }
+        button.action-btn:hover, .file-label:hover { background: #f1f5f9; }
         .file-label input { display: none; }
+
         .details-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
         .main-summary { font-weight: 600; cursor: pointer; color: var(--primary); outline: none; }
         .data-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
@@ -56,14 +114,22 @@
         <div class="stat-card"><div class="stat-val" id="space-count">0</div><div class="stat-lbl">Boşluk</div></div>
     </div>
 
-    <textarea id="input" placeholder="Metin veya kod yapıştırın..." oninput="analyze()"></textarea>
+    <div class="editor-wrapper" id="editor-wrap">
+        <div class="floating-toolbar">
+            <button class="tool-btn" id="fs-btn" onclick="toggleFullscreen()" title="Tam Ekran Modu">⛶ Tam Ekran</button>
+            <button class="tool-btn" id="wrap-btn" onclick="toggleWordWrap()" title="Metin Kaydırma">↩ Kaydır</button>
+            <button class="tool-btn" onclick="pasteClipboard()" title="Panoyu Yapıştır">📋 Yapıştır</button>
+            <button class="tool-btn" onclick="clearText()" title="Kutuyu Temizle">🗑️ Temizle</button>
+        </div>
+        <textarea id="input" placeholder="Metin veya kod yapıştırın..." oninput="analyze()"></textarea>
+    </div>
 
     <div class="actions">
         <label class="file-label">
             📁 TXT Yükle
             <input type="file" id="file-input" accept=".txt" onchange="loadTxtFile(event)">
         </label>
-        <button onclick="document.getElementById('input').value=''; document.getElementById('file-input').value=''; analyze();">Temizle</button>
+        <button class="action-btn" onclick="clearText()">Temizle</button>
     </div>
 
     <div class="details-card">
@@ -88,6 +154,45 @@
 </div>
 
 <script>
+function toggleFullscreen() {
+    const wrap = document.getElementById('editor-wrap');
+    const btn = document.getElementById('fs-btn');
+    wrap.classList.toggle('fullscreen');
+    
+    if (wrap.classList.contains('fullscreen')) {
+        btn.innerHTML = '🗗 Küçült';
+        btn.classList.add('active');
+    } else {
+        btn.innerHTML = '⛶ Tam Ekran';
+        btn.classList.remove('active');
+    }
+}
+
+function toggleWordWrap() {
+    const ta = document.getElementById('input');
+    const btn = document.getElementById('wrap-btn');
+    ta.classList.toggle('nowrap');
+    btn.classList.toggle('active');
+}
+
+async function pasteClipboard() {
+    try {
+        const text = await navigator.clipboard.readText();
+        const ta = document.getElementById('input');
+        ta.value += text;
+        analyze();
+    } catch (err) {
+        alert('Pano erişim izni verilmedi veya desteklenmiyor.');
+    }
+}
+
+function clearText() {
+    document.getElementById('input').value = '';
+    const fi = document.getElementById('file-input');
+    if (fi) fi.value = '';
+    analyze();
+}
+
 function loadTxtFile(event) {
     const file = event.target.files[0];
     if (!file) return;
