@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Canlı Piyasa Fiyatları</title>
+  <style>
+    body { font-family: sans-serif; display: flex; justify-content: center; padding: 40px; background: #f4f6f8; }
+    .card { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: 320px; }
+    h3 { margin-top: 0; text-align: center; color: #333; }
+    .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; font-size: 16px; }
+    .item:last-child { border-bottom: none; }
+    .val { font-weight: bold; color: #0f766e; }
+    .time { font-size: 11px; text-align: center; color: #888; margin-top: 15px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h3>Piyasa Fiyatları (TL)</h3>
+  <div class="item"><span>Dolar (USD):</span> <span id="usd" class="val">Yükleniyor...</span></div>
+  <div class="item"><span>Euro (EUR):</span> <span id="eur" class="val">Yükleniyor...</span></div>
+  <div class="item"><span>Gram Altın:</span> <span id="gold" class="val">Yükleniyor...</span></div>
+  <div id="update-time" class="time"></div>
+</div>
+
+<script>
+  async function fetchPrices() {
+    try {
+      // Güvenli ve ücretsiz döviz API'si (ExchangeRate-API)
+      const resCurrency = await fetch('https://open.er-api.com/v6/latest/USD');
+      const dataCurrency = await resCurrency.json();
+      
+      const usdTry = dataCurrency.rates.TRY;
+      const eurTry = usdTry / dataCurrency.rates.EUR;
+
+      // Güvenli global ons altın API'si (GoldAPI.io / Metals-API alternatifi veya serbest veri kaynağı)
+      // Gram Altın (TL) = (ONS Fiyatı * USD/TRY) / 31.1034768
+      const resGold = await fetch('https://api.gold-api.com/price/XAU');
+      const dataGold = await resGold.json();
+      const gramGoldTry = (dataGold.price * usdTry) / 31.1034768;
+
+      document.getElementById('usd').innerText = `₺${usdTry.toFixed(4)}`;
+      document.getElementById('eur').innerText = `₺${eurTry.toFixed(4)}`;
+      document.getElementById('gold').innerText = `₺${gramGoldTry.toFixed(2)}`;
+      document.getElementById('update-time').innerText = `Son Güncelleme: ${new Date().toLocaleTimeString('tr-TR')}`;
+    } catch (err) {
+      console.error('Veri çekilemedi:', err);
+    }
+  }
+
+  fetchPrices();
+  setInterval(fetchPrices, 1000); // Her 60 saniyede bir otomatik günceller
+</script>
+
+</body>
+</html>
