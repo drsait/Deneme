@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metin, Kelime ve Karakter Analizi</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 24px 16px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 900px; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); padding: 14px; border-radius: 12px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .stat-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+        .stat-lbl { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
+        
+        .editor-wrapper { position: relative; margin-bottom: 12px; }
+        textarea { width: 100%; height: 200px; padding: 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 0.95rem; outline: none; resize: vertical; background: var(--card); display: block; }
+        textarea:focus { border-color: var(--primary); }
+        .nowrap { white-space: pre !important; overflow-x: auto !important; }
+
+        /* Tam Ekran Modu */
+        .editor-wrapper.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: var(--card);
+            margin: 0;
+            padding: 0;
+        }
+        .editor-wrapper.fullscreen textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 0;
+            padding: 56px 20px 20px 20px;
+            resize: none;
+        }
+
+        /* %90 Transparan Yüzen Panel */
+        .floating-toolbar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 4px 6px;
+            border-radius: 8px;
+            z-index: 10;
+            transition: 0.2s ease;
+        }
+        .floating-toolbar:hover { background: rgba(15, 23, 42, 0.25); }
+
+        /* %40 Transparan Buton Metinleri */
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            color: rgba(15, 23, 42, 0.60);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .tool-btn:hover { background: rgba(255, 255, 255, 0.50); color: rgba(15, 23, 42, 1); }
+        .tool-btn.active { background: rgba(79, 70, 229, 0.20); color: var(--primary); }
+
+        .actions { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+        button.action-btn, .file-label { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; }
+        button.action-btn:hover, .file-label:hover { background: #f1f5f9; }
+        .file-label input { display: none; }
+
+        .details-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+        .main-summary { font-weight: 600; cursor: pointer; color: var(--primary); outline: none; }
+        
+        .controls-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .search-input {
+            padding: 5px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            outline: none;
+            background: #f8fafc;
+            width: 140px;
+            transition: 0.2s;
+        }
+        .search-input:focus { border-color: var(--primary); background: #ffffff; width: 170px; }
+
+        .sort-pill {
+            display: inline-flex;
+            gap: 4px;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+        .sort-btn {
+            background: transparent;
+            border: none;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .sort-btn.active {
+            background: var(--card);
+            color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
+        .data-table th, .data-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .data-table th { background: #f8fafc; color: var(--muted); }
+        .badge { display: inline-block; padding: 2px 8px; background: #e0e7ff; color: var(--primary); border-radius: 4px; font-family: monospace; font-weight: bold; }
+        .accordion-row details { width: 100%; }
+        .accordion-row summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; width: 100%; font-weight: 600; }
+        .accordion-row summary::-webkit-details-marker { display: none; }
+        .accordion-row summary::after { content: '▾'; font-size: 0.85rem; color: var(--muted); margin-left: 8px; transition: transform 0.2s; }
+        .accordion-row details[open] summary::after { transform: rotate(180deg); }
+        .sub-table { width: 100%; margin-top: 8px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); font-size: 0.8rem; }
+        .sub-table td { padding: 6px 12px; border-bottom: 1px solid #edf2f7; }
+        .sub-table tr:last-child td { border-bottom: none; }
+        .empty-hint { text-align: center; color: var(--muted); padding: 14px; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Metin, Kelime & Karakter Analizi</h1>
+    
+    <div class="grid-stats">
+        <div class="stat-card"><div class="stat-val" id="c-all">0</div><div class="stat-lbl">Karakter (Boşluklu)</div></div>
+        <div class="stat-card"><div class="stat-val" id="c-nospace">0</div><div class="stat-lbl">Karakter (Boşluksuz)</div></div>
+        <div class="stat-card"><div class="stat-val" id="w-count">0</div><div class="stat-lbl">Toplam Kelime</div></div>
+        <div class="stat-card"><div class="stat-val" id="unique-w-count">0</div><div class="stat-lbl">Farklı Kelime</div></div>
+        <div class="stat-card"><div class="stat-val" id="s-count">0</div><div class="stat-lbl">Cümle</div></div>
+        <div class="stat-card"><div class="stat-val" id="space-count">0</div><div class="stat-lbl">Boşluk</div></div>
+    </div>
+
+    <div class="editor-wrapper" id="editor-wrap">
+        <div class="floating-toolbar">
+            <button class="tool-btn" id="fs-btn" onclick="toggleFullscreen()" title="Tam Ekran Modu">⛶ Tam Ekran</button>
+            <button class="tool-btn" id="wrap-btn" onclick="toggleWordWrap()" title="Metin Kaydırma">↩ Kaydır</button>
+            <button class="tool-btn" onclick="pasteClipboard()" title="Panoyu Yapıştır">📋 Yapıştır</button>
+            <button class="tool-btn" onclick="clearText()" title="Kutuyu Temizle">🗑️ Temizle</button>
+        </div>
+        <textarea id="input" placeholder="Metin veya kod yapıştırın..." oninput="analyze()"></textarea>
+    </div>
+
+    <div class="actions">
+        <label class="file-label">
+            📁 TXT Yükle
+            <input type="file" id="file-input" accept=".txt" onchange="loadTxtFile(event)">
+        </label>
+        <button class="action-btn" onclick="clearText()">Temizle</button>
+    </div>
+
+    <!-- Kelime Detayları -->
+    <div class="details-card">
+        <div class="card-header">
+            <details style="flex:1;">
+                <summary class="main-summary">📖 Kelime Kullanım Detayları (<span id="unique-w-badge">0</span> farklı kelime)</summary>
+            </details>
+            <div class="controls-group">
+                <input type="text" id="search-words" class="search-input" placeholder="🔍 Kelime ara..." oninput="renderWords()">
+                <div class="sort-pill">
+                    <button class="sort-btn active" id="sort-w-count" onclick="setWordSort('count')">Adet</button>
+                    <button class="sort-btn" id="sort-w-alpha" onclick="setWordSort('alpha')">A-Z</button>
+                </div>
+            </div>
+        </div>
+        <table class="data-table">
+            <thead><tr><th>Kelime</th><th>Kullanım Sayısı</th></tr></thead>
+            <tbody id="word-list"></tbody>
+        </table>
+    </div>
+
+    <!-- Karakter Detayları -->
+    <div class="details-card">
+        <div class="card-header">
+            <details style="flex:1;" open>
+                <summary class="main-summary">📊 Tüm Karakter Frekansı (<span id="unique-c-badge">0</span> farklı öğe)</summary>
+            </details>
+            <div class="controls-group">
+                <input type="text" id="search-chars" class="search-input" placeholder="🔍 Karakter ara..." oninput="renderChars()">
+                <div class="sort-pill">
+                    <button class="sort-btn active" id="sort-c-count" onclick="setCharSort('count')">Adet</button>
+                    <button class="sort-btn" id="sort-c-alpha" onclick="setCharSort('alpha')">A-Z</button>
+                </div>
+            </div>
+        </div>
+        <table class="data-table">
+            <thead><tr><th>Karakter / Harf Grubu</th><th>Açıklama</th><th>Adet</th></tr></thead>
+            <tbody id="char-list"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+let wordSortMode = 'count';
+let charSortMode = 'count';
+let lastWordsData = [];
+let lastCharsData = [];
+
+function setWordSort(mode) {
+    wordSortMode = mode;
+    document.getElementById('sort-w-count').classList.toggle('active', mode === 'count');
+    document.getElementById('sort-w-alpha').classList.toggle('active', mode === 'alpha');
+    renderWords();
+}
+
+function setCharSort(mode) {
+    charSortMode = mode;
+    document.getElementById('sort-c-count').classList.toggle('active', mode === 'count');
+    document.getElementById('sort-c-alpha').classList.toggle('active', mode === 'alpha');
+    renderChars();
+}
+
+function toggleFullscreen() {
+    const wrap = document.getElementById('editor-wrap');
+    const btn = document.getElementById('fs-btn');
+    wrap.classList.toggle('fullscreen');
+    
+    if (wrap.classList.contains('fullscreen')) {
+        btn.innerHTML = '🗗 Küçült';
+        btn.classList.add('active');
+    } else {
+        btn.innerHTML = '⛶ Tam Ekran';
+        btn.classList.remove('active');
+    }
+}
+
+function toggleWordWrap() {
+    const ta = document.getElementById('input');
+    const btn = document.getElementById('wrap-btn');
+    ta.classList.toggle('nowrap');
+    btn.classList.toggle('active');
+}
+
+async function pasteClipboard() {
+    try {
+        const text = await navigator.clipboard.readText();
+        const ta = document.getElementById('input');
+        ta.value += text;
+        analyze();
+    } catch (err) {
+        alert('Pano erişim izni verilmedi veya desteklenmiyor.');
+    }
+}
+
+function clearText() {
+    document.getElementById('input').value = '';
+    const fi = document.getElementById('file-input');
+    if (fi) fi.value = '';
+    analyze();
+}
+
+function loadTxtFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('input').value = e.target.result;
+        analyze();
+    };
+    reader.readAsText(file);
+}
+
+function extractWords(text) {
+    if (!text.trim()) return [];
+    
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        const segmenter = new Intl.Segmenter(undefined, { granularity: 'word' });
+        const segments = segmenter.segment(text);
+        const words = [];
+        for (const seg of segments) {
+            if (seg.isWordLike) {
+                words.push(seg.segment.toLocaleLowerCase('tr-TR'));
+            }
+        }
+        return words;
+    }
+
+    return text.trim().toLocaleLowerCase('tr-TR').split(/[^\p{L}\p{M}\p{N}]+/u).filter(Boolean);
+}
+
+function getBaseChar(ch) {
+    if (!/\p{L}/u.test(ch)) return null;
+    const lower = ch.toLocaleLowerCase('tr-TR');
+    const specialMap = { 'ı': 'ı', 'i': 'i', 'ş': 'ş', 'ğ': 'ğ', 'ü': 'ü', 'ö': 'ö', 'ç': 'ç' };
+    if (specialMap[lower]) return specialMap[lower];
+    
+    const norm = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return norm || lower;
+}
+
+function renderWords() {
+    const query = (document.getElementById('search-words')?.value || '').trim().toLocaleLowerCase('tr-TR');
+    let filtered = lastWordsData.filter(([w]) => !query || w.includes(query));
+
+    if (wordSortMode === 'count') {
+        filtered.sort((a, b) => b[1] - a[1]);
+    } else {
+        filtered.sort((a, b) => a[0].localeCompare(b[0], 'tr-TR'));
+    }
+
+    const container = document.getElementById('word-list');
+    if (filtered.length === 0) {
+        container.innerHTML = `<tr><td colspan="2" class="empty-hint">Eşleşen kelime bulunamadı.</td></tr>`;
+        return;
+    }
+
+    container.innerHTML = filtered.map(([w, count]) => `
+        <tr><td><span class="badge">${w}</span></td><td><strong>${count.toLocaleString('tr-TR')}</strong></td></tr>
+    `).join('');
+}
+
+function renderChars() {
+    const query = (document.getElementById('search-chars')?.value || '').trim().toLocaleLowerCase('tr-TR');
+    
+    let filtered = lastCharsData.filter(item => {
+        if (!query) return true;
+        if (item.isLetterGroup) {
+            return item.base.includes(query) || Object.keys(item.variants).some(v => v.toLocaleLowerCase('tr-TR').includes(query));
+        }
+        return item.char.toLocaleLowerCase('tr-TR').includes(query);
+    });
+
+    if (charSortMode === 'count') {
+        filtered.sort((a, b) => b.total - a.total);
+    } else {
+        filtered.sort((a, b) => {
+            const keyA = a.isLetterGroup ? a.base : a.char;
+            const keyB = b.isLetterGroup ? b.base : b.char;
+            return keyA.localeCompare(keyB, 'tr-TR');
+        });
+    }
+
+    const container = document.getElementById('char-list');
+    if (filtered.length === 0) {
+        container.innerHTML = `<tr><td colspan="3" class="empty-hint">Eşleşen karakter bulunamadı.</td></tr>`;
+        return;
+    }
+
+    let charHtml = '';
+    filtered.forEach(item => {
+        if (!item.isLetterGroup) {
+            let desc = 'Sembol / Karakter';
+            let display = item.char;
+            if (item.char === ' ') { display = 'Boşluk'; desc = 'Space (Boşluk)'; }
+            else if (item.char === '\n') { display = '\\n'; desc = 'Alt Satır (Newline)'; }
+            else if (item.char === '\t') { display = '\\t'; desc = 'Tab'; }
+
+            charHtml += `<tr>
+                <td><span class="badge">${display}</span></td>
+                <td style="color:#64748b">${desc}</td>
+                <td><strong>${item.total.toLocaleString('tr-TR')}</strong></td>
+            </tr>`;
+        } else {
+            const variantKeys = Object.keys(item.variants);
+            const hasSubVariants = variantKeys.length > 1 || !variantKeys.includes(item.base);
+
+            if (hasSubVariants) {
+                const sortedVars = Object.entries(item.variants).sort((a, b) => b[1] - a[1]);
+                const subRows = sortedVars.map(([v, count]) => `
+                    <tr>
+                        <td>↳ <span class="badge">${v}</span></td>
+                        <td>Varyant</td>
+                        <td><strong>${count.toLocaleString('tr-TR')}</strong></td>
+                    </tr>
+                `).join('');
+
+                charHtml += `<tr class="accordion-row">
+                    <td colspan="3" style="padding: 6px 12px;">
+                        <details>
+                            <summary>
+                                <span><span class="badge" style="background:#c7d2fe;">${item.base.toLocaleUpperCase('tr-TR')}</span> (${sortedVars.length} varyant)</span>
+                                <span>Toplam: <strong>${item.total.toLocaleString('tr-TR')}</strong></span>
+                            </summary>
+                            <table class="sub-table">
+                                <tbody>${subRows}</tbody>
+                            </table>
+                        </details>
+                    </td>
+                </tr>`;
+            } else {
+                charHtml += `<tr>
+                    <td><span class="badge">${variantKeys[0]}</span></td>
+                    <td style="color:#64748b">Harf</td>
+                    <td><strong>${item.total.toLocaleString('tr-TR')}</strong></td>
+                </tr>`;
+            }
+        }
+    });
+
+    container.innerHTML = charHtml;
+}
+
+function analyze() {
+    const text = document.getElementById('input').value;
+    
+    const charsAll = text.length;
+    const spaces = (text.match(/\s/g) || []).length;
+    const charsNoSpace = charsAll - spaces;
+    const sentences = text.trim() ? (text.match(/[^.!?\r\n]+[.!?\r\n]+(\s|$)/g) || [text.trim()]).length : 0;
+
+    const rawWords = extractWords(text);
+    const wordFreq = {};
+    rawWords.forEach(w => { wordFreq[w] = (wordFreq[w] || 0) + 1; });
+    lastWordsData = Object.entries(wordFreq);
+
+    const charEntries = {};
+    for (const ch of text) {
+        const base = getBaseChar(ch);
+
+        if (base) {
+            const key = `letter_${base}`;
+            if (!charEntries[key]) {
+                charEntries[key] = { isLetterGroup: true, base: base, total: 0, variants: {} };
+            }
+            charEntries[key].total += 1;
+            charEntries[key].variants[ch] = (charEntries[key].variants[ch] || 0) + 1;
+        } else {
+            const key = `char_${ch}`;
+            if (!charEntries[key]) {
+                charEntries[key] = { isLetterGroup: false, char: ch, total: 0 };
+            }
+            charEntries[key].total += 1;
+        }
+    }
+
+    lastCharsData = Object.values(charEntries);
+
+    document.getElementById('c-all').innerText = charsAll.toLocaleString('tr-TR');
+    document.getElementById('c-nospace').innerText = charsNoSpace.toLocaleString('tr-TR');
+    document.getElementById('w-count').innerText = rawWords.length.toLocaleString('tr-TR');
+    document.getElementById('unique-w-count').innerText = lastWordsData.length.toLocaleString('tr-TR');
+    document.getElementById('unique-w-badge').innerText = lastWordsData.length.toLocaleString('tr-TR');
+    document.getElementById('s-count').innerText = text.trim() ? sentences.toLocaleString('tr-TR') : 0;
+    document.getElementById('space-count').innerText = spaces.toLocaleString('tr-TR');
+    document.getElementById('unique-c-badge').innerText = lastCharsData.length.toLocaleString('tr-TR');
+
+    renderWords();
+    renderChars();
+}
+</script>
+</body>
+</html>
