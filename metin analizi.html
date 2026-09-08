@@ -90,7 +90,7 @@
         .file-label input { display: none; }
 
         .details-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
         .main-summary { font-weight: 600; cursor: pointer; color: var(--primary); outline: none; }
         
         .controls-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -130,6 +130,19 @@
             color: var(--primary);
             box-shadow: 0 1px 2px rgba(0,0,0,0.08);
         }
+
+        /* Canlı Filtre Toplam Sonuç Çubuğu */
+        .filter-stats-bar {
+            font-size: 0.78rem;
+            color: var(--muted);
+            background: #f8fafc;
+            border: 1px dashed var(--border);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        .filter-stats-bar strong { color: var(--primary); }
 
         .data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.85rem; }
         .data-table th, .data-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -191,6 +204,9 @@
                 </div>
             </div>
         </div>
+        <div class="filter-stats-bar" id="word-filter-stats">
+            Arama Sonucu: <strong>0</strong> farklı kelime | Toplam Kullanım: <strong>0</strong> adet
+        </div>
         <table class="data-table">
             <thead><tr><th>Kelime</th><th>Kullanım Sayısı</th></tr></thead>
             <tbody id="word-list"></tbody>
@@ -210,6 +226,9 @@
                     <button class="sort-btn" id="sort-c-alpha" onclick="setCharSort('alpha')">A-Z</button>
                 </div>
             </div>
+        </div>
+        <div class="filter-stats-bar" id="char-filter-stats">
+            Arama Sonucu: <strong>0</strong> farklı öğe | Toplam Kullanım: <strong>0</strong> adet
         </div>
         <table class="data-table">
             <thead><tr><th>Karakter / Harf Grubu</th><th>Açıklama</th><th>Adet</th></tr></thead>
@@ -321,6 +340,12 @@ function renderWords() {
     const query = (document.getElementById('search-words')?.value || '').trim().toLocaleLowerCase('tr-TR');
     let filtered = lastWordsData.filter(([w]) => !query || w.includes(query));
 
+    const totalFilteredOccurrences = filtered.reduce((sum, item) => sum + item[1], 0);
+    const statsBar = document.getElementById('word-filter-stats');
+    if (statsBar) {
+        statsBar.innerHTML = `Filtrelenen: <strong>${filtered.length.toLocaleString('tr-TR')}</strong> farklı kelime | Toplam Kullanım: <strong>${totalFilteredOccurrences.toLocaleString('tr-TR')}</strong> adet`;
+    }
+
     if (wordSortMode === 'count') {
         filtered.sort((a, b) => b[1] - a[1]);
     } else {
@@ -348,6 +373,12 @@ function renderChars() {
         }
         return item.char.toLocaleLowerCase('tr-TR').includes(query);
     });
+
+    const totalFilteredOccurrences = filtered.reduce((sum, item) => sum + item.total, 0);
+    const statsBar = document.getElementById('char-filter-stats');
+    if (statsBar) {
+        statsBar.innerHTML = `Filtrelenen: <strong>${filtered.length.toLocaleString('tr-TR')}</strong> farklı öğe | Toplam Kullanım: <strong>${totalFilteredOccurrences.toLocaleString('tr-TR')}</strong> adet`;
+    }
 
     if (charSortMode === 'count') {
         filtered.sort((a, b) => b.total - a.total);
