@@ -42,24 +42,16 @@
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: flex-start; justify-content: center; padding-top: 20px; z-index: 100; display: none; overflow-y: auto; }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; margin-bottom: 20px; }
 
-        /* TEK KATMANLI RENKLİ EDİTÖR */
+        /* TEK KATMANLI DÜZ METİN EDİTÖRÜ */
         .code-editor-wrap { position: relative; width: 100%; margin-bottom: 10px; border-radius: 10px; overflow: hidden; background: #ffffff; border: 1.5px solid #cbd5e1; }
         .editor-container { position: relative; width: 100%; height: 320px; background: #ffffff; }
 
         #html-code-input {
             width: 100%; height: 100%; padding: 42px 14px 28px 14px; margin: 0;
-            border: none; outline: none; box-sizing: border-box;
+            border: none; outline: none; box-sizing: border-box; resize: none;
             font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 20px;
             color: #0f172a; background: #ffffff; tab-size: 4; white-space: pre; overflow: auto;
         }
-
-        /* Gömülü Sözdizimi Renkleri */
-        .c-kwd { color: #d946ef; font-weight: 700; }
-        .c-str { color: #16a34a; }
-        .c-com { color: #94a3b8; font-style: italic; }
-        .c-tag { color: #2563eb; font-weight: 600; }
-        .c-attr { color: #ea580c; }
-        .c-num { color: #0284c7; }
 
         .editor-tool-btn {
             position: absolute; top: 6px; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 600;
@@ -220,7 +212,7 @@
             <span id="fs-file-badge" class="fs-filename-badge"></span>
             <button class="editor-tool-btn btn-expand-code" id="toggle-fullscreen-btn" onclick="toggleCodeFullscreen()" type="button">tam ekran</button>
             <div class="editor-container">
-                <div id="html-code-input" contenteditable="plaintext-only" spellcheck="false" oninput="handleEditorInput()"></div>
+                <textarea id="html-code-input" spellcheck="false" autocomplete="off" autocapitalize="off" oninput="updateStatus()"></textarea>
             </div>
             <div class="editor-statusbar">
                 <span id="editor-char-count">0 karakter</span>
@@ -306,7 +298,6 @@
     const el = id => document.getElementById(id);
     const u = 'drsait', r = 'Deneme', api = `https://api.github.com/repos/${u}/${r}/contents`;
     let editMode = false, activeFileData = {}, editingFileName = null, currentTab = 'files', authTimer = null;
-    let colorTimer = null;
 
     const b64Dec = str => decodeURIComponent(escape(atob(str)));
     const b64Enc = str => btoa(unescape(encodeURIComponent(str)));
@@ -327,12 +318,11 @@
     };
 
     function getCode() {
-        return el('html-code-input').innerText.replace(/\r\n/g, '\n');
+        return el('html-code-input').value;
     }
 
     function setCode(code) {
-        const ed = el('html-code-input');
-        ed.innerHTML = highlightSyntax(code);
+        el('html-code-input').value = code || '';
         updateStatus();
     }
 
@@ -340,66 +330,6 @@
         const text = getCode();
         el('editor-char-count').textContent = `${text.length.toLocaleString()} karakter`;
         el('editor-size-count').textContent = formatFileSize(new Blob([text]).size);
-    }
-
-    // Dahili Tek Katman Sözdizimi Ayrıştırıcısı
-    function highlightSyntax(code) {
-        return code
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-            .replace(/(&lt;!--[\s\S]*?--&gt;|\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g, '<span class="c-com">$1</span>')
-            .replace(/(&quot;[\s\S]*?&quot;|'[^'\\]*(?:\\.[^'\\]*)*'|`[^`\\]*(?:\\.[^`\\]*)*`)/g, '<span class="c-str">$1</span>')
-            .replace(/\b(const|let|var|function|return|if|else|for|while|async|await|class|import|from|export|new|typeof|null|undefined|true|false)\b/g, '<span class="c-kwd">$1</span>')
-            .replace(/(&lt;\/?)([a-zA-Z0-9\-]+)/g, '$1<span class="c-tag">$2</span>')
-            .replace(/\b([a-zA-Z\-]+)(?==)/g, '<span class="c-attr">$1</span>')
-            .replace(/\b(\d+)\b/g, '<span class="c-num">$1</span>');
-    }
-
-    function handleEditorInput() {
-        updateStatus();
-        clearTimeout(colorTimer);
-        colorTimer = setTimeout(() => {
-            const ed = el('html-code-input');
-            const sel = window.getSelection();
-            if (!sel.rangeCount) return;
-            
-            // İmleç pozisyonunu kaydet
-            let charCount = 0;
-            const range = sel.getRangeAt(0);
-            const preRange = range.cloneRange();
-            preRange.selectNodeContents(ed);
-            preRange.setEnd(range.endContainer, range.endOffset);
-            charCount = preRange.toString().length;
-
-            ed.innerHTML = highlightSyntax(getCode());
-
-            // İmleci eski yerine geri koy
-            restoreCursor(ed, charCount);
-        }, 400);
-    }
-
-    function restoreCursor(node, offset) {
-        const sel = window.getSelection();
-        let current = 0;
-        function traverse(n) {
-            if (n.nodeType === 3) {
-                const next = current + n.length;
-                if (offset <= next) {
-                    const r = document.createRange();
-                    r.setStart(n, offset - current);
-                    r.collapse(true);
-                    sel.removeAllRanges();
-                    sel.addRange(r);
-                    return true;
-                }
-                current = next;
-            } else {
-                for (let i = 0; i < n.childNodes.length; i++) {
-                    if (traverse(n.childNodes[i])) return true;
-                }
-            }
-            return false;
-        }
-        traverse(node);
     }
 
     window.onload = () => { 
@@ -413,6 +343,17 @@
 
         const t = localStorage.getItem('gt'); 
         if(t) { tokenInput.value = t; auth(false); } 
+
+        const ta = el('html-code-input');
+        ta.addEventListener('keydown', e => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = ta.selectionStart, end = ta.selectionEnd;
+                ta.value = ta.value.substring(0, start) + '    ' + ta.value.substring(end);
+                ta.selectionStart = ta.selectionEnd = start + 4;
+                updateStatus();
+            }
+        });
     };
 
     const toast = (id, msg, err) => {
@@ -590,13 +531,17 @@
     const normalizeHtmlFileName = name => (name = name.trim()) ? (name.includes('.') ? name : `${name}.html`) : '';
 
     const clearCodeInput = () => {
-        setCode(''); el('html-code-input').focus();
+        setCode('');
+        el('html-code-input').focus();
     };
 
     const copyCodeToClipboard = async () => {
-        try { await navigator.clipboard.writeText(getCode()); } catch {
+        const text = getCode();
+        try { 
+            await navigator.clipboard.writeText(text); 
+        } catch {
             const ta = document.createElement('textarea');
-            ta.value = getCode(); document.body.appendChild(ta); ta.select();
+            ta.value = text; document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); document.body.removeChild(ta);
         }
         toast('list-toast', 'Kod kopyalandı');
