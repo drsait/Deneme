@@ -53,19 +53,44 @@
             color: #0f172a; background: #ffffff; tab-size: 4; white-space: pre; overflow: auto;
         }
 
+        .editor-top-bar {
+            position: absolute; top: 6px; left: 8px; right: 8px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 6px; z-index: 20; pointer-events: none;
+        }
+
+        .editor-left-tools {
+            display: flex; align-items: center; gap: 5px; pointer-events: auto; flex-wrap: nowrap;
+        }
+
         .editor-tool-btn {
-            position: absolute; top: 6px; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 600;
-            color: #475569; background: rgba(248, 250, 252, 0.9); border: 1px solid #cbd5e1;
-            border-radius: 6px; backdrop-filter: blur(8px); z-index: 20; cursor: pointer; transition: all 0.2s;
+            position: static; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 600;
+            color: #475569; background: rgba(248, 250, 252, 0.95); border: 1px solid #cbd5e1;
+            border-radius: 6px; backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
         .editor-tool-btn:hover { color: #0f172a; background: #e2e8f0; border-color: #94a3b8; }
-        .btn-copy-code { left: 8px; } .btn-paste-code { left: 70px; } .btn-run-code { left: 128px; }
-        .btn-clear-code { left: 184px; } .btn-save-code-fs { left: 242px; } .btn-expand-code { right: 8px; }
-        .fs-filename-badge {
-            position: absolute; top: 7px; right: 88px; font-size: 0.78rem; font-weight: 700; color: #0369a1;
-            background: #e0f2fe; padding: 3px 10px; border-radius: 6px; border: 1px solid #bae6fd;
-            z-index: 20; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none;
+        
+        .editor-search-box {
+            display: flex; align-items: center; gap: 3px; background: rgba(248, 250, 252, 0.95);
+            border: 1px solid #cbd5e1; border-radius: 6px; padding: 1px 4px;
         }
+        .editor-search-box input {
+            width: 90px; padding: 2px 4px; font-size: 0.72rem; border: none; background: transparent;
+            color: #0f172a; outline: none; font-weight: 500;
+        }
+        .search-nav-btn {
+            background: transparent; border: none; color: #64748b; font-size: 0.7rem;
+            cursor: pointer; padding: 2px 4px; border-radius: 3px; font-weight: bold; width: auto;
+        }
+        .search-nav-btn:hover { background: #e2e8f0; color: #0f172a; }
+
+        .fs-filename-badge {
+            font-size: 0.75rem; font-weight: 700; color: #0369a1; background: #e0f2fe;
+            padding: 3px 8px; border-radius: 6px; border: 1px solid #bae6fd;
+            max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none;
+        }
+
+        .btn-expand-code { pointer-events: auto; }
 
         .editor-statusbar {
             position: absolute; bottom: 0; left: 0; right: 0; height: 22px;
@@ -76,15 +101,9 @@
 
         .code-editor-wrap.fullscreen-editor { position: fixed; inset: 0; z-index: 10001; background: #ffffff; margin: 0; border-radius: 0; border: none; }
         .code-editor-wrap.fullscreen-editor .editor-container { width: 100vw; height: 100vh; }
-        .code-editor-wrap.fullscreen-editor #html-code-input { padding: 50px 20px 30px 20px; }
-        .code-editor-wrap.fullscreen-editor .editor-tool-btn { position: fixed; top: 10px; background: rgba(248, 250, 252, 0.95); }
-        .code-editor-wrap.fullscreen-editor .btn-copy-code { left: 12px; }
-        .code-editor-wrap.fullscreen-editor .btn-paste-code { left: 74px; }
-        .code-editor-wrap.fullscreen-editor .btn-run-code { left: 132px; }
-        .code-editor-wrap.fullscreen-editor .btn-clear-code { left: 188px; }
-        .code-editor-wrap.fullscreen-editor .btn-save-code-fs { left: 246px; color: #16a34a; border-color: rgba(22, 163, 74, 0.4); }
-        .code-editor-wrap.fullscreen-editor .btn-expand-code { right: 12px; }
-        .code-editor-wrap.fullscreen-editor .fs-filename-badge { position: fixed; top: 10px; right: 90px; display: block; }
+        .code-editor-wrap.fullscreen-editor #html-code-input { padding: 48px 20px 30px 20px; }
+        .code-editor-wrap.fullscreen-editor .editor-top-bar { top: 8px; left: 12px; right: 12px; }
+        .code-editor-wrap.fullscreen-editor .fs-filename-badge { display: inline-block; max-width: 260px; }
         .code-editor-wrap.fullscreen-editor .editor-statusbar { position: fixed; bottom: 0; height: 24px; padding: 0 16px; }
 
         .code-modal-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -200,17 +219,26 @@
 </div>
 
 <div id="code-modal" class="modal">
-    <div class="modal-box" style="max-width: 520px;">
+    <div class="modal-box" style="max-width: 540px;">
         <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">Dosya Kodu İşlemleri</h4>
         <input type="text" id="html-file-name" placeholder="Dosya adı" autocomplete="off" style="margin-bottom:10px;" oninput="updateFsFileNameBadge()">
         <div class="code-editor-wrap" id="editor-wrap">
-            <button class="editor-tool-btn btn-copy-code" onclick="copyCodeToClipboard()" type="button">kopyala</button>
-            <button class="editor-tool-btn btn-paste-code" onclick="pasteFromClipboard()" type="button">yapıştır</button>
-            <button class="editor-tool-btn btn-run-code" onclick="runHtmlCode()" type="button">çalıştır</button>
-            <button class="editor-tool-btn btn-clear-code" onclick="clearCodeInput()" type="button">temizle</button>
-            <button class="editor-tool-btn btn-save-code-fs hidden" id="fs-save-btn" onclick="uploadHtmlCode()" type="button">kaydet</button>
-            <span id="fs-file-badge" class="fs-filename-badge"></span>
-            <button class="editor-tool-btn btn-expand-code" id="toggle-fullscreen-btn" onclick="toggleCodeFullscreen()" type="button">tam ekran</button>
+            <div class="editor-top-bar">
+                <div class="editor-left-tools">
+                    <button class="editor-tool-btn" onclick="copyCodeToClipboard()" type="button">kopyala</button>
+                    <button class="editor-tool-btn" onclick="pasteFromClipboard()" type="button">yapıştır</button>
+                    <button class="editor-tool-btn" onclick="runHtmlCode()" type="button">çalıştır</button>
+                    <button class="editor-tool-btn" onclick="clearCodeInput()" type="button">temizle</button>
+                    <button class="editor-tool-btn hidden" id="fs-save-btn" onclick="uploadHtmlCode()" type="button" style="color:#16a34a; border-color:rgba(22,163,74,0.4);">kaydet</button>
+                    <div class="editor-search-box">
+                        <input type="text" id="code-search-input" placeholder="Bul..." oninput="searchInCode(true)" onkeydown="handleSearchKeydown(event)">
+                        <button class="search-nav-btn" type="button" onclick="searchInCode(true)" title="Sonraki">↓</button>
+                        <button class="search-nav-btn" type="button" onclick="searchInCode(false)" title="Önceki">↑</button>
+                    </div>
+                    <span id="fs-file-badge" class="fs-filename-badge"></span>
+                </div>
+                <button class="editor-tool-btn btn-expand-code" id="toggle-fullscreen-btn" onclick="toggleCodeFullscreen()" type="button">tam ekran</button>
+            </div>
             <div class="editor-container">
                 <textarea id="html-code-input" spellcheck="false" autocomplete="off" autocapitalize="off" oninput="updateStatus()"></textarea>
             </div>
@@ -330,6 +358,42 @@
         const text = getCode();
         el('editor-char-count').textContent = `${text.length.toLocaleString()} karakter`;
         el('editor-size-count').textContent = formatFileSize(new Blob([text]).size);
+    }
+
+    function handleSearchKeydown(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchInCode(!e.shiftKey);
+        }
+    }
+
+    function searchInCode(forward = true) {
+        const ta = el('html-code-input');
+        const query = el('code-search-input').value;
+        if (!query) return;
+
+        const text = ta.value;
+        const qLower = query.toLowerCase();
+        const tLower = text.toLowerCase();
+
+        let pos = -1;
+        if (forward) {
+            pos = tLower.indexOf(qLower, ta.selectionEnd);
+            if (pos === -1) pos = tLower.indexOf(qLower, 0); // Başa sar
+        } else {
+            pos = tLower.lastIndexOf(qLower, Math.max(0, ta.selectionStart - 1));
+            if (pos === -1) pos = tLower.lastIndexOf(qLower); // Sona sar
+        }
+
+        if (pos !== -1) {
+            ta.focus();
+            ta.setSelectionRange(pos, pos + query.length);
+
+            // Bulunan satıra otomatik kaydır
+            const linesBefore = text.substring(0, pos).split('\n').length;
+            const lineHeight = 20;
+            ta.scrollTop = Math.max(0, (linesBefore - 4) * lineHeight);
+        }
     }
 
     window.onload = () => { 
@@ -560,6 +624,7 @@
         el('toggle-fullscreen-btn').textContent = 'tam ekran';
         el('fs-save-btn').classList.add('hidden');
         el('fs-file-badge').style.display = 'none';
+        el('code-search-input').value = '';
         el('code-modal').style.display = 'none';
     };
 
@@ -568,6 +633,7 @@
         el('code-modal-title').textContent = 'Dosya Kodu İşlemleri';
         el('code-save-btn').textContent = 'Kaydet';
         el('html-file-name').value = createDefaultHtmlFileName();
+        el('code-search-input').value = '';
         updateFsFileNameBadge();
         setCode('');
         el('code-modal').style.display = 'flex';
@@ -604,6 +670,7 @@
         el('code-modal-title').textContent = `Düzenle: ${name}`;
         el('code-save-btn').textContent = 'Kaydet';
         el('html-file-name').value = name;
+        el('code-search-input').value = '';
         updateFsFileNameBadge();
         setCode('Yükleniyor...');
         el('code-modal').style.display = 'flex'; el('html-code-input').focus();
