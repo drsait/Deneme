@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mardin ⇄ Kızıltepe Canlı Trafik Takip Paneli</title>
+  <title>Mardin ⇄ Kızıltepe Canlı Trafik & Gecikme Takibi</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -12,27 +12,37 @@
       --muted: #64748b;
       --primary: #2563eb;
       --border: #e2e8f0;
+      --danger-bg: #fee2e2;
+      --danger-text: #b91c1c;
+      --success-bg: #dcfce7;
+      --success-text: #15803d;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; }
-    .container { max-width: 950px; margin: 0 auto; }
+    .container { max-width: 1050px; margin: 0 auto; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     h1 { font-size: 1.35rem; font-weight: 700; }
-    .status { background: #dcfce7; color: #166534; padding: 5px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .card { background: var(--card); padding: 16px 20px; border-radius: 12px; border: 1px solid var(--border); }
+    .status { background: var(--success-bg); color: var(--success-text); padding: 5px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .card { background: var(--card); padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border); }
     .card-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
-    .card-val { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .card-val { font-size: 2rem; font-weight: 700; color: var(--primary); display: flex; align-items: baseline; gap: 10px; }
     .card-sub { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+    
     .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
     .filters input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem; background: #fff; }
     .filters input[type="text"] { flex: 1; min-width: 200px; }
+    
     .table-box { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
     th { background: #f1f5f9; padding: 12px 14px; color: var(--muted); font-weight: 600; white-space: nowrap; }
     td { padding: 12px 14px; border-top: 1px solid var(--border); white-space: nowrap; }
     tr:hover { background: #f8fafc; }
+    
     .badge { background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+    .badge-delay { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
+    .delay-red { background: var(--danger-bg); color: var(--danger-text); }
+    .delay-none { background: var(--success-bg); color: var(--success-text); }
     .empty { text-align: center; padding: 30px; color: var(--muted); }
   </style>
 </head>
@@ -41,7 +51,7 @@
   <div class="container">
     <header>
       <div>
-        <h1>Mardin ⇄ Kızıltepe Canlı Trafik & Rota Takibi</h1>
+        <h1>Mardin ⇄ Kızıltepe Canlı Trafik & Gecikme Takibi</h1>
         <small id="lastUpdated" style="color: var(--muted);">Veriler yükleniyor...</small>
       </div>
       <div class="status">● Canlı Takip</div>
@@ -50,12 +60,18 @@
     <div class="grid">
       <div class="card">
         <div class="card-title">Son Ölçüm: Artuklu ➔ Kızıltepe</div>
-        <div class="card-val" id="gidisSure">-- dk</div>
+        <div class="card-val">
+          <span id="gidisSure">-- dk</span>
+          <span id="gidisGecikmeBadge"></span>
+        </div>
         <div class="card-sub" id="gidisMesafe">Mesafe: -- km</div>
       </div>
       <div class="card">
         <div class="card-title">Son Ölçüm: Kızıltepe ➔ Artuklu</div>
-        <div class="card-val" id="donusSure">-- dk</div>
+        <div class="card-val">
+          <span id="donusSure">-- dk</span>
+          <span id="donusGecikmeBadge"></span>
+        </div>
         <div class="card-sub" id="donusMesafe">Mesafe: -- km</div>
       </div>
     </div>
@@ -70,16 +86,18 @@
         <thead>
           <tr>
             <th>Tarih & Saat</th>
-            <th>Gidiş Güzergâhı</th>
-            <th>Gidiş Süresi</th>
+            <th>Gidiş</th>
+            <th>Süre</th>
+            <th>Gecikme</th>
             <th>Mesafe</th>
-            <th>Dönüş Güzergâhı</th>
-            <th>Dönüş Süresi</th>
+            <th>Dönüş</th>
+            <th>Süre</th>
+            <th>Gecikme</th>
             <th>Mesafe</th>
           </tr>
         </thead>
         <tbody id="dataRows">
-          <tr><td colspan="7" class="empty">Yükleniyor...</td></tr>
+          <tr><td colspan="9" class="empty">Yükleniyor...</td></tr>
         </tbody>
       </table>
     </div>
@@ -88,6 +106,14 @@
   <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBZkYm96zh4hBn62l4oomnQo32CBdr4w26jZcclXSngQs8--ZRZHCuTNLPGP7gDBlNF9mzVgHzCzRZ/pub?output=csv';
     let kayitlar = [];
+
+    function delayBadgeHTML(delayVal) {
+      const d = parseInt(delayVal) || 0;
+      if (d > 0) {
+        return `<span class="badge-delay delay-red">+${d} dk yoğunluk</span>`;
+      }
+      return `<span class="badge-delay delay-none">Akıcı</span>`;
+    }
 
     function csvSatirlariBol(text) {
       const satirlar = text.trim().split('\n');
@@ -109,37 +135,62 @@
           tabloBas(kayitlar);
           document.getElementById('lastUpdated').innerText = `Son Güncelleme: ${kayitlar[0][0]}`;
         } else {
-          document.getElementById('dataRows').innerHTML = '<tr><td colspan="7" class="empty">Henüz kaydedilmiş veri bulunmuyor.</td></tr>';
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Henüz veri yok.</td></tr>';
         }
       } catch (e) {
-        document.getElementById('dataRows').innerHTML = '<tr><td colspan="7" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Veri çekilemedi.</td></tr>';
       }
     }
 
     function ozetGuncelle(son) {
-      document.getElementById('gidisSure').innerText = `${son[2]} dk`;
-      document.getElementById('gidisMesafe').innerText = `Mesafe: ${son[3]} km`;
-      document.getElementById('donusSure').innerText = `${son[5]} dk`;
-      document.getElementById('donusMesafe').innerText = `Mesafe: ${son[6]} km`;
+      // Sütun indeksleri: 0:Tarih, 1:GidişAd, 2:GidişSüre, 3:GidişGecikme, 4:GidişMesafe, 5:DönüşAd, 6:DönüşSüre, 7:DönüşGecikme, 8:DönüşMesafe
+      const gidisSure = son[2];
+      const gidisGecikme = son.length >= 9 ? son[3] : 0;
+      const gidisMesafe = son.length >= 9 ? son[4] : son[3];
+
+      const donusSure = son.length >= 9 ? son[6] : son[5];
+      const donusGecikme = son.length >= 9 ? son[7] : 0;
+      const donusMesafe = son.length >= 9 ? son[8] : son[6];
+
+      document.getElementById('gidisSure').innerText = `${gidisSure} dk`;
+      document.getElementById('gidisGecikmeBadge').innerHTML = delayBadgeHTML(gidisGecikme);
+      document.getElementById('gidisMesafe').innerText = `Mesafe: ${gidisMesafe} km`;
+
+      document.getElementById('donusSure').innerText = `${donusSure} dk`;
+      document.getElementById('donusGecikmeBadge').innerHTML = delayBadgeHTML(donusGecikme);
+      document.getElementById('donusMesafe').innerText = `Mesafe: ${donusMesafe} km`;
     }
 
     function tabloBas(liste) {
       const tbody = document.getElementById('dataRows');
       if (liste.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
         return;
       }
-      tbody.innerHTML = liste.map(r => `
-        <tr>
-          <td><strong>${r[0]}</strong></td>
-          <td>${r[1]}</td>
-          <td><span class="badge">${r[2]} dk</span></td>
-          <td>${r[3]} km</td>
-          <td>${r[4]}</td>
-          <td><span class="badge">${r[5]} dk</span></td>
-          <td>${r[6]} km</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = liste.map(r => {
+        const hasDelayCol = r.length >= 9;
+        const gSure = r[2];
+        const gGecikme = hasDelayCol ? r[3] : 0;
+        const gMesafe = hasDelayCol ? r[4] : r[3];
+        const dAd = hasDelayCol ? r[5] : r[4];
+        const dSure = hasDelayCol ? r[6] : r[5];
+        const dGecikme = hasDelayCol ? r[7] : 0;
+        const dMesafe = hasDelayCol ? r[8] : r[6];
+
+        return `
+          <tr>
+            <td><strong>${r[0]}</strong></td>
+            <td>${r[1]}</td>
+            <td><span class="badge">${gSure} dk</span></td>
+            <td>${delayBadgeHTML(gGecikme)}</td>
+            <td>${gMesafe} km</td>
+            <td>${dAd}</td>
+            <td><span class="badge">${dSure} dk</span></td>
+            <td>${delayBadgeHTML(dGecikme)}</td>
+            <td>${dMesafe} km</td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function filtrele() {
@@ -147,8 +198,7 @@
       const tarihSecimi = document.getElementById('filterDate').value;
 
       const filtrelenen = kayitlar.filter(satir => {
-        const satirMetni = satir.join(' ').toLowerCase();
-        const metinUygun = satirMetni.includes(arama);
+        const metinUygun = satir.join(' ').toLowerCase().includes(arama);
         let tarihUygun = true;
 
         if (tarihSecimi) {
