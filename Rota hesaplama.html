@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mardin ⇄ Kızıltepe Trafik & Süre Takibi</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text-main); padding: 20px; }
+    .container { max-width: 960px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    h1 { font-size: 1.4rem; font-weight: 700; }
+    .status-badge { background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .card { background: var(--card-bg); padding: 18px; border-radius: 12px; border: 1px solid var(--border); }
+    .card-title { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; }
+    .card-value { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .card-sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .filters input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem; background: #fff; }
+    .filters input[type="text"] { flex: 1; min-width: 200px; }
+
+    .table-wrapper { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
+    th { background: #f8fafc; padding: 12px 14px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+    td { padding: 12px 14px; border-top: 1px solid var(--border); white-space: nowrap; }
+    tr:hover { background: #f8fafc; }
+    .tag { background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+    .empty { text-align: center; padding: 30px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>Mardin ⇄ Kızıltepe Canlı Rota Takip Paneli</h1>
+        <small id="lastUpdated" style="color: var(--text-muted);">Veriler yükleniyor...</small>
+      </div>
+      <div class="status-badge">● Canlı Veri</div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Son Ölçüm: Artuklu ➔ Kızıltepe</div>
+        <div class="card-value" id="cardGidisSure">-- dk</div>
+        <div class="card-sub" id="cardGidisMesafe">Mesafe: -- km</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Son Ölçüm: Kızıltepe ➔ Artuklu</div>
+        <div class="card-value" id="cardDonusSure">-- dk</div>
+        <div class="card-sub" id="cardDonusMesafe">Mesafe: -- km</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <input type="text" id="filterSearch" placeholder="Arama yapın..." oninput="filtrele()">
+      <input type="date" id="filterDate" onchange="filtrele()">
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Zaman Damgası</th>
+            <th>Gidiş</th>
+            <th>Süre</th>
+            <th>Mesafe</th>
+            <th>Dönüş</th>
+            <th>Süre</th>
+            <th>Mesafe</th>
+          </tr>
+        </thead>
+        <tbody id="dataRows">
+          <tr><td colspan="7" class="empty">Veriler alınıyor...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBZkYm96zh4hBn62l4oomnQo32CBdr4w26jZcclXSngQs8--ZRZHCuTNLPGP7gDBlNF9mzVgHzCzRZ/pub?output=csv';
+    let kayitlar = [];
+
+    function csvSatirlariBol(text) {
+      const satirlar = text.trim().split('\n');
+      return satirlar.slice(1).map(row => {
+        const sutunlar = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+        return sutunlar.map(val => val.replace(/^"|"$/g, '').trim());
+      }).filter(r => r.length >= 7);
+    }
+
+    async function veriyiCek() {
+      try {
+        const res = await fetch(CSV_URL + '&t=' + Date.now()); // Önbelleği engellemek için t parametresi
+        const text = await res.text();
+        kayitlar = csvSatirlariBol(text);
+
+        if (kayitlar.length > 0) {
+          kayitlar.reverse(); // En yeni ölçüm en üstte
+          ozetGuncelle(kayitlar[0]);
+          tabloBas(kayitlar);
+          document.getElementById('lastUpdated').innerText = `Son Kayıt: ${kayitlar[0][0]}`;
+        } else {
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="7" class="empty">Henüz kaydedilmiş veri bulunmuyor.</td></tr>';
+        }
+      } catch (err) {
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="7" class="empty">Veri çekilemedi.</td></tr>';
+      }
+    }
+
+    function ozetGuncelle(enSon) {
+      document.getElementById('cardGidisSure').innerText = `${enSon[2]} dk`;
+      document.getElementById('cardGidisMesafe').innerText = `Mesafe: ${enSon[3]} km`;
+      document.getElementById('cardDonusSure').innerText = `${enSon[5]} dk`;
+      document.getElementById('cardDonusMesafe').innerText = `Mesafe: ${enSon[6]} km`;
+    }
+
+    function tabloBas(liste) {
+      const tbody = document.getElementById('dataRows');
+      if (liste.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Eşleşen sonuç bulunamadı.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = liste.map(r => `
+        <tr>
+          <td><strong>${r[0]}</strong></td>
+          <td>${r[1]}</td>
+          <td><span class="tag">${r[2]} dk</span></td>
+          <td>${r[3]} km</td>
+          <td>${r[4]}</td>
+          <td><span class="tag">${r[5]} dk</span></td>
+          <td>${r[6]} km</td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrele() {
+      const aranan = document.getElementById('filterSearch').value.toLowerCase();
+      const tarihSecimi = document.getElementById('filterDate').value;
+
+      const filtrelenen = kayitlar.filter(satir => {
+        const satirMetni = satir.join(' ').toLowerCase();
+        const metinUygun = satirMetni.includes(aranan);
+        let tarihUygun = true;
+
+        if (tarihSecimi) {
+          const [yil, ay, gun] = tarihSecimi.split('-');
+          tarihUygun = satir[0].startsWith(`${gun}.${ay}.${yil}`);
+        }
+
+        return metinUygun && tarihUygun;
+      });
+
+      tabloBas(filtrelenen);
+    }
+
+    veriyiCek();
+    setInterval(veriyiCek, 2 * 60 * 1000); // 2 dakikada bir kontrol eder
+  </script>
+</body>
+</html>
