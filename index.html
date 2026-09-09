@@ -49,7 +49,6 @@
         }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; margin-bottom: 20px; }
 
-        /* Kod editörü kapsayıcısı */
         .code-editor-wrap { 
             position: relative; 
             width: 100%; 
@@ -65,7 +64,6 @@
             display: block;
         }
 
-        /* Üst sabit yüzer butonlar */
         .editor-tool-btn {
             position: absolute; 
             top: 6px; 
@@ -88,12 +86,16 @@
             background: rgba(241, 245, 249, 0.98); 
             border-color: #cbd5e1;
         }
-        .btn-clear-code { left: 8px; }
+        
+        /* Buton Sıralaması: Kopyala, Yapıştır, Çalıştır, Temizle, Kaydet, Tam Ekran */
+        .btn-copy-code { left: 8px; }
         .btn-paste-code { left: 66px; }
         .btn-run-code { left: 122px; }
+        .btn-clear-code { left: 176px; }
+        .btn-save-code-fs { left: 232px; }
         .btn-expand-code { right: 8px; }
 
-        /* Yüzer tam ekran modu (kutu/çerçeve tamamen kalkar) */
+        /* Yüzer tam ekran modu */
         .code-editor-wrap.fullscreen-editor {
             position: fixed; 
             inset: 0; 
@@ -121,12 +123,13 @@
             background: rgba(255, 255, 255, 0.85);
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
-        .code-editor-wrap.fullscreen-editor .btn-clear-code { left: 12px; }
+        .code-editor-wrap.fullscreen-editor .btn-copy-code { left: 12px; }
         .code-editor-wrap.fullscreen-editor .btn-paste-code { left: 70px; }
         .code-editor-wrap.fullscreen-editor .btn-run-code { left: 126px; }
+        .code-editor-wrap.fullscreen-editor .btn-clear-code { left: 180px; }
+        .code-editor-wrap.fullscreen-editor .btn-save-code-fs { left: 236px; color: var(--success); border-color: rgba(16,185,129,0.5); }
         .code-editor-wrap.fullscreen-editor .btn-expand-code { right: 12px; }
 
-        /* Alt işlem çubuğu */
         .code-modal-actions {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -150,7 +153,19 @@
             display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
         }
         #draggable-close-btn:active { cursor: grabbing; }
-        .tab-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; color: var(--primary); }
+        .tab-title-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .tab-title { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
+        .btn-edit-index { 
+            padding: 4px 8px; 
+            font-size: 0.78rem; 
+            border-radius: 6px; 
+            background: rgba(99,102,241,0.1); 
+            color: var(--primary); 
+            border: 1px solid var(--primary); 
+            cursor: pointer; 
+            width: auto;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -191,7 +206,10 @@
         <div class="content">
             <div id="secure-content" class="hidden">
                 <div class="card">
-                    <div id="view-title" class="tab-title">📄 Dosyalarım</div>
+                    <div class="tab-title-wrap">
+                        <div id="view-title" class="tab-title">📄 Dosyalarım</div>
+                        <button id="edit-index-btn" class="btn-edit-index hidden" onclick="editHtmlContent('index.html')">⚙️ index.html Düzenle</button>
+                    </div>
                     <ul id="file-list" class="list"><li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li></ul>
                     <div id="list-toast" class="toast"></div>
                 </div>
@@ -213,20 +231,22 @@
 
 <div id="code-modal" class="modal">
     <div class="modal-box" style="max-width: 440px;">
-        <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">HTML Kodu İşlemleri</h4>
+        <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">Dosya Kodu İşlemleri</h4>
         <input type="text" id="html-file-name" placeholder="Dosya adı" autocomplete="off"
-               style="margin-bottom:10px;" aria-label="HTML dosya adı">
+               style="margin-bottom:10px;" aria-label="Dosya adı">
         <div class="code-editor-wrap" id="editor-wrap">
-            <button class="editor-tool-btn btn-clear-code" onclick="clearCodeInput()" type="button">temizle</button>
+            <button class="editor-tool-btn btn-copy-code" id="fs-copy-btn" onclick="copyCodeToClipboard()" type="button">kopyala</button>
             <button class="editor-tool-btn btn-paste-code" onclick="pasteFromClipboard()" type="button">yapıştır</button>
             <button class="editor-tool-btn btn-run-code" onclick="runHtmlCode()" type="button">çalıştır</button>
+            <button class="editor-tool-btn btn-clear-code" onclick="clearCodeInput()" type="button">temizle</button>
+            <button class="editor-tool-btn btn-save-code-fs hidden" id="fs-save-btn" onclick="uploadHtmlCode()" type="button">kaydet</button>
             <button class="editor-tool-btn btn-expand-code" id="toggle-fullscreen-btn" onclick="toggleCodeFullscreen()" type="button">tam ekran</button>
-            <textarea id="html-code-input" rows="7" placeholder="HTML kodunu buraya yapıştırın veya düzenleyin..."></textarea>
+            <textarea id="html-code-input" rows="7" placeholder="Kodları buraya yapıştırın veya düzenleyin..."></textarea>
         </div>
         <div class="code-modal-actions">
             <button style="background:#cbd5e1; color:#334155;" onclick="closeCodeModal()">İptal</button>
             <button onclick="downloadHtmlFile()" style="background: var(--info);">İndir</button>
-            <button id="code-save-btn" onclick="uploadHtmlCode()">Yayınla</button>
+            <button id="code-save-btn" onclick="uploadHtmlCode()">Kaydet</button>
         </div>
     </div>
 </div>
@@ -342,13 +362,16 @@
     const toggleEdit = () => {
         editMode = !editMode;
         const btn = document.getElementById('edit-toggle');
+        const indexBtn = document.getElementById('edit-index-btn');
         btn.classList.toggle('active', editMode);
         if(editMode) {
             btn.style.background = 'var(--primary)';
             btn.style.color = 'white';
+            indexBtn.classList.remove('hidden');
         } else {
             btn.style.background = 'transparent';
             btn.style.color = 'var(--primary)';
+            indexBtn.classList.add('hidden');
         }
         document.querySelectorAll('.actions').forEach(a => a.style.display = editMode ? 'flex' : 'none');
         document.querySelectorAll('.file-date').forEach(d => d.style.display = editMode ? 'none' : 'inline-block');
@@ -432,7 +455,6 @@
             list.innerHTML = '';
 
             files.forEach(f => {
-                const isHtml = f.name.toLowerCase().endsWith('.html') || f.name.toLowerCase().endsWith('.htm');
                 const formattedDate = formatDate(commitDates[f.name]);
                 const isArchived = archivedFiles.includes(f.name);
                 const archiveBtnTitle = isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle';
@@ -454,14 +476,12 @@
                 actions.className = 'actions';
                 actions.style.display = editMode ? 'flex' : 'none';
 
-                if (isHtml) {
-                    const btnCode = document.createElement('button');
-                    btnCode.className = 'btn-sm btn-code';
-                    btnCode.innerHTML = '&lt;/&gt;';
-                    btnCode.title = 'Kod Düzenle';
-                    btnCode.onclick = () => editHtmlContent(f.name);
-                    actions.appendChild(btnCode);
-                }
+                const btnCode = document.createElement('button');
+                btnCode.className = 'btn-sm btn-code';
+                btnCode.innerHTML = '&lt;/&gt;';
+                btnCode.title = 'Kodu Düzenle';
+                btnCode.onclick = () => editHtmlContent(f.name);
+                actions.appendChild(btnCode);
 
                 const btnArchive = document.createElement('button');
                 btnArchive.className = 'btn-sm btn-archive';
@@ -519,9 +539,7 @@
     const normalizeHtmlFileName = (name) => {
         name = name.trim();
         if (!name) return '';
-        return name.toLowerCase().endsWith('.html') || name.toLowerCase().endsWith('.htm')
-            ? name
-            : `${name}.html`;
+        return name.includes('.') ? name : `${name}.html`;
     };
 
     const clearCodeInput = () => {
@@ -530,11 +548,32 @@
         textarea.focus();
     };
 
+    const copyCodeToClipboard = async () => {
+        const textarea = document.getElementById('html-code-input');
+        try {
+            await navigator.clipboard.writeText(textarea.value);
+            toast('list-toast', 'Kod kopyalandı');
+        } catch {
+            textarea.select();
+            document.execCommand('copy');
+            toast('list-toast', 'Kod kopyalandı');
+        }
+    };
+
     const toggleCodeFullscreen = () => {
         const wrap = document.getElementById('editor-wrap');
         const btn = document.getElementById('toggle-fullscreen-btn');
+        const fsSaveBtn = document.getElementById('fs-save-btn');
+        
         const isFull = wrap.classList.toggle('fullscreen-editor');
         btn.textContent = isFull ? 'küçült' : 'tam ekran';
+        
+        if (isFull) {
+            fsSaveBtn.classList.remove('hidden');
+        } else {
+            fsSaveBtn.classList.add('hidden');
+        }
+        
         document.getElementById('html-code-input').focus();
     };
 
@@ -542,6 +581,7 @@
         const wrap = document.getElementById('editor-wrap');
         wrap.classList.remove('fullscreen-editor');
         document.getElementById('toggle-fullscreen-btn').textContent = 'tam ekran';
+        document.getElementById('fs-save-btn').classList.add('hidden');
         document.getElementById('code-modal').style.display = 'none';
     };
 
@@ -549,8 +589,8 @@
         editingFileName = null;
         const defaultName = createDefaultHtmlFileName();
 
-        document.getElementById('code-modal-title').textContent = 'HTML Kodu İşlemleri';
-        document.getElementById('code-save-btn').textContent = 'Yayınla';
+        document.getElementById('code-modal-title').textContent = 'Dosya Kodu İşlemleri';
+        document.getElementById('code-save-btn').textContent = 'Kaydet';
         document.getElementById('html-file-name').value = defaultName;
         document.getElementById('html-code-input').value = '';
         document.getElementById('code-modal').style.display = 'flex';
@@ -584,7 +624,7 @@
         let fileName = normalizeHtmlFileName(document.getElementById('html-file-name').value);
         if (!fileName) fileName = createDefaultHtmlFileName();
 
-        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -598,7 +638,7 @@
     const editHtmlContent = async (name) => {
         editingFileName = name;
         document.getElementById('code-modal-title').textContent = `Düzenle: ${name}`;
-        document.getElementById('code-save-btn').textContent = 'Güncelle';
+        document.getElementById('code-save-btn').textContent = 'Kaydet';
         document.getElementById('html-file-name').value = name;
         document.getElementById('html-code-input').value = 'Yükleniyor...';
         document.getElementById('code-modal').style.display = 'flex';
@@ -624,7 +664,7 @@
         const oldFileName = editingFileName;
 
         if (!code.trim()) {
-            toast('list-toast', 'HTML kodu boş olamaz', true);
+            toast('list-toast', 'İçerik boş olamaz', true);
             return;
         }
 
@@ -653,7 +693,7 @@
             const payload = {
                 message: isUpdating
                     ? (isRenaming ? `Adı değiştirildi: ${oldFileName} -> ${fileName}` : `Güncellendi: ${fileName}`)
-                    : `HTML Eklendi: ${fileName}`,
+                    : `Dosya Eklendi: ${fileName}`,
                 content: base64Content
             };
 
