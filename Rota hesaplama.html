@@ -114,18 +114,6 @@
       color: var(--muted);
     }
 
-    /* Arama Filtresi */
-    .filter-box { margin-bottom: 12px; }
-    .filter-box input {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      outline: none;
-      font-size: 0.85rem;
-      background: #fff;
-    }
-
     /* Tablo Alanı & Tam Ekran Kapsayıcısı */
     .table-box {
       background: var(--card);
@@ -140,7 +128,7 @@
     .table-box:fullscreen {
       border-radius: 0;
       border: none;
-      padding: 16px;
+      padding: 14px;
       height: 100vh;
       width: 100vw;
       background: #ffffff;
@@ -149,7 +137,7 @@
     .table-box:-webkit-full-screen {
       border-radius: 0;
       border: none;
-      padding: 16px;
+      padding: 14px;
       height: 100vh;
       width: 100vw;
       background: #ffffff;
@@ -215,6 +203,22 @@
     }
     .btn-icon-table svg { width: 14px; height: 14px; }
 
+    /* Tablo İçi Arama Kutusu */
+    .filter-box {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      background: #ffffff;
+    }
+    .filter-box input {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+      font-size: 0.82rem;
+      background: #fff;
+    }
+
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
     th { background: #f1f5f9; padding: 9px 10px; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
     th:hover { background: #e2e8f0; }
@@ -275,12 +279,7 @@
       </div>
     </div>
 
-    <!-- Verileri Filtrele Arama Kutusu -->
-    <div class="filter-box">
-      <input type="text" id="filterSearch" placeholder="Verileri filtrele..." oninput="filtreleVeCiz()">
-    </div>
-
-    <!-- Tablo Kutusu (Sekmeler ve Tam Ekran Butonu Birlikte) -->
+    <!-- Tablo Kutusu (Sekmeler, Tam Ekran Butonu ve Filtreleme Birlikte Kapsayıcıda) -->
     <div class="table-box" id="tableContainer">
       <div class="table-header-bar">
         <div class="tabs">
@@ -295,6 +294,11 @@
             <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/>
           </svg>
         </button>
+      </div>
+
+      <!-- Verileri Filtrele Arama Kutusu -->
+      <div class="filter-box">
+        <input type="text" id="filterSearch" placeholder="Verileri filtrele..." oninput="filtreleVeCiz()">
       </div>
 
       <div class="table-scroll">
