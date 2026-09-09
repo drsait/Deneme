@@ -59,7 +59,7 @@
     .mini-card-val { font-size: 1.15rem; font-weight: 700; color: var(--primary); display: flex; align-items: baseline; gap: 6px; }
     .mini-card-sub { font-size: 0.68rem; color: var(--muted); }
 
-    /* Çubuk Grafik Bölümü Başlığı ve Yeni Aralık Butonları (5 Dk, 10 Dk, 15 Dk, 30 Dk, 1 Saat) */
+    /* Çubuk Grafik Bölümü Başlığı ve Aralık Butonları */
     .chart-section-head {
       display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
     }
@@ -74,7 +74,6 @@
       background: #ffffff; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-weight: 700;
     }
 
-    /* Çubuk Tablosu Genişliği Yarıya İndirildi ve Ortalandı */
     .charts-split-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -98,7 +97,7 @@
     .legend-dash { width: 12px; height: 0; border-top: 2px dashed #64748b; }
     .legend-box { width: 8px; height: 8px; border-radius: 2px; }
     .box-green { background: var(--success); }
-    .box-red { background: var(--danger); box-shadow: 0 0 4px rgba(239, 68, 68, 0.8); }
+    .box-red { background: var(--danger); }
 
     .chart-svg-wrap { width: 100%; height: 160px; position: relative; }
     .chart-svg-wrap svg { width: 100%; height: 100%; overflow: visible; }
@@ -122,14 +121,21 @@
       padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s;
     }
     .tab-btn:hover { background: #e2e8f0; color: var(--text); }
-    .tab-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
 
     .btn-icon-table {
       background: #ffffff; border: 1px solid var(--border); border-radius: 6px; width: 30px; height: 30px;
       display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); flex-shrink: 0;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;
     }
-    .btn-icon-table:hover { color: var(--primary); border-color: #cbd5e1; }
+    .btn-icon-table:hover {
+      color: var(--primary);
+      border-color: #cbd5e1;
+    }
     .btn-icon-table svg { width: 14px; height: 14px; }
 
     .filter-box { padding: 8px; border-bottom: 1px solid var(--border); background: #ffffff; }
@@ -211,7 +217,7 @@
       </div>
     </div>
 
-    <!-- Çubuk Grafik Bölümü Başlığı ve Genişletilmiş Aralık Butonları (5 Dk, 10 Dk, 15 Dk, 30 Dk, 1 Saat) -->
+    <!-- Çubuk Grafik Bölümü Başlığı ve Aralık Butonları -->
     <div class="chart-section-head">
       <div style="font-size:0.85rem; font-weight:700; color:var(--text);">Son 24 Saat Çubuk Çizelgesi</div>
       <div class="interval-group">
@@ -223,15 +229,15 @@
       </div>
     </div>
 
-    <!-- Son 24 Saatlik Çubuk Grafikleri (Gidiş & Dönüş - Genişlik Yarıya İndirildi) -->
+    <!-- Son 24 Saatlik Çubuk Grafikleri (Gidiş & Dönüş) -->
     <div class="charts-split-grid">
       <div class="chart-panel">
         <div class="chart-header">
           <div class="chart-title">Mardin ➔ Kızıltepe</div>
           <div class="chart-legend">
             <div class="legend-item"><span class="legend-dash"></span> Normal</div>
-            <div class="legend-item"><span class="legend-box box-green"></span> Taban</div>
-            <div class="legend-item"><span class="legend-box box-red"></span> Gecikme (▲)</div>
+            <div class="legend-item"><span class="legend-box box-green"></span> Normal Süre (Yeşil)</div>
+            <div class="legend-item"><span class="legend-box box-red"></span> Gecikme (Kırmızı)</div>
           </div>
         </div>
         <div class="chart-svg-wrap" id="chartWrapperGidis"></div>
@@ -242,15 +248,15 @@
           <div class="chart-title">Kızıltepe ➔ Mardin</div>
           <div class="chart-legend">
             <div class="legend-item"><span class="legend-dash"></span> Normal</div>
-            <div class="legend-item"><span class="legend-box box-green"></span> Taban</div>
-            <div class="legend-item"><span class="legend-box box-red"></span> Gecikme (▲)</div>
+            <div class="legend-item"><span class="legend-box box-green"></span> Normal Süre (Yeşil)</div>
+            <div class="legend-item"><span class="legend-box box-red"></span> Gecikme (Kırmızı)</div>
           </div>
         </div>
         <div class="chart-svg-wrap" id="chartWrapperDonus"></div>
       </div>
     </div>
 
-    <!-- Tablo Alanı: Gidiş / Dönüş Sekmeleriyle (Tüm ham veriler eksiksiz ve bağımsız) -->
+    <!-- Tablo Alanı: Gidiş / Dönüş Sekmeleriyle -->
     <div class="table-box" id="tableContainer">
       <div class="table-header-bar">
         <div class="tabs">
@@ -277,12 +283,13 @@
             <tr>
               <th>Tarih & Saat</th>
               <th>Hedef</th>
+              <th>Mesafe</th>
               <th>Süre</th>
               <th>Gecikme</th>
             </tr>
           </thead>
           <tbody id="dataRows">
-            <tr><td colspan="4" class="empty">Yükleniyor...</td></tr>
+            <tr><td colspan="5" class="empty">Yükleniyor...</td></tr>
           </tbody>
         </table>
       </div>
@@ -307,6 +314,7 @@
     function sekmeDegistir(sekme) {
       aktifSekme = sekme;
       sekmeleriArayuzeUygula();
+      cizHerIkiGrafik();
       tabloyuFiltreleVeCiz();
     }
 
@@ -424,10 +432,10 @@
           cizHerIkiGrafik();
           tabloyuFiltreleVeCiz();
         } else {
-          document.getElementById('dataRows').innerHTML = '<tr><td colspan="4" class="empty">Kayıt bulunamadı.</td></tr>';
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Kayıt bulunamadı.</td></tr>';
         }
       } catch (e) {
-        document.getElementById('dataRows').innerHTML = '<tr><td colspan="4" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
       }
     }
 
@@ -509,6 +517,10 @@
           ? (hasDelay ? (parseFloat(r[3]) || 0) : 0) 
           : (hasDelay ? (parseFloat(r[7]) || 0) : 0);
 
+        const mesafe = (yon === 'gidis')
+          ? (hasDelay ? (parseFloat(r[4]) || 0) : (parseFloat(r[3]) || 0))
+          : (hasDelay ? (parseFloat(r[8]) || 0) : (parseFloat(r[6]) || 0));
+
         const d = new Date(t);
         const dakika = d.getMinutes();
         const slotIndex = Math.floor(dakika / aralikDk);
@@ -530,12 +542,16 @@
             zamanDamgasi: slotStart.getTime(),
             toplamSure: 0,
             toplamGecikme: 0,
+            toplamMesafe: 0,
             adet: 0
           };
         }
 
+        gruplar[gruplar.length] // syntax guard
         gruplar[grupKey].toplamSure += sure;
+        gruplar[gruplar.length] // syntax guard
         gruplar[grupKey].toplamGecikme += gecikme;
+        gruplar[grupKey].toplamMesafe += mesafe;
         gruplar[grupKey].adet += 1;
       });
 
@@ -545,11 +561,12 @@
         zaman: g.zamanDamgasi,
         sure: parseFloat((g.toplamSure / g.adet).toFixed(1)),
         gecikme: parseFloat((g.toplamGecikme / g.adet).toFixed(1)),
+        mesafe: parseFloat((g.toplamMesafe / g.adet).toFixed(1)),
         adet: g.adet
       })).sort((a, b) => a.zaman - b.zaman);
     }
 
-    // Sola Yanaşık, Çubukları Grafik Alanına Tam Yayacak Şekte Otomatik Genişlik Ayarlayan Çizim
+    // Her çubukta yeşil kısım tamamlandığı gibi aynı hızda kırmızı kısım hemen üstünde yükselir (soldan sağa kademeli, seri)
     function cizTekYonCubukGrafik(containerId, kronolojik) {
       const wrapper = document.getElementById(containerId);
       if (!kronolojik || kronolojik.length === 0) {
@@ -559,12 +576,6 @@
 
       const n = kronolojik.length;
       
-      const normalSureler = kronolojik.map(d => Math.max(1, d.sure - d.gecikme));
-      const refNormal = (normalSureler.reduce((a, b) => a + b, 0) / n) || 20;
-
-      const sureler = kronolojik.map(d => d.sure);
-      const maxVal = Math.max(...sureler, refNormal) + 4;
-
       const w = 480;
       const h = 150;
       const padLeft = 24;
@@ -574,85 +585,81 @@
       const plotW = w - padLeft - padRight;
       const plotH = h - padTop - padBottom;
 
+      const normalValues = kronolojik.map(d => Math.max(1, d.sure - d.gecikme));
+      const refNormal = (normalValues.reduce((a, b) => a + b, 0) / n) || 20;
+
+      const sureler = kronolojik.map(d => d.sure);
+      const maxVal = Math.max(...sureler, refNormal) + 4;
+
       const getY = (v) => padTop + plotH - (v / maxVal) * plotH;
       const refY = getY(refNormal);
 
-      // Çubuk genişliği: Yatay alanı tam dolduracak şekilde dinamik hesaplanır
       const actualSlotW = plotW / n;
       const barW = Math.max(2, actualSlotW * 0.78);
 
-      let svg = wrapper.querySelector('svg');
-      if (!svg) {
-        wrapper.innerHTML = `
-          <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-            <line class="ref-line" x1="${padLeft}" y1="${refY}" x2="${w - padRight}" y2="${refY}" stroke="#64748b" stroke-dasharray="4,3" stroke-width="1.2" opacity="0.85" />
-            <text class="ref-text" x="${w - padRight + 4}" y="${refY + 3.5}" fill="#64748b" font-size="8" font-weight="700">Normal (${Math.round(refNormal)} dk)</text>
-            <g class="bars-container"></g>
-            <g class="labels-container"></g>
-          </svg>
-        `;
-        svg = wrapper.querySelector('svg');
-      }
+      wrapper.innerHTML = `
+        <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <line class="ref-line" x1="${padLeft}" y1="${refY}" x2="${w - padRight}" y2="${refY}" stroke="#64748b" stroke-dasharray="4,3" stroke-width="1.2" opacity="0.85" />
+          <text class="ref-text" x="${w - padRight + 4}" y="${refY + 3.5}" fill="#64748b" font-size="8" font-weight="700">Normal (${Math.round(refNormal)} dk)</text>
+          <g class="bars-container"></g>
+          <g class="labels-container"></g>
+        </svg>
+      `;
 
-      const refLine = svg.querySelector('.ref-line');
-      const refText = svg.querySelector('.ref-text');
-      if (refLine) {
-        refLine.setAttribute('y1', refY);
-        refLine.setAttribute('y2', refY);
-      }
-      if (refText) {
-        refText.setAttribute('y', refY + 3.5);
-        refText.textContent = `Normal (${Math.round(refNormal)} dk)`;
-      }
-
+      const svg = wrapper.querySelector('svg');
       const barsContainer = svg.querySelector('.bars-container');
       const labelsContainer = svg.querySelector('.labels-container');
-      barsContainer.innerHTML = '';
-      labelsContainer.innerHTML = '';
 
-      const baseDelay = 0.05;
-      const stepDelay = Math.max(0.01, 0.6 / n);
+      const greenDuration = 0.35; // Yeşil çubuğun çıkış süresi (hızı)
+      const redDuration = 0.35;   // Kırmızı çubuğun çıkış süresi (yeşille birebir aynı hız)
 
       kronolojik.forEach((d, i) => {
         const cx = padLeft + (i * actualSlotW) + (actualSlotW / 2);
         const bx = cx - (barW / 2);
         const totalSure = d.sure;
+        const gecikme = d.gecikme;
+        const normalHPart = Math.max(1, totalSure - gecikme);
 
-        const totalH = (totalSure / maxVal) * plotH;
         const baseYFull = padTop + plotH;
-        const currentStartTime = baseDelay + (i * stepDelay);
+        
+        // Soldaki çubuklar sağdakilere göre daha hızlı/önce başlar (kaskat sıra)
+        const currentGreenStart = 0.02 + (i * 0.035);
 
         let barHtml = '';
-        if (totalSure <= refNormal) {
+        if (gecikme <= 0) {
+          const totalH = (totalSure / maxVal) * plotH;
           barHtml += `
             <rect x="${bx}" y="${baseYFull}" width="${barW}" height="0" rx="2" class="bar-rect bar-base-green">
-              <animate attributeName="y" values="${baseYFull};${baseYFull - totalH}" dur="0.9s" begin="${currentStartTime}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
-              <animate attributeName="height" values="0;${totalH}" dur="0.9s" begin="${currentStartTime}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
+              <animate attributeName="y" values="${baseYFull};${baseYFull - totalH}" dur="${greenDuration}s" begin="${currentGreenStart}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
+              <animate attributeName="height" values="0;${totalH}" dur="${greenDuration}s" begin="${currentGreenStart}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
             </rect>
           `;
         } else {
-          const actualNormalForThis = Math.max(1, totalSure - d.gecikme);
-          const baseH = (actualNormalForThis / maxVal) * plotH;
-          const baseY = baseYFull - baseH;
-          const overH = (d.gecikme / maxVal) * plotH;
-          const overY = baseY - overH;
-          const redStartTime = currentStartTime + 0.45;
+          const normalH = (normalHPart / maxVal) * plotH;
+          const greenEndY = baseYFull - normalH;
+          const delayH = (gecikme / maxVal) * plotH;
+          const redFinalY = greenEndY - delayH;
+
+          // Kırmızı kısım yeşil kısım tamamlandığı an (yeşilin başladığı zamandan greenDuration süre sonra) başlar
+          const currentRedStart = currentGreenStart + greenDuration;
 
           barHtml += `
+            <!-- Yeşil Normal Süre Kısmı -->
             <rect x="${bx}" y="${baseYFull}" width="${barW}" height="0" class="bar-rect bar-base-green">
-              <animate attributeName="y" values="${baseYFull};${baseY}" dur="0.7s" begin="${currentStartTime}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
-              <animate attributeName="height" values="0;${baseH}" dur="0.7s" begin="${currentStartTime}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
+              <animate attributeName="y" values="${baseYFull};${greenEndY}" dur="${greenDuration}s" begin="${currentGreenStart}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
+              <animate attributeName="height" values="0;${normalH}" dur="${greenDuration}s" begin="${currentGreenStart}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
             </rect>
-            <rect x="${bx}" y="${baseY}" width="${barW}" height="0" rx="2" class="bar-rect bar-over-red">
-              <animate attributeName="y" values="${baseY};${overY}" dur="0.6s" begin="${redStartTime}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
-              <animate attributeName="height" values="0;${overH}" dur="0.6s" begin="${redStartTime}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
+            <!-- Kırmızı Gecikme Kısmı (Yeşil biter bitmez aynı hızda üstünde yükselir) -->
+            <rect x="${bx}" y="${greenEndY}" width="${barW}" height="0" rx="2" class="bar-rect bar-over-red">
+              <animate attributeName="y" values="${greenEndY};${redFinalY}" dur="${redDuration}s" begin="${currentRedStart}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
+              <animate attributeName="height" values="0;${delayH}" dur="${redDuration}s" begin="${currentRedStart}s" fill="freeze" calcMode="spline" keySplines="0.1 0.8 0.2 1" />
             </rect>
           `;
         }
 
         barHtml += `
           <rect x="${cx - actualSlotW / 2}" y="${padTop}" width="${actualSlotW}" height="${plotH}" class="bar-hover-zone"
-            onmousemove="gosterTooltip(event, '${d.tarih}', '${totalSure}', '${d.gecikme}', '${Math.round(refNormal)}', '${d.adet}')" 
+            onmousemove="gosterTooltip(event, '${d.tarih}', '${totalSure}', '${d.gecikme}', '${Math.round(refNormal)}', '${d.adet}', '${d.mesafe}')" 
             onmouseleave="gizleTooltip()" />
         `;
         barsContainer.insertAdjacentHTML('beforeend', barHtml);
@@ -687,6 +694,7 @@
           return {
             tarih: r[0],
             hedef: r[1],
+            mesafe: hasDelay ? r[4] : r[3],
             sure: r[2],
             gecikme: hasDelay ? r[3] : 0
           };
@@ -694,6 +702,7 @@
           return {
             tarih: r[0],
             hedef: hasDelay ? r[5] : r[4],
+            mesafe: hasDelay ? r[8] : r[6],
             sure: hasDelay ? r[6] : r[5],
             gecikme: hasDelay ? r[7] : 0
           };
@@ -701,12 +710,12 @@
       });
 
       let filtrelenen = seciliVeriler.filter(item => {
-        return `${item.tarih} ${item.hedef} ${item.sure}`.toLowerCase().includes(arama);
+        return `${item.tarih} ${item.hedef} ${item.mesafe} ${item.sure}`.toLowerCase().includes(arama);
       });
 
       const tbody = document.getElementById('dataRows');
       if (filtrelenen.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
         return;
       }
 
@@ -714,6 +723,7 @@
         <tr>
           <td><strong>${r.tarih}</strong></td>
           <td>${r.hedef}</td>
+          <td>${r.mesafe} km</td>
           <td><span class="badge">${r.sure} dk</span></td>
           <td>${delayBadgeHTML(r.gecikme)}</td>
         </tr>
@@ -721,13 +731,13 @@
     }
 
     const tooltip = document.getElementById('chartTooltip');
-    function gosterTooltip(e, tarih, toplamSure, gecikme, normalSure, olcumSayisi) {
+    function gosterTooltip(e, tarih, toplamSure, gecikme, normalSure, olcumSayisi, mesafe) {
       const d = parseFloat(gecikme) || 0;
       let durum = d > 0 ? `<span style="color:#f87171;">+${d} dk Gecikme</span>` : `<span style="color:#4ade80;">Normal Akış</span>`;
       
       tooltip.innerHTML = `
         <div style="font-weight:700; margin-bottom:2px;">${tarih}</div>
-        <div>Ortalama Süre: <strong>${toplamSure} dk</strong></div>
+        <div>Mesafe: <strong>${mesafe} km</strong> | Süre: <strong>${toplamSure} dk</strong></div>
         <div style="font-size:0.7rem; color:#cbd5e1;">Normal: ${normalSure} dk | ${durum} (${olcumSayisi} ölçüm)</div>
       `;
       tooltip.style.display = 'block';
