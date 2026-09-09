@@ -3,93 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mardin ⇄ Kızıltepe Canlı Trafik & Gecikme Takibi</title>
+  <title>Mardin Kızıltepe Trafik Takip</title>
   <style>
     :root {
       --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --muted: #64748b; --primary: #2563eb; --border: #e2e8f0;
       --danger-bg: #fee2e2; --danger-text: #b91c1c; --success-bg: #dcfce7; --success-text: #15803d;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 20px; }
+    body { background: var(--bg); color: var(--text); padding: 14px; }
     .container { max-width: 1100px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-    h1 { font-size: 1.35rem; font-weight: 700; }
-    .header-actions { display: flex; align-items: center; gap: 10px; }
-    .btn-measure {
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: opacity 0.2s;
+    
+    header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 12px; 
+      gap: 10px; 
     }
-    .btn-measure:hover { opacity: 0.9; }
-    .btn-measure:disabled { opacity: 0.6; cursor: not-allowed; }
-    .status { background: var(--success-bg); color: var(--success-text); padding: 5px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
+    h1 { 
+      font-size: 1.15rem; 
+      font-weight: 700; 
+      white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis; 
+    }
 
-    /* Kompakt Son Ölçüm Kartları (Yan Yana & Küçük) */
+    .header-actions { 
+      display: flex; 
+      align-items: center; 
+      gap: 6px; 
+      flex-shrink: 0; 
+    }
+    .btn-icon-head {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: all 0.2s;
+    }
+    .btn-icon-head:hover { background: #eff6ff; border-color: var(--primary); }
+    .btn-icon-head:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-icon-head svg { width: 16px; height: 16px; }
+
+    .live-dot {
+      background: var(--success-bg);
+      color: var(--success-text);
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #bbf7d0;
+    }
+    .live-dot svg { width: 16px; height: 16px; }
+
+    /* Kompakt Son Ölçüm Kartları */
     .mini-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .mini-card {
       background: var(--card);
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 10px;
       border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
-    .mini-card-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--muted);
+    .mini-card-head {
       display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 4px;
     }
+    .mini-card-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-card-time {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
     .mini-card-val {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--primary);
       display: flex;
       align-items: baseline;
-      gap: 8px;
+      gap: 6px;
     }
     .mini-card-sub {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       color: var(--muted);
     }
 
-    /* Rota Sekmeleri (Kartların Altında) */
+    /* Rota Sekmeleri */
     .tabs {
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 6px;
+      margin-bottom: 12px;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 8px;
+      padding-bottom: 6px;
     }
     .tab-btn {
+      flex: 1;
       background: #f1f5f9;
       color: var(--muted);
       border: 1px solid transparent;
-      padding: 8px 16px;
+      padding: 8px 10px;
       border-radius: 8px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      text-align: center;
       transition: all 0.2s;
     }
     .tab-btn:hover { background: #e2e8f0; color: var(--text); }
@@ -99,14 +142,22 @@
       border-color: var(--primary);
     }
 
-    .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-    .filters input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.88rem; background: #fff; }
-    .filters input[type="text"] { flex: 1; min-width: 200px; }
+    /* Arama Filtresi */
+    .filter-box { margin-bottom: 12px; }
+    .filter-box input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      font-size: 0.85rem;
+      background: #fff;
+    }
 
-    /* Tablo Alanı & Tam Ekran Desteği */
+    /* Tablo Alanı & Tam Ekran */
     .table-box {
       background: var(--card);
-      border-radius: 12px;
+      border-radius: 10px;
       border: 1px solid var(--border);
       position: relative;
       display: flex;
@@ -117,7 +168,7 @@
     .table-box:fullscreen {
       border-radius: 0;
       border: none;
-      padding: 20px;
+      padding: 16px;
       height: 100vh;
       width: 100vw;
       background: #ffffff;
@@ -126,102 +177,80 @@
     .table-box:-webkit-full-screen {
       border-radius: 0;
       border: none;
-      padding: 20px;
+      padding: 16px;
       height: 100vh;
       width: 100vw;
       background: #ffffff;
       overflow-y: auto;
     }
 
-    /* Şirin Köşe Butonu */
     .table-actions {
       position: absolute;
       top: 6px;
-      right: 8px;
+      right: 6px;
       z-index: 10;
-      display: flex;
-      gap: 6px;
     }
-    .btn-icon {
+    .btn-icon-table {
       background: #ffffff;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      width: 30px;
-      height: 30px;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       color: var(--muted);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      transition: all 0.2s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: all 0.2s;
     }
-    .btn-icon:hover {
-      background: #f8fafc;
+    .btn-icon-table:hover {
       color: var(--primary);
       border-color: #cbd5e1;
-      transform: scale(1.06);
     }
-    .btn-icon svg { width: 15px; height: 15px; }
+    .btn-icon-table svg { width: 14px; height: 14px; }
 
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
-    th { background: #f1f5f9; padding: 10px 12px; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th { background: #f1f5f9; padding: 9px 10px; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
     th:hover { background: #e2e8f0; }
-    th .sort-icon { margin-left: 4px; color: #94a3b8; font-size: 0.72rem; }
-    th:last-child { padding-right: 48px; }
-    td { padding: 10px 12px; border-top: 1px solid var(--border); white-space: nowrap; }
+    th .sort-icon { margin-left: 3px; color: #94a3b8; font-size: 0.7rem; }
+    th:last-child { padding-right: 40px; }
+    td { padding: 9px 10px; border-top: 1px solid var(--border); white-space: nowrap; }
     tr:hover { background: #f8fafc; }
-    .badge { background: #eff6ff; color: #1d4ed8; padding: 2px 7px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; }
-    .badge-delay { padding: 2px 7px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+    .badge { background: #eff6ff; color: #1d4ed8; padding: 2px 6px; border-radius: 5px; font-weight: 600; font-size: 0.8rem; }
+    .badge-delay { padding: 2px 6px; border-radius: 5px; font-weight: 600; font-size: 0.74rem; }
     .delay-red { background: var(--danger-bg); color: var(--danger-text); }
     .delay-none { background: var(--success-bg); color: var(--success-text); }
-    .empty { text-align: center; padding: 30px; color: var(--muted); }
-
-    /* Mobil Uyumluluk */
-    @media (max-width: 768px) {
-      body { padding: 10px; }
-      header { flex-direction: column; align-items: stretch; gap: 10px; }
-      h1 { font-size: 1.15rem; text-align: center; }
-      #lastUpdated { display: block; text-align: center; margin-top: 2px; }
-      .header-actions { flex-direction: column; width: 100%; gap: 6px; }
-      .btn-measure { width: 100%; justify-content: center; padding: 10px 14px; font-size: 0.88rem; }
-      .status { text-align: center; width: 100%; padding: 5px; }
-      
-      .mini-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-      .mini-card { padding: 8px 10px; }
-      .mini-card-title { font-size: 0.68rem; }
-      .mini-card-val { font-size: 1.05rem; gap: 4px; }
-      .mini-card-sub { font-size: 0.65rem; }
-      
-      .tabs { flex-direction: row; gap: 6px; }
-      .tab-btn { flex: 1; justify-content: center; padding: 8px 6px; font-size: 0.78rem; }
-      
-      .filters { flex-direction: column; gap: 6px; }
-      .filters input { width: 100%; min-width: unset; }
-      .table-box { border-radius: 8px; }
-      th, td { padding: 8px 10px; font-size: 0.76rem; }
-      th:last-child { padding-right: 44px; }
-    }
+    .empty { text-align: center; padding: 24px; color: var(--muted); }
   </style>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <div>
-        <h1>Mardin ⇄ Kızıltepe Canlı Trafik & Gecikme Takibi</h1>
-        <small id="lastUpdated" style="color: var(--muted);">Veriler yükleniyor...</small>
-      </div>
+      <h1>Mardin Kızıltepe Trafik Takip</h1>
       <div class="header-actions">
-        <button class="btn-measure" id="btnMeasure" onclick="anlikOlcumTetikle()">⚡ Şimdi Ölç ve Kaydet</button>
-        <div class="status">● Canlı Takip</div>
+        <button class="btn-icon-head" id="btnMeasure" onclick="anlikOlcumTetikle()" title="Şimdi Ölç ve Kaydet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </button>
+        <div class="live-dot" title="Canlı Takip Devrede">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
+            <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+          </svg>
+        </div>
       </div>
     </header>
 
-    <!-- Her İki Rota İçin Küçük Son Ölçüm Kartları -->
+    <!-- Küçük Son Ölçüm Kartları (Kutu İçinde Minik Saat Bilgisiyle) -->
     <div class="mini-grid">
       <div class="mini-card">
-        <div class="mini-card-title">Artuklu ➔ Kızıltepe</div>
+        <div class="mini-card-head">
+          <span class="mini-card-title">Mardin ➔ Kızıltepe</span>
+          <span class="mini-card-time" id="gidisSaat">--:--</span>
+        </div>
         <div class="mini-card-val">
           <span id="gidisSure">-- dk</span>
           <span id="gidisBadge"></span>
@@ -230,7 +259,10 @@
       </div>
 
       <div class="mini-card">
-        <div class="mini-card-title">Kızıltepe ➔ Artuklu</div>
+        <div class="mini-card-head">
+          <span class="mini-card-title">Kızıltepe ➔ Mardin</span>
+          <span class="mini-card-time" id="donusSaat">--:--</span>
+        </div>
         <div class="mini-card-val">
           <span id="donusSure">-- dk</span>
           <span id="donusBadge"></span>
@@ -239,26 +271,24 @@
       </div>
     </div>
 
-    <!-- Son Ölçümün Altında Yer Alan Rota Sekmeleri -->
+    <!-- Rota Sekmeleri -->
     <div class="tabs">
-      <button class="tab-btn active" id="tabGidis" onclick="sekmeDegistir('gidis')">➔ Artuklu → Kızıltepe Tablosu</button>
-      <button class="tab-btn" id="tabDonus" onclick="sekmeDegistir('donus')">➔ Kızıltepe → Artuklu Tablosu</button>
+      <button class="tab-btn" id="tabGidis" onclick="sekmeDegistir('gidis')">Mardin Kızıltepe</button>
+      <button class="tab-btn" id="tabDonus" onclick="sekmeDegistir('donus')">Kızıltepe Mardin</button>
     </div>
 
-    <div class="filters">
-      <input type="text" id="filterSearch" placeholder="Arama yap..." oninput="filtreleVeCiz()">
-      <input type="date" id="filterDate" onchange="filtreleVeCiz()">
+    <!-- Verileri Filtrele Arama Kutusu -->
+    <div class="filter-box">
+      <input type="text" id="filterSearch" placeholder="Verileri filtrele..." oninput="filtreleVeCiz()">
     </div>
 
-    <!-- Tablo Kutusu -->
+    <!-- Tablo -->
     <div class="table-box" id="tableContainer">
       <div class="table-actions">
-        <button class="btn-icon" id="btnFullscreen" onclick="tamEkranDegistir()" title="Tam Ekran">
-          <!-- Büyüt İkonu -->
+        <button class="btn-icon-table" id="btnFullscreen" onclick="tamEkranDegistir()" title="Tam Ekran">
           <svg id="iconExpand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
           </svg>
-          <!-- Küçült İkonu -->
           <svg id="iconCompress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
             <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/>
           </svg>
@@ -289,8 +319,19 @@
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwjqfUlGYClVY8esmlvxWf_tBKSUGPldx7WevQdY4fl-p0yxtLJFDW3ExLc8-6oZUvjSQ/exec';
 
     let tumKayitlar = [];
-    let aktifSekme = 'gidis';
+    let aktifSekme = (new Date().getHours() < 12) ? 'gidis' : 'donus';
     let aktifSiralama = { sutun: -1, artan: true };
+
+    function sekmeleriArayuzeUygula() {
+      document.getElementById('tabGidis').classList.toggle('active', aktifSekme === 'gidis');
+      document.getElementById('tabDonus').classList.toggle('active', aktifSekme === 'donus');
+    }
+
+    function sekmeDegistir(sekme) {
+      aktifSekme = sekme;
+      sekmeleriArayuzeUygula();
+      filtreleVeCiz();
+    }
 
     function tamEkranDegistir() {
       const elem = document.getElementById('tableContainer');
@@ -343,13 +384,6 @@
       }).filter(s => s.length >= 7);
     }
 
-    function sekmeDegistir(sekme) {
-      aktifSekme = sekme;
-      document.getElementById('tabGidis').classList.toggle('active', sekme === 'gidis');
-      document.getElementById('tabDonus').classList.toggle('active', sekme === 'donus');
-      filtreleVeCiz();
-    }
-
     async function verileriCek() {
       try {
         const res = await fetch(`${CSV_URL}&t=${Date.now()}`);
@@ -360,20 +394,17 @@
           tumKayitlar = parseEdilmis.reverse();
           ozetGuncelle(tumKayitlar[0]);
           filtreleVeCiz();
-          document.getElementById('lastUpdated').innerText = `Son Güncelleme: ${tumKayitlar[0][0]}`;
         } else {
-          document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Henüz veri yok. Butona tıklayarak ilk ölçümü yapabilirsiniz.</td></tr>';
-          document.getElementById('lastUpdated').innerText = 'Bekleniyor';
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Henüz veri yok.</td></tr>';
         }
       } catch (e) {
-        document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Veri çekilemedi.</td></tr>';
       }
     }
 
     async function anlikOlcumTetikle() {
       const btn = document.getElementById('btnMeasure');
       btn.disabled = true;
-      btn.innerText = '⏳ Hesaplanıyor & Yazılıyor...';
 
       try {
         const res = await fetch(WEB_APP_URL);
@@ -383,7 +414,6 @@
           tumKayitlar.unshift(result.data.map(String));
           ozetGuncelle(result.data);
           filtreleVeCiz();
-          document.getElementById('lastUpdated').innerText = `Son Güncelleme: ${result.data[0]}`;
         } else {
           await verileriCek();
         }
@@ -391,9 +421,17 @@
         await new Promise(r => setTimeout(r, 2500));
         await verileriCek();
       } finally {
-        btn.innerText = '⚡ Şimdi Ölç ve Kaydet';
         btn.disabled = false;
       }
+    }
+
+    function saatAyikla(tarihStr) {
+      if (!tarihStr) return '--:--';
+      const parts = tarihStr.trim().split(' ');
+      if (parts.length >= 2) {
+        return parts[1].substring(0, 5); // "HH:MM"
+      }
+      return tarihStr;
     }
 
     function ozetGuncelle(son) {
@@ -407,12 +445,14 @@
       const dGecikme = hasDelay ? son[7] : 0;
       const dMesafe = hasDelay ? son[8] : son[6];
 
-      // Gidiş kartı
+      const saatMetni = saatAyikla(son[0]);
+
+      document.getElementById('gidisSaat').innerText = saatMetni;
       document.getElementById('gidisSure').innerText = `${gSure} dk`;
       document.getElementById('gidisBadge').innerHTML = delayBadgeHTML(gGecikme);
       document.getElementById('gidisMesafe').innerText = `Mesafe: ${gMesafe} km`;
 
-      // Dönüş kartı
+      document.getElementById('donusSaat').innerText = saatMetni;
       document.getElementById('donusSure').innerText = `${dSure} dk`;
       document.getElementById('donusBadge').innerHTML = delayBadgeHTML(dGecikme);
       document.getElementById('donusMesafe').innerText = `Mesafe: ${dMesafe} km`;
@@ -461,7 +501,6 @@
 
     function filtreleVeCiz() {
       const arama = document.getElementById('filterSearch').value.toLowerCase();
-      const tarihSecimi = document.getElementById('filterDate').value;
 
       let seciliVeriler = tumKayitlar.map(r => {
         const hasDelay = r.length >= 9;
@@ -485,13 +524,7 @@
       });
 
       let filtrelenen = seciliVeriler.filter(item => {
-        const metinUygun = `${item.tarih} ${item.guzergah}`.toLowerCase().includes(arama);
-        let tarihUygun = true;
-        if (tarihSecimi) {
-          const [yil, ay, gun] = tarihSecimi.split('-');
-          tarihUygun = item.tarih.startsWith(`${gun}.${ay}.${yil}`);
-        }
-        return metinUygun && tarihUygun;
+        return `${item.tarih} ${item.guzergah} ${item.sure} ${item.mesafe}`.toLowerCase().includes(arama);
       });
 
       if (aktifSiralama.sutun !== -1) {
@@ -523,6 +556,7 @@
       tabloBas(filtrelenen);
     }
 
+    sekmeleriArayuzeUygula();
     verileriCek();
     setInterval(verileriCek, 2 * 60 * 1000);
   </script>
