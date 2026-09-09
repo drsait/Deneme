@@ -8,13 +8,8 @@
         :root {
             --bg: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             --card: rgba(255, 255, 255, 0.95);
-            --primary: #6366f1;
-            --danger: #f43f5e;
-            --warning: #f59e0b;
-            --success: #10b981;
-            --info: #0ea5e9;
-            --text: #0f172a;
-            --border: #e2e8f0;
+            --primary: #6366f1; --danger: #f43f5e; --warning: #f59e0b;
+            --success: #10b981; --info: #0ea5e9; --text: #0f172a; --border: #e2e8f0;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
         body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
@@ -23,7 +18,7 @@
         .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
         @media(max-width:768px){ .layout { grid-template-columns: 1fr; } }
         .card { background: var(--card); backdrop-filter: blur(12px); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.4); }
-        input, button, textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; }
+        input, button { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; }
         button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { opacity: 0.9; }
         .row { display: flex; gap: 8px; }
@@ -32,7 +27,9 @@
         .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; gap: 8px; }
         .item a { color: var(--text); text-decoration: none; font-weight: 500; word-break: break-all; margin-right: 8px; min-width: 0; }
         .item a:hover { color: var(--primary); text-decoration: underline; }
-        .file-date { font-size: 0.78rem; color: #64748b; white-space: nowrap; font-weight: 500; }
+        .file-meta-group { display: flex; gap: 8px; align-items: center; white-space: nowrap; flex-shrink: 0; }
+        .file-size { font-size: 0.75rem; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .file-date { font-size: 0.78rem; color: #64748b; font-weight: 500; }
         .actions { display: none; gap: 4px; flex-shrink: 0; }
         .btn-sm { padding: 6px 10px; font-size: 0.85rem; width: auto; border-radius: 6px; background: transparent; border: 1px solid; cursor: pointer; font-weight: bold; }
         .btn-code { color: var(--primary); border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
@@ -42,53 +39,61 @@
         .auth-btns { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }
         .hidden { display: none !important; }
 
-        .modal { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
-            align-items: flex-start; justify-content: center; padding-top: 20px;
-            z-index: 100; display: none; overflow-y: auto; 
-        }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: flex-start; justify-content: center; padding-top: 20px; z-index: 100; display: none; overflow-y: auto; }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; margin-bottom: 20px; }
 
-        .code-editor-wrap { position: relative; width: 100%; margin-bottom: 10px; }
-        #html-code-input { 
-            resize: vertical; max-height: 42vh; font-family: monospace; 
-            font-size: 0.85rem; padding-top: 36px; display: block; 
+        /* TEK KATMANLI RENKLİ EDİTÖR */
+        .code-editor-wrap { position: relative; width: 100%; margin-bottom: 10px; border-radius: 10px; overflow: hidden; background: #ffffff; border: 1.5px solid #cbd5e1; }
+        .editor-container { position: relative; width: 100%; height: 320px; background: #ffffff; }
+
+        #html-code-input {
+            width: 100%; height: 100%; padding: 42px 14px 28px 14px; margin: 0;
+            border: none; outline: none; box-sizing: border-box;
+            font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 20px;
+            color: #0f172a; background: #ffffff; tab-size: 4; white-space: pre; overflow: auto;
         }
+
+        /* Gömülü Sözdizimi Renkleri */
+        .c-kwd { color: #d946ef; font-weight: 700; }
+        .c-str { color: #16a34a; }
+        .c-com { color: #94a3b8; font-style: italic; }
+        .c-tag { color: #2563eb; font-weight: 600; }
+        .c-attr { color: #ea580c; }
+        .c-num { color: #0284c7; }
 
         .editor-tool-btn {
-            position: absolute; top: 6px; width: auto; padding: 3px 8px; 
-            font-size: 0.72rem; font-weight: 500; color: #64748b; 
-            background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(203, 213, 225, 0.9); 
-            border-radius: 6px; backdrop-filter: blur(8px); z-index: 20; 
-            cursor: pointer; transition: all 0.2s; user-select: none;
+            position: absolute; top: 6px; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 600;
+            color: #475569; background: rgba(248, 250, 252, 0.9); border: 1px solid #cbd5e1;
+            border-radius: 6px; backdrop-filter: blur(8px); z-index: 20; cursor: pointer; transition: all 0.2s;
         }
-        .editor-tool-btn:hover { color: var(--text); background: rgba(241, 245, 249, 0.98); border-color: #cbd5e1; }
-        
-        .btn-copy-code { left: 8px; }
-        .btn-paste-code { left: 66px; }
-        .btn-run-code { left: 122px; }
-        .btn-clear-code { left: 176px; }
-        .btn-save-code-fs { left: 232px; }
-        .btn-expand-code { right: 8px; }
+        .editor-tool-btn:hover { color: #0f172a; background: #e2e8f0; border-color: #94a3b8; }
+        .btn-copy-code { left: 8px; } .btn-paste-code { left: 70px; } .btn-run-code { left: 128px; }
+        .btn-clear-code { left: 184px; } .btn-save-code-fs { left: 242px; } .btn-expand-code { right: 8px; }
+        .fs-filename-badge {
+            position: absolute; top: 7px; right: 88px; font-size: 0.78rem; font-weight: 700; color: #0369a1;
+            background: #e0f2fe; padding: 3px 10px; border-radius: 6px; border: 1px solid #bae6fd;
+            z-index: 20; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: none;
+        }
 
-        .code-editor-wrap.fullscreen-editor {
-            position: fixed; inset: 0; z-index: 10001; background: #ffffff;
-            margin: 0; padding: 0; display: flex; flex-direction: column;
+        .editor-statusbar {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 22px;
+            background: #f8fafc; border-top: 1px solid #e2e8f0; color: #64748b;
+            font-size: 0.72rem; font-weight: 600; display: flex; align-items: center;
+            justify-content: flex-end; padding: 0 10px; gap: 12px; z-index: 20; pointer-events: none;
         }
-        .code-editor-wrap.fullscreen-editor #html-code-input {
-            width: 100%; height: 100%; max-height: none; resize: none;
-            padding: 48px 16px 16px 16px; border: none; border-radius: 0;
-            box-shadow: none; outline: none;
-        }
-        .code-editor-wrap.fullscreen-editor .editor-tool-btn {
-            position: fixed; top: 10px; background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-        }
+
+        .code-editor-wrap.fullscreen-editor { position: fixed; inset: 0; z-index: 10001; background: #ffffff; margin: 0; border-radius: 0; border: none; }
+        .code-editor-wrap.fullscreen-editor .editor-container { width: 100vw; height: 100vh; }
+        .code-editor-wrap.fullscreen-editor #html-code-input { padding: 50px 20px 30px 20px; }
+        .code-editor-wrap.fullscreen-editor .editor-tool-btn { position: fixed; top: 10px; background: rgba(248, 250, 252, 0.95); }
         .code-editor-wrap.fullscreen-editor .btn-copy-code { left: 12px; }
-        .code-editor-wrap.fullscreen-editor .btn-paste-code { left: 70px; }
-        .code-editor-wrap.fullscreen-editor .btn-run-code { left: 126px; }
-        .code-editor-wrap.fullscreen-editor .btn-clear-code { left: 180px; }
-        .code-editor-wrap.fullscreen-editor .btn-save-code-fs { left: 236px; color: var(--success); border-color: rgba(16,185,129,0.5); }
+        .code-editor-wrap.fullscreen-editor .btn-paste-code { left: 74px; }
+        .code-editor-wrap.fullscreen-editor .btn-run-code { left: 132px; }
+        .code-editor-wrap.fullscreen-editor .btn-clear-code { left: 188px; }
+        .code-editor-wrap.fullscreen-editor .btn-save-code-fs { left: 246px; color: #16a34a; border-color: rgba(22, 163, 74, 0.4); }
         .code-editor-wrap.fullscreen-editor .btn-expand-code { right: 12px; }
+        .code-editor-wrap.fullscreen-editor .fs-filename-badge { position: fixed; top: 10px; right: 90px; display: block; }
+        .code-editor-wrap.fullscreen-editor .editor-statusbar { position: fixed; bottom: 0; height: 24px; padding: 0 16px; }
 
         .code-modal-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .menu-btn {
@@ -107,26 +112,15 @@
             font-weight: bold; cursor: grab; z-index: 10003; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
             display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
         }
-        #draggable-close-btn:active { cursor: grabbing; }
         .tab-title-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .tab-title { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
-        .btn-edit-index { 
-            padding: 4px 8px; font-size: 0.78rem; border-radius: 6px; 
-            background: rgba(99,102,241,0.1); color: var(--primary); 
-            border: 1px solid var(--primary); cursor: pointer; width: auto; font-weight: 600;
-        }
+        .btn-edit-index { padding: 4px 8px; font-size: 0.78rem; border-radius: 6px; background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid var(--primary); cursor: pointer; width: auto; font-weight: 600; }
 
-        /* --- İKİLİ (BINARY) ANALİZ MODAL STİLLERİ --- */
         #binary-modal-box {
-            background: #18181b; color: #f4f4f5; border-radius: 16px;
-            width: 95%; max-width: 920px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #27272a;
-            position: relative; transition: all 0.2s ease;
+            background: #18181b; color: #f4f4f5; border-radius: 16px; width: 95%; max-width: 920px;
+            padding: 20px; margin-bottom: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #27272a;
         }
-        #binary-modal-box.fullscreen-active {
-            position: fixed; inset: 0; width: 100vw; max-width: 100vw; height: 100vh;
-            border-radius: 0; margin: 0; z-index: 10005; overflow-y: auto; padding: 24px;
-        }
+        #binary-modal-box.fullscreen-active { position: fixed; inset: 0; width: 100vw; max-width: 100vw; height: 100vh; border-radius: 0; margin: 0; z-index: 10005; overflow-y: auto; padding: 24px; }
         .bin-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .bin-sec { background: #27272a; border: 1px solid #3f3f46; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
         .bin-sec table { width: 100%; border-collapse: collapse; margin-top: 6px; }
@@ -140,6 +134,14 @@
         .bin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .bin-slider { flex-grow: 1; accent-color: #38bdf8; cursor: pointer; height: 6px; }
         .bin-input { width: 60px; background: #09090b; border: 1px solid #52525b; color: #fff; padding: 3px; text-align: center; border-radius: 4px; font-size: 11px; }
+
+        .bin-sec-fullscreen {
+            position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important;
+            z-index: 10006 !important; background: #18181b !important; padding: 16px !important; margin: 0 !important;
+            border-radius: 0 !important; border: none !important; display: flex !important; flex-direction: column !important;
+        }
+        .bin-sec-fullscreen .bin-pre { flex: 1 1 auto !important; max-height: none !important; font-size: 13px !important; line-height: 18px !important; }
+        .bin-sec-fullscreen .bin-ctrl { margin-top: 10px !important; flex-shrink: 0 !important; }
     </style>
 </head>
 <body>
@@ -157,8 +159,8 @@
                 <div id="logout-box" class="hidden">
                     <div class="auth-btns">
                         <button style="background:var(--danger)" onclick="logout()">Çıkış</button>
-                        <button id="edit-toggle" class="btn-sm" style="color:var(--primary); border-color:var(--primary); background:transparent;" onclick="toggleEdit()" title="Düzenleme Modu">⚙️</button>
-                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary); background:transparent;" onclick="location.reload()" title="Yenile">🔄</button>
+                        <button id="edit-toggle" class="btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="toggleEdit()" title="Düzenleme Modu">⚙️</button>
+                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="location.reload()" title="Yenile">🔄</button>
                     </div>
                 </div>
                 <div id="auth-toast" class="toast"></div>
@@ -170,8 +172,10 @@
                     <button class="menu-btn" id="tab-archive-btn" onclick="switchTab('archive')">📦 Arşiv</button>
                     <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--border);">
                     <input type="file" id="file" class="hidden" onchange="upload()">
-                    <button class="menu-btn" onclick="document.getElementById('file').click()">📁 Dosya Yükle</button>
+                    <button class="menu-btn" onclick="el('file').click()">📁 Dosya Yükle</button>
                     <button class="menu-btn" onclick="openCodeModal()">&lt;/&gt; HTML Yükle</button>
+                    <input type="file" id="local-inspect-file" class="hidden" onchange="inspectLocalFile(this)">
+                    <button class="menu-btn" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd;" onclick="el('local-inspect-file').click()">🔍 Dosya İncele</button>
                     <div id="upload-toast" class="toast"></div>
                 </div>
             </div>
@@ -192,31 +196,36 @@
     </div>
 </div>
 
-<!-- YENİDEN ADLANDIR MODAL -->
 <div id="modal" class="modal">
     <div class="modal-box">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
         <input type="text" id="new-name" style="margin-bottom:10px;" placeholder="Yeni Dosya Adı">
         <div class="row">
-            <button style="background:#cbd5e1; color:#334155;" onclick="document.getElementById('modal').style.display='none'">İptal</button>
+            <button style="background:#cbd5e1; color:#334155;" onclick="el('modal').style.display='none'">İptal</button>
             <button onclick="saveRename()">Kaydet</button>
         </div>
     </div>
 </div>
 
-<!-- KOD DÜZENLEYİCİ MODAL (HTML, TXT, JS vb.) -->
 <div id="code-modal" class="modal">
-    <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-box" style="max-width: 520px;">
         <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">Dosya Kodu İşlemleri</h4>
-        <input type="text" id="html-file-name" placeholder="Dosya adı" autocomplete="off" style="margin-bottom:10px;" aria-label="Dosya adı">
+        <input type="text" id="html-file-name" placeholder="Dosya adı" autocomplete="off" style="margin-bottom:10px;" oninput="updateFsFileNameBadge()">
         <div class="code-editor-wrap" id="editor-wrap">
-            <button class="editor-tool-btn btn-copy-code" id="fs-copy-btn" onclick="copyCodeToClipboard()" type="button">kopyala</button>
+            <button class="editor-tool-btn btn-copy-code" onclick="copyCodeToClipboard()" type="button">kopyala</button>
             <button class="editor-tool-btn btn-paste-code" onclick="pasteFromClipboard()" type="button">yapıştır</button>
             <button class="editor-tool-btn btn-run-code" onclick="runHtmlCode()" type="button">çalıştır</button>
             <button class="editor-tool-btn btn-clear-code" onclick="clearCodeInput()" type="button">temizle</button>
             <button class="editor-tool-btn btn-save-code-fs hidden" id="fs-save-btn" onclick="uploadHtmlCode()" type="button">kaydet</button>
+            <span id="fs-file-badge" class="fs-filename-badge"></span>
             <button class="editor-tool-btn btn-expand-code" id="toggle-fullscreen-btn" onclick="toggleCodeFullscreen()" type="button">tam ekran</button>
-            <textarea id="html-code-input" rows="7" placeholder="Kodları buraya yapıştırın veya düzenleyin..."></textarea>
+            <div class="editor-container">
+                <div id="html-code-input" contenteditable="plaintext-only" spellcheck="false" oninput="handleEditorInput()"></div>
+            </div>
+            <div class="editor-statusbar">
+                <span id="editor-char-count">0 karakter</span>
+                <span id="editor-size-count">0 B</span>
+            </div>
         </div>
         <div class="code-modal-actions">
             <button style="background:#cbd5e1; color:#334155;" onclick="closeCodeModal()">İptal</button>
@@ -226,7 +235,6 @@
     </div>
 </div>
 
-<!-- İKİLİ (BINARY / EXE / RESİM / ARŞİV) GELİŞMİŞ ANALİZ MODAL -->
 <div id="binary-modal" class="modal">
     <div id="binary-modal-box">
         <div class="bin-header-bar">
@@ -238,7 +246,7 @@
         </div>
 
         <div class="bin-sec">
-            <h5 style="margin-bottom:6px; color:#94a3b8;">Format & Başlık Bilgileri</h5>
+            <h5 style="margin-bottom:6px; color:#94a3b8;">Format, Bütünlük ve Başlık Bilgileri</h5>
             <table id="bin-meta-table"></table>
         </div>
 
@@ -247,13 +255,14 @@
             <div id="bin-details-content"></div>
         </div>
 
-        <div class="bin-sec">
-            <h5 style="margin-bottom:6px; color:#94a3b8;">Hex Dökümü <span id="bin-hex-counter" style="color:#38bdf8;"></span></h5>
+        <div class="bin-sec" id="bin-hex-sec">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h5 style="color:#94a3b8; margin:0;">Hex Dökümü <span id="bin-hex-counter" style="color:#38bdf8;"></span></h5>
+                <button class="bin-btn" id="bin-hex-expand-btn" onclick="toggleSectionFullscreen('bin-hex-sec', 'bin-hex-expand-btn')">⛶ Tam Ekran</button>
+            </div>
             <pre class="bin-pre" id="bin-hex-output"></pre>
             <div class="bin-ctrl">
-                <div class="bin-nav">
-                    <input type="range" class="bin-slider" id="bin-hex-slider" min="0" value="0">
-                </div>
+                <div class="bin-nav"><input type="range" class="bin-slider" id="bin-hex-slider" min="0" value="0"></div>
                 <div class="bin-nav">
                     <button class="bin-btn" onclick="jumpHex(-100)">-100</button>
                     <button class="bin-btn" onclick="jumpHex(-10)">-10</button>
@@ -266,13 +275,14 @@
             </div>
         </div>
 
-        <div class="bin-sec">
-            <h5 style="margin-bottom:6px; color:#94a3b8;">Sınırsız Metinler (Strings) <span id="bin-str-counter" style="color:#38bdf8;"></span></h5>
+        <div class="bin-sec" id="bin-str-sec">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <h5 style="color:#94a3b8; margin:0;">Sınırsız Metinler (Strings) <span id="bin-str-counter" style="color:#38bdf8;"></span></h5>
+                <button class="bin-btn" id="bin-str-expand-btn" onclick="toggleSectionFullscreen('bin-str-sec', 'bin-str-expand-btn')">⛶ Tam Ekran</button>
+            </div>
             <pre class="bin-pre" id="bin-str-output"></pre>
             <div class="bin-ctrl">
-                <div class="bin-nav">
-                    <input type="range" class="bin-slider" id="bin-str-slider" min="0" value="0">
-                </div>
+                <div class="bin-nav"><input type="range" class="bin-slider" id="bin-str-slider" min="0" value="0"></div>
                 <div class="bin-nav">
                     <button class="bin-btn" onclick="jumpStr(-100)">-100</button>
                     <button class="bin-btn" onclick="jumpStr(-10)">-10</button>
@@ -293,57 +303,129 @@
 </div>
 
 <script>
+    const el = id => document.getElementById(id);
     const u = 'drsait', r = 'Deneme', api = `https://api.github.com/repos/${u}/${r}/contents`;
-    let editMode = false, activeFileData = {}, editingFileName = null, currentTab = 'files';
-    let authTimer = null;
+    let editMode = false, activeFileData = {}, editingFileName = null, currentTab = 'files', authTimer = null;
+    let colorTimer = null;
 
-    // Metin tabanlı düzenlenebilir uzantılar
-    const editableExtensions = ['.html', '.htm', '.txt', '.js', '.css', '.json', '.md', '.xml', '.svg', '.csv', '.py', '.php'];
+    const b64Dec = str => decodeURIComponent(escape(atob(str)));
+    const b64Enc = str => btoa(unescape(encodeURIComponent(str)));
+    const isEditableTextFile = name => /\.(html?|txt|js|css|json|md|xml|svg|csv|py|php)$/i.test(name);
 
-    function isEditableTextFile(fileName) {
-        const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-        return editableExtensions.includes(ext);
+    function updateFsFileNameBadge() {
+        const val = el('html-file-name').value.trim();
+        const badge = el('fs-file-badge');
+        badge.textContent = val ? `📄 ${val}` : '';
+        badge.title = val;
+    }
+
+    const formatFileSize = bytes => {
+        if (!bytes || isNaN(bytes)) return '0 B';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    };
+
+    function getCode() {
+        return el('html-code-input').innerText.replace(/\r\n/g, '\n');
+    }
+
+    function setCode(code) {
+        const ed = el('html-code-input');
+        ed.innerHTML = highlightSyntax(code);
+        updateStatus();
+    }
+
+    function updateStatus() {
+        const text = getCode();
+        el('editor-char-count').textContent = `${text.length.toLocaleString()} karakter`;
+        el('editor-size-count').textContent = formatFileSize(new Blob([text]).size);
+    }
+
+    // Dahili Tek Katman Sözdizimi Ayrıştırıcısı
+    function highlightSyntax(code) {
+        return code
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/(&lt;!--[\s\S]*?--&gt;|\/\*[\s\S]*?\*\/|\/\/[^\n]*)/g, '<span class="c-com">$1</span>')
+            .replace(/(&quot;[\s\S]*?&quot;|'[^'\\]*(?:\\.[^'\\]*)*'|`[^`\\]*(?:\\.[^`\\]*)*`)/g, '<span class="c-str">$1</span>')
+            .replace(/\b(const|let|var|function|return|if|else|for|while|async|await|class|import|from|export|new|typeof|null|undefined|true|false)\b/g, '<span class="c-kwd">$1</span>')
+            .replace(/(&lt;\/?)([a-zA-Z0-9\-]+)/g, '$1<span class="c-tag">$2</span>')
+            .replace(/\b([a-zA-Z\-]+)(?==)/g, '<span class="c-attr">$1</span>')
+            .replace(/\b(\d+)\b/g, '<span class="c-num">$1</span>');
+    }
+
+    function handleEditorInput() {
+        updateStatus();
+        clearTimeout(colorTimer);
+        colorTimer = setTimeout(() => {
+            const ed = el('html-code-input');
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            
+            // İmleç pozisyonunu kaydet
+            let charCount = 0;
+            const range = sel.getRangeAt(0);
+            const preRange = range.cloneRange();
+            preRange.selectNodeContents(ed);
+            preRange.setEnd(range.endContainer, range.endOffset);
+            charCount = preRange.toString().length;
+
+            ed.innerHTML = highlightSyntax(getCode());
+
+            // İmleci eski yerine geri koy
+            restoreCursor(ed, charCount);
+        }, 400);
+    }
+
+    function restoreCursor(node, offset) {
+        const sel = window.getSelection();
+        let current = 0;
+        function traverse(n) {
+            if (n.nodeType === 3) {
+                const next = current + n.length;
+                if (offset <= next) {
+                    const r = document.createRange();
+                    r.setStart(n, offset - current);
+                    r.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(r);
+                    return true;
+                }
+                current = next;
+            } else {
+                for (let i = 0; i < n.childNodes.length; i++) {
+                    if (traverse(n.childNodes[i])) return true;
+                }
+            }
+            return false;
+        }
+        traverse(node);
     }
 
     window.onload = () => { 
-        const tokenInput = document.getElementById('token');
-
+        const tokenInput = el('token');
         tokenInput.addEventListener('input', () => {
             clearTimeout(authTimer);
-            if (tokenInput.value.trim().length >= 10) {
-                authTimer = setTimeout(() => auth(false), 300);
-            }
+            if (tokenInput.value.trim().length >= 10) authTimer = setTimeout(() => auth(false), 300);
         });
-
-        tokenInput.addEventListener('paste', () => {
-            setTimeout(() => auth(false), 50);
-        });
-
-        tokenInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') auth(true);
-        });
+        tokenInput.addEventListener('paste', () => setTimeout(() => auth(false), 50));
+        tokenInput.addEventListener('keypress', e => e.key === 'Enter' && auth(true));
 
         const t = localStorage.getItem('gt'); 
-        if(t) { 
-            tokenInput.value = t; 
-            auth(false); 
-        } 
+        if(t) { tokenInput.value = t; auth(false); } 
     };
 
     const toast = (id, msg, err) => {
-        const el = document.getElementById(id);
-        el.textContent = msg; el.style.display = 'block';
-        el.style.background = err ? '#fef2f2' : '#ecfdf5';
-        el.style.color = err ? '#991b1b' : '#065f46';
-        el.style.border = `1px solid ${err ? '#f43f5e' : '#10b981'}`;
-        setTimeout(() => el.style.display = 'none', 4000);
+        const target = el(id);
+        target.textContent = msg; target.style.display = 'block';
+        target.style.background = err ? '#fef2f2' : '#ecfdf5';
+        target.style.color = err ? '#991b1b' : '#065f46';
+        target.style.border = `1px solid ${err ? '#f43f5e' : '#10b981'}`;
+        setTimeout(() => target.style.display = 'none', 4000);
     };
 
     const req = (path, method = 'GET', body = null) => fetch(api + (path ? '/' + path : ''), {
-        method, headers: { 
-            'Authorization': `token ${localStorage.getItem('gt')}`, 
-            'Content-Type': 'application/json' 
-        },
+        method, headers: { 'Authorization': `token ${localStorage.getItem('gt')}`, 'Content-Type': 'application/json' },
         body: body ? JSON.stringify(body) : null
     });
 
@@ -352,37 +434,31 @@
             const res = await req('archive.json');
             if (res.ok) {
                 const data = await res.json();
-                const content = decodeURIComponent(escape(atob(data.content)));
-                return { list: JSON.parse(content), sha: data.sha };
+                return { list: JSON.parse(b64Dec(data.content)), sha: data.sha };
             }
         } catch {}
         return { list: [], sha: null };
     };
 
     const saveGitHubArchiveData = async (newList, sha = null) => {
-        const jsonStr = JSON.stringify(newList, null, 2);
-        const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
-        const payload = { message: 'Arşiv listesi güncellendi', content: base64Content };
+        const payload = { message: 'Arşiv listesi güncellendi', content: b64Enc(JSON.stringify(newList, null, 2)) };
         if (sha) payload.sha = sha;
         await req('archive.json', 'PUT', payload);
     };
 
     const unlockUI = () => {
-        document.getElementById('auth-box').classList.add('hidden');
-        document.getElementById('logout-box').classList.remove('hidden');
-        document.getElementById('secure-sidebar').classList.remove('hidden');
-        document.getElementById('secure-content').classList.remove('hidden');
+        ['auth-box'].forEach(id => el(id).classList.add('hidden'));
+        ['logout-box', 'secure-sidebar', 'secure-content'].forEach(id => el(id).classList.remove('hidden'));
     };
 
-    const auth = (showAlert) => {
-        const t = document.getElementById('token').value.trim();
+    const auth = showAlert => {
+        const t = el('token').value.trim();
         if(!t) return showAlert && toast('auth-toast', 'Şifre girin', true);
         fetch(api, { headers: { 'Authorization': `token ${t}` } }).then(res => {
             if(res.ok) {
                 localStorage.setItem('gt', t);
                 if(showAlert) toast('auth-toast', 'Giriş yapıldı');
-                unlockUI();
-                load();
+                unlockUI(); load();
             } else {
                 localStorage.removeItem('gt');
                 if(showAlert) toast('auth-toast', 'Geçersiz şifre', true);
@@ -390,186 +466,110 @@
         }).catch(() => showAlert && toast('auth-toast', 'Bağlantı hatası', true));
     };
 
-    const logout = () => {
-        localStorage.removeItem('gt');
-        location.reload();
-    };
+    const logout = () => { localStorage.removeItem('gt'); location.reload(); };
 
-    const switchTab = (tab) => {
+    const switchTab = tab => {
         currentTab = tab;
-        document.getElementById('tab-files-btn').classList.toggle('active', tab === 'files');
-        document.getElementById('tab-archive-btn').classList.toggle('active', tab === 'archive');
-        document.getElementById('view-title').textContent = tab === 'files' ? '📄 Dosyalarım' : '📦 Arşivdeki Dosyalar';
+        el('tab-files-btn').classList.toggle('active', tab === 'files');
+        el('tab-archive-btn').classList.toggle('active', tab === 'archive');
+        el('view-title').textContent = tab === 'files' ? '📄 Dosyalarım' : '📦 Arşivdeki Dosyalar';
         load();
     };
 
     const toggleEdit = () => {
         editMode = !editMode;
-        const btn = document.getElementById('edit-toggle');
-        const indexBtn = document.getElementById('edit-index-btn');
+        const btn = el('edit-toggle'), indexBtn = el('edit-index-btn');
         btn.classList.toggle('active', editMode);
-        if(editMode) {
-            btn.style.background = 'var(--primary)';
-            btn.style.color = 'white';
-            indexBtn.classList.remove('hidden');
-        } else {
-            btn.style.background = 'transparent';
-            btn.style.color = 'var(--primary)';
-            indexBtn.classList.add('hidden');
-        }
+        btn.style.background = editMode ? 'var(--primary)' : 'transparent';
+        btn.style.color = editMode ? 'white' : 'var(--primary)';
+        indexBtn.classList.toggle('hidden', !editMode);
         document.querySelectorAll('.actions').forEach(a => a.style.display = editMode ? 'flex' : 'none');
-        document.querySelectorAll('.file-date').forEach(d => d.style.display = editMode ? 'none' : 'inline-block');
+        document.querySelectorAll('.file-meta-group').forEach(d => d.style.display = editMode ? 'none' : 'flex');
     };
 
-    const toggleArchive = async (fileName) => {
+    const toggleArchive = async fileName => {
         toast('list-toast', 'Arşiv durumu güncelleniyor...');
         const { list: archivedList, sha } = await getGitHubArchiveData();
-        let updatedList;
-
-        if (archivedList.includes(fileName)) {
-            updatedList = archivedList.filter(name => name !== fileName);
-            toast('list-toast', `${fileName} arşivden çıkarıldı`);
-        } else {
-            updatedList = [...archivedList, fileName];
-            toast('list-toast', `${fileName} arşive kaldırıldı`);
-        }
-
+        const exists = archivedList.includes(fileName);
+        const updatedList = exists ? archivedList.filter(n => n !== fileName) : [...archivedList, fileName];
+        toast('list-toast', `${fileName} ${exists ? 'arşivden çıkarıldı' : 'arşive kaldırıldı'}`);
         await saveGitHubArchiveData(updatedList, sha);
         load();
     };
 
-    const formatDate = (dateStr) => {
+    const formatDate = dateStr => {
         if (!dateStr) return '';
-        const dateObj = new Date(dateStr);
-        if (isNaN(dateObj.getTime())) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d)) return '';
         const pad = n => String(n).padStart(2, '0');
-        const d = pad(dateObj.getDate());
-        const m = pad(dateObj.getMonth() + 1);
-        const y = dateObj.getFullYear();
-        const hr = pad(dateObj.getHours());
-        const min = pad(dateObj.getMinutes());
-        return `${d}.${m}.${y} ${hr}:${min}`;
+        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
     const load = async () => {
-        const list = document.getElementById('file-list');
+        const list = el('file-list');
         list.innerHTML = '<li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li>';
 
         try {
             const res = await req();
-            if (!res.ok) throw new Error('GitHub dosya listesi alınamadı');
-
+            if (!res.ok) throw new Error();
             const data = await res.json();
-            if(!Array.isArray(data)) return list.innerHTML = '<li style="text-align:color:red">Hata</li>';
+            if (!Array.isArray(data)) return list.innerHTML = '<li style="color:red; text-align:center;">Hata</li>';
 
-            let files = data.filter(f => f.name.toLowerCase() !== 'index.html' && f.name.toLowerCase() !== 'archive.json');
             const { list: archivedFiles } = await getGitHubArchiveData();
+            let files = data.filter(f => !['index.html', 'archive.json'].includes(f.name.toLowerCase()));
+            files = files.filter(f => currentTab === 'files' ? !archivedFiles.includes(f.name) : archivedFiles.includes(f.name));
 
-            if (currentTab === 'files') {
-                files = files.filter(f => !archivedFiles.includes(f.name));
-            } else {
-                files = files.filter(f => archivedFiles.includes(f.name));
-            }
-
-            if(!files.length) {
-                const emptyMsg = currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok';
-                return list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${emptyMsg}</li>`;
-            }
+            if (!files.length) return list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok'}</li>`;
 
             const commitDates = {};
             try {
-                const commitsRes = await fetch(`https://api.github.com/repos/${u}/${r}/commits?per_page=50`, {
+                const cRes = await fetch(`https://api.github.com/repos/${u}/${r}/commits?per_page=50`, {
                     headers: { 'Authorization': `token ${localStorage.getItem('gt')}` }
                 });
-                if (commitsRes.ok) {
-                    const commitsData = await commitsRes.json();
-                    commitsData.forEach(c => {
+                if (cRes.ok) {
+                    (await cRes.json()).forEach(c => {
                         const date = c.commit?.committer?.date || c.commit?.author?.date;
                         const msg = c.commit?.message || '';
-                        files.forEach(f => {
-                            if (!commitDates[f.name] && msg.includes(f.name)) {
-                                commitDates[f.name] = date;
-                            }
-                        });
+                        files.forEach(f => { if (!commitDates[f.name] && msg.includes(f.name)) commitDates[f.name] = date; });
                     });
                 }
             } catch {}
 
             list.innerHTML = '';
-
             files.forEach(f => {
-                const formattedDate = formatDate(commitDates[f.name]);
                 const isArchived = archivedFiles.includes(f.name);
-                const archiveBtnTitle = isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle';
-
                 const li = document.createElement('li');
                 li.className = 'item';
+                li.innerHTML = `
+                    <a href="https://${u}.github.io/${r}/${encodeURIComponent(f.name)}" target="_blank">📄 ${f.name}</a>
+                    <div class="file-meta-group" style="display:${editMode ? 'none' : 'flex'}">
+                        ${f.size !== undefined ? `<span class="file-size">${formatFileSize(f.size)}</span>` : ''}
+                        <span class="file-date">${formatDate(commitDates[f.name])}</span>
+                    </div>
+                    <div class="actions" style="display:${editMode ? 'flex' : 'none'}">
+                        <button class="btn-sm btn-code" title="${isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili Analiz'}">${isEditableTextFile(f.name) ? '&lt;/&gt;' : '🔍'}</button>
+                        <button class="btn-sm btn-archive" title="${isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle'}">📦</button>
+                        <button class="btn-sm btn-rename" title="Yeniden Adlandır">🏷️</button>
+                        <button class="btn-sm btn-delete" title="Sil">🗑️</button>
+                    </div>`;
 
-                const link = document.createElement('a');
-                link.href = `https://${u}.github.io/${r}/${encodeURIComponent(f.name)}`;
-                link.target = '_blank';
-                link.textContent = `📄 ${f.name}`;
-
-                const date = document.createElement('span');
-                date.className = 'file-date';
-                date.style.display = editMode ? 'none' : 'inline-block';
-                date.textContent = formattedDate;
-
-                const actions = document.createElement('div');
-                actions.className = 'actions';
-                actions.style.display = editMode ? 'flex' : 'none';
-
-                const btnCode = document.createElement('button');
-                btnCode.className = 'btn-sm btn-code';
-                btnCode.innerHTML = isEditableTextFile(f.name) ? '&lt;/&gt;' : '🔍';
-                btnCode.title = isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili (Binary) Analiz';
-                btnCode.onclick = () => openTargetFile(f.name);
-                actions.appendChild(btnCode);
-
-                const btnArchive = document.createElement('button');
-                btnArchive.className = 'btn-sm btn-archive';
-                btnArchive.textContent = '📦';
-                btnArchive.title = archiveBtnTitle;
-                btnArchive.onclick = () => toggleArchive(f.name);
-                actions.appendChild(btnArchive);
-
-                const btnRename = document.createElement('button');
-                btnRename.className = 'btn-sm btn-rename';
-                btnRename.textContent = '🏷️';
-                btnRename.title = 'Yeniden Adlandır';
-                btnRename.onclick = () => openRenameModal(f.name, f.sha);
-                actions.appendChild(btnRename);
-
-                const btnDelete = document.createElement('button');
-                btnDelete.className = 'btn-sm btn-delete';
-                btnDelete.textContent = '🗑️';
-                btnDelete.title = 'Sil';
-                btnDelete.onclick = () => del(f.name, f.sha);
-                actions.appendChild(btnDelete);
-
-                li.appendChild(link);
-                li.appendChild(date);
-                li.appendChild(actions);
+                const btns = li.querySelectorAll('.actions button');
+                btns[0].onclick = () => openTargetFile(f.name);
+                btns[1].onclick = () => toggleArchive(f.name);
+                btns[2].onclick = () => openRenameModal(f.name, f.sha);
+                btns[3].onclick = () => del(f.name, f.sha);
                 list.appendChild(li);
             });
-        } catch (error) {
-            console.error(error);
+        } catch {
             list.innerHTML = '<li style="text-align:center; color:red">Yüklenirken hata oluştu</li>';
         }
     };
 
-    // YÖNLENDİRİCİ: Dosya türüne göre metin editörü veya ikili analizör açılır
-    const openTargetFile = (name) => {
-        if (isEditableTextFile(name)) {
-            editHtmlContent(name);
-        } else {
-            openBinaryAnalysis(name);
-        }
-    };
+    const openTargetFile = name => isEditableTextFile(name) ? editHtmlContent(name) : openBinaryAnalysis(name);
 
     const upload = () => {
-        const file = document.getElementById('file').files[0];
-        if(!file) return;
+        const file = el('file').files[0];
+        if (!file) return;
         toast('upload-toast', `${file.name} yükleniyor...`);
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -577,362 +577,286 @@
             req(encodeURIComponent(file.name), 'PUT', { message: `Yüklendi: ${file.name}`, content: reader.result.split(',')[1] })
             .then(res => {
                 if(res.ok) { toast('upload-toast', `${file.name} yüklendi`); load(); }
-                else throw new Error('Yüklenemedi');
-            }).catch(e => toast('upload-toast', e.message, true));
+                else throw new Error();
+            }).catch(() => toast('upload-toast', 'Yüklenemedi', true));
         };
     };
 
     const createDefaultHtmlFileName = () => {
-        const now = new Date();
-        const pad = n => String(n).padStart(2, '0');
+        const pad = n => String(n).padStart(2, '0'), now = new Date();
         return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}.html`;
     };
 
-    const normalizeHtmlFileName = (name) => {
-        name = name.trim();
-        if (!name) return '';
-        return name.includes('.') ? name : `${name}.html`;
-    };
+    const normalizeHtmlFileName = name => (name = name.trim()) ? (name.includes('.') ? name : `${name}.html`) : '';
 
     const clearCodeInput = () => {
-        const textarea = document.getElementById('html-code-input');
-        textarea.value = '';
-        textarea.focus();
+        setCode(''); el('html-code-input').focus();
     };
 
     const copyCodeToClipboard = async () => {
-        const textarea = document.getElementById('html-code-input');
-        try {
-            await navigator.clipboard.writeText(textarea.value);
-            toast('list-toast', 'Kod kopyalandı');
-        } catch {
-            textarea.select();
-            document.execCommand('copy');
-            toast('list-toast', 'Kod kopyalandı');
+        try { await navigator.clipboard.writeText(getCode()); } catch {
+            const ta = document.createElement('textarea');
+            ta.value = getCode(); document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
         }
+        toast('list-toast', 'Kod kopyalandı');
     };
 
     const toggleCodeFullscreen = () => {
-        const wrap = document.getElementById('editor-wrap');
-        const btn = document.getElementById('toggle-fullscreen-btn');
-        const fsSaveBtn = document.getElementById('fs-save-btn');
-        
-        const isFull = wrap.classList.toggle('fullscreen-editor');
-        btn.textContent = isFull ? 'küçült' : 'tam ekran';
-        
-        if (isFull) {
-            fsSaveBtn.classList.remove('hidden');
-        } else {
-            fsSaveBtn.classList.add('hidden');
-        }
-        
-        document.getElementById('html-code-input').focus();
+        const isFull = el('editor-wrap').classList.toggle('fullscreen-editor');
+        el('toggle-fullscreen-btn').textContent = isFull ? 'küçült' : 'tam ekran';
+        el('fs-save-btn').classList.toggle('hidden', !isFull);
+        if (isFull) updateFsFileNameBadge();
+        el('html-code-input').focus();
     };
 
     const closeCodeModal = () => {
-        const wrap = document.getElementById('editor-wrap');
-        wrap.classList.remove('fullscreen-editor');
-        document.getElementById('toggle-fullscreen-btn').textContent = 'tam ekran';
-        document.getElementById('fs-save-btn').classList.add('hidden');
-        document.getElementById('code-modal').style.display = 'none';
+        el('editor-wrap').classList.remove('fullscreen-editor');
+        el('toggle-fullscreen-btn').textContent = 'tam ekran';
+        el('fs-save-btn').classList.add('hidden');
+        el('fs-file-badge').style.display = 'none';
+        el('code-modal').style.display = 'none';
     };
 
     const openCodeModal = () => {
         editingFileName = null;
-        const defaultName = createDefaultHtmlFileName();
-
-        document.getElementById('code-modal-title').textContent = 'Dosya Kodu İşlemleri';
-        document.getElementById('code-save-btn').textContent = 'Kaydet';
-        document.getElementById('html-file-name').value = defaultName;
-        document.getElementById('html-code-input').value = '';
-        document.getElementById('code-modal').style.display = 'flex';
-        
-        const codeInput = document.getElementById('html-code-input');
-        codeInput.focus();
+        el('code-modal-title').textContent = 'Dosya Kodu İşlemleri';
+        el('code-save-btn').textContent = 'Kaydet';
+        el('html-file-name').value = createDefaultHtmlFileName();
+        updateFsFileNameBadge();
+        setCode('');
+        el('code-modal').style.display = 'flex';
+        el('html-code-input').focus();
     };
 
     const pasteFromClipboard = async () => {
-        const textarea = document.getElementById('html-code-input');
         try {
-            const clipboardText = await navigator.clipboard.readText();
-            if (clipboardText) textarea.value = clipboardText;
-        } catch (err) {}
-        textarea.focus();
+            const clip = await navigator.clipboard.readText();
+            if (clip) setCode(clip);
+        } catch {}
+        el('html-code-input').focus();
     };
 
     const runHtmlCode = () => {
-        const code = document.getElementById('html-code-input').value.trim();
-        if(!code) return;
-
-        const iframe = document.getElementById('preview-iframe');
-        iframe.srcdoc = code;
-        document.getElementById('fullscreen-preview').style.display = 'block';
+        const code = getCode().trim();
+        if (!code) return;
+        el('preview-iframe').srcdoc = code;
+        el('fullscreen-preview').style.display = 'block';
     };
 
     const downloadHtmlFile = () => {
-        const code = document.getElementById('html-code-input').value;
+        const code = getCode();
         if (!code.trim()) return;
-
-        let fileName = normalizeHtmlFileName(document.getElementById('html-file-name').value);
-        if (!fileName) fileName = createDefaultHtmlFileName();
-
-        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
+        const fileName = normalizeHtmlFileName(el('html-file-name').value) || createDefaultHtmlFileName();
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(new Blob([code], { type: 'text/plain;charset=utf-8' }));
         a.download = fileName;
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
     };
 
-    const editHtmlContent = async (name) => {
+    const editHtmlContent = async name => {
         editingFileName = name;
-        document.getElementById('code-modal-title').textContent = `Düzenle: ${name}`;
-        document.getElementById('code-save-btn').textContent = 'Kaydet';
-        document.getElementById('html-file-name').value = name;
-        document.getElementById('html-code-input').value = 'Yükleniyor...';
-        document.getElementById('code-modal').style.display = 'flex';
-
-        const codeInput = document.getElementById('html-code-input');
-        codeInput.focus();
+        el('code-modal-title').textContent = `Düzenle: ${name}`;
+        el('code-save-btn').textContent = 'Kaydet';
+        el('html-file-name').value = name;
+        updateFsFileNameBadge();
+        setCode('Yükleniyor...');
+        el('code-modal').style.display = 'flex'; el('html-code-input').focus();
 
         try {
             const res = await req(encodeURIComponent(name));
-            if (!res.ok) throw new Error('Dosya alınamadı');
+            if (!res.ok) throw new Error();
             const data = await res.json();
             activeFileData[name] = data.sha;
-            codeInput.value = decodeURIComponent(escape(atob(data.content)));
-            codeInput.focus();
+            setCode(b64Dec(data.content));
+            el('html-code-input').focus();
         } catch {
-            codeInput.value = 'İçerik alınamadı.';
+            setCode('İçerik alınamadı.');
         }
     };
 
     const uploadHtmlCode = async () => {
-        const code = document.getElementById('html-code-input').value;
-        let fileName = normalizeHtmlFileName(document.getElementById('html-file-name').value);
+        const code = getCode();
+        const fileName = normalizeHtmlFileName(el('html-file-name').value);
         const oldFileName = editingFileName;
 
-        if (!code.trim()) {
-            toast('list-toast', 'İçerik boş olamaz', true);
-            return;
-        }
+        if (!code.trim() || !fileName) return toast('list-toast', 'Dosya adı veya içerik boş olamaz', true);
 
-        if (!fileName) {
-            toast('list-toast', 'Dosya adı girin', true);
-            return;
-        }
-
-        const isUpdating = !!oldFileName;
-        const isRenaming = isUpdating && fileName !== oldFileName;
-
+        const isUpdating = !!oldFileName, isRenaming = isUpdating && fileName !== oldFileName;
         closeCodeModal();
         toast('list-toast', `${fileName} kaydediliyor...`);
 
         try {
             let oldData = null;
-
             if (isUpdating) {
                 const getRes = await req(encodeURIComponent(oldFileName));
-                if (!getRes.ok) throw new Error('Eski dosya bulunamadı');
+                if (!getRes.ok) throw new Error();
                 oldData = await getRes.json();
             }
 
-            const base64Content = btoa(unescape(encodeURIComponent(code)));
-
             const payload = {
-                message: isUpdating
-                    ? (isRenaming ? `Adı değiştirildi: ${oldFileName} -> ${fileName}` : `Güncellendi: ${fileName}`)
-                    : `Dosya Eklendi: ${fileName}`,
-                content: base64Content
+                message: isUpdating ? (isRenaming ? `Ad Değişimi: ${oldFileName} -> ${fileName}` : `Güncellendi: ${fileName}`) : `Dosya Eklendi: ${fileName}`,
+                content: b64Enc(code)
             };
-
-            if (isUpdating && !isRenaming) {
-                payload.sha = oldData.sha;
-            }
+            if (isUpdating && !isRenaming) payload.sha = oldData.sha;
 
             const putRes = await req(encodeURIComponent(fileName), 'PUT', payload);
+            if (!putRes.ok) throw new Error();
 
-            if (!putRes.ok) {
-                const errorData = await putRes.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Dosya kaydedilemedi');
-            }
-
-            if (isRenaming) {
-                const deleteRes = await req(encodeURIComponent(oldFileName), 'DELETE', {
-                    message: `Silindi (Ad Değişimi): ${oldFileName}`,
-                    sha: oldData.sha
-                });
-
-                if (!deleteRes.ok) {
-                    const errorData = await deleteRes.json().catch(() => ({}));
-                    throw new Error(`Yeni dosya oluşturuldu ancak eski dosya silinemedi: ${errorData.message || ''}`);
-                }
-            }
+            if (isRenaming) await req(encodeURIComponent(oldFileName), 'DELETE', { message: `Silindi: ${oldFileName}`, sha: oldData.sha });
 
             editingFileName = null;
-            toast('list-toast', `${fileName} başarıyla kaydedildi`);
+            toast('list-toast', `${fileName} kaydedildi`);
             load();
-
         } catch (e) {
-            console.error(e);
-            toast('list-toast', e.message || 'Kaydetme işlemi başarısız', true);
+            toast('list-toast', e.message || 'Kaydetme başarısız', true);
         }
     };
 
     const openRenameModal = (name, sha) => {
-        document.getElementById('new-name').value = name;
-        activeFileData = { name, sha };
-        document.getElementById('modal').style.display = 'flex';
-        document.getElementById('new-name').focus();
-        document.getElementById('new-name').select();
+        const input = el('new-name');
+        input.value = name; activeFileData = { name, sha };
+        el('modal').style.display = 'flex';
+        input.focus(); input.select();
     };
 
     const saveRename = async () => {
-        const newName = document.getElementById('new-name').value.trim();
-
-        if(!newName || newName === activeFileData.name) return;
-
-        document.getElementById('modal').style.display = 'none';
+        const newName = el('new-name').value.trim();
+        if (!newName || newName === activeFileData.name) return;
+        el('modal').style.display = 'none';
         toast('list-toast', 'Yeniden adlandırılıyor...');
 
         try {
             const getRes = await req(encodeURIComponent(activeFileData.name));
-            if (!getRes.ok) throw new Error('Eski dosya bulunamadı');
-
+            if (!getRes.ok) throw new Error();
             const data = await getRes.json();
 
-            const putRes = await req(encodeURIComponent(newName), 'PUT', {
-                message: `Ad Değişimi: ${activeFileData.name} -> ${newName}`,
-                content: data.content
-            });
+            const putRes = await req(encodeURIComponent(newName), 'PUT', { message: `Ad Değişimi: ${activeFileData.name} -> ${newName}`, content: data.content });
+            if (!putRes.ok) throw new Error();
 
-            if (!putRes.ok) {
-                const err = await putRes.json().catch(() => ({}));
-                throw new Error(err.message || 'Yeni dosya oluşturulamadı');
-            }
-
-            const deleteRes = await req(encodeURIComponent(activeFileData.name), 'DELETE', {
-                message: `Silindi (Ad Değişimi): ${activeFileData.name}`,
-                sha: data.sha
-            });
-
-            if (!deleteRes.ok) {
-                const err = await deleteRes.json().catch(() => ({}));
-                throw new Error(err.message || 'Eski dosya silinemedi');
-            }
-
-            toast('list-toast', 'Dosya adı başarıyla değiştirildi');
-            load();
-
-        } catch (error) {
-            console.error(error);
-            toast('list-toast', error.message || 'İşlem başarısız', true);
+            await req(encodeURIComponent(activeFileData.name), 'DELETE', { message: `Silindi: ${activeFileData.name}`, sha: data.sha });
+            toast('list-toast', 'Ad değiştirildi'); load();
+        } catch {
+            toast('list-toast', 'İşlem başarısız', true);
         }
     };
 
     const del = async (name, sha) => {
-        if(!confirm(`${name} silinsin mi?`)) return;
-
+        if (!confirm(`${name} silinsin mi?`)) return;
         toast('list-toast', `${name} siliniyor...`);
-
         try {
             const getRes = await req(encodeURIComponent(name));
-            if (!getRes.ok) throw new Error('Dosya bulunamadı');
-
             const data = await getRes.json();
-
-            const deleteRes = await req(encodeURIComponent(name), 'DELETE', {
-                message: `Silindi: ${name}`,
-                sha: data.sha
-            });
-
-            if (!deleteRes.ok) {
-                const errorData = await deleteRes.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Dosya silinemedi');
-            }
-
-            toast('list-toast', `${name} silindi`);
-            load();
-
-        } catch (e) {
-            console.error(e);
-            toast('list-toast', e.message || 'Silme işlemi başarısız', true);
+            const res = await req(encodeURIComponent(name), 'DELETE', { message: `Silindi: ${name}`, sha: data.sha || sha });
+            if (!res.ok) throw new Error();
+            toast('list-toast', `${name} silindi`); load();
+        } catch {
+            toast('list-toast', 'Silme başarısız', true);
         }
     };
 
-    // --- İKİLİ (BINARY) ANALİZ MOTORU & ETKİLEŞİMİ ---
     let binBuf = null, binView = null, binAllStrings = [];
-    let binHexPage = 0, binStrPage = 0;
-    let binTotalHexPages = 1, binTotalStrPages = 1;
+    let binHexPage = 0, binStrPage = 0, binTotalHexPages = 1, binTotalStrPages = 1;
     const BIN_H_PAGE = 512, BIN_S_PAGE = 200;
 
-    const openBinaryAnalysis = async (fileName) => {
-        toast('list-toast', `${fileName} ikili verisi yükleniyor...`);
+    const toggleSectionFullscreen = (secId, btnId) => {
+        const isFull = el(secId).classList.toggle('bin-sec-fullscreen');
+        el(btnId).textContent = isFull ? '🗗 Küçült' : '⛶ Tam Ekran';
+    };
+
+    function calculateEntropy(data) {
+        if (!data.length) return 0;
+        const freq = new Array(256).fill(0);
+        for (let i = 0; i < data.length; i++) freq[data[i]]++;
+        let entropy = 0;
+        for (let i = 0; i < 256; i++) {
+            if (freq[i] > 0) { const p = freq[i] / data.length; entropy -= p * Math.log2(p); }
+        }
+        return entropy.toFixed(4);
+    }
+
+    async function calculateSHA256(buf) {
         try {
-            const res = await req(encodeURIComponent(fileName));
-            if (!res.ok) throw new Error('Dosya alınamadı');
-            const data = await res.json();
+            const hash = await crypto.subtle.digest('SHA-256', buf);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch { return 'Hesaplanamadı'; }
+    }
 
-            // Base64 çözümleyip Uint8Array oluşturma
-            const binaryStr = atob(data.content);
-            const len = binaryStr.length;
-            binBuf = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                binBuf[i] = binaryStr.charCodeAt(i);
-            }
-            binView = new DataView(binBuf.buffer);
+    const initBinaryView = async (name, buf, extraMeta = '') => {
+        binBuf = new Uint8Array(buf);
+        binView = new DataView(buf);
+        binAllStrings = []; binHexPage = 0; binStrPage = 0;
 
-            binAllStrings = [];
-            binHexPage = 0;
-            binStrPage = 0;
+        el('bin-modal-title').textContent = `Analiz: ${name}`;
+        binTotalHexPages = Math.ceil(binBuf.length / BIN_H_PAGE) || 1;
+        el('bin-hex-slider').max = binTotalHexPages - 1;
+        el('bin-hex-total-pages').textContent = binTotalHexPages;
 
-            document.getElementById('bin-modal-title').textContent = `İnceleme & Analiz: ${fileName}`;
-            binTotalHexPages = Math.ceil(binBuf.length / BIN_H_PAGE) || 1;
-            document.getElementById('bin-hex-slider').max = binTotalHexPages - 1;
-            document.getElementById('bin-hex-total-pages').textContent = binTotalHexPages;
+        const sha = await calculateSHA256(buf), entropy = calculateEntropy(binBuf);
+        runBinaryFormatAnalysis(name, binBuf.length, extraMeta + `
+            <tr><td><b>SHA-256 Özeti</b></td><td style="word-break:break-all; font-family:monospace; color:#38bdf8;">${sha}</td></tr>
+            <tr><td><b>Entropi</b></td><td>${entropy} / 8.0000 ${entropy > 7.2 ? '(Sıkıştırılmış/Şifreli)' : '(Normal)'}</td></tr>
+        `);
+        runBinaryExtractStrings();
 
-            runBinaryFormatAnalysis(fileName, binBuf.length);
-            runBinaryExtractStrings();
+        binTotalStrPages = Math.ceil(binAllStrings.length / BIN_S_PAGE) || 1;
+        el('bin-str-slider').max = binTotalStrPages - 1;
+        el('bin-str-total-pages').textContent = binTotalStrPages;
 
-            binTotalStrPages = Math.ceil(binAllStrings.length / BIN_S_PAGE) || 1;
-            document.getElementById('bin-str-slider').max = binTotalStrPages - 1;
-            document.getElementById('bin-str-total-pages').textContent = binTotalStrPages;
+        renderBinHex(); renderBinStrings();
+        el('binary-modal').style.display = 'flex';
+    };
 
-            renderBinHex();
-            renderBinStrings();
+    const inspectLocalFile = input => {
+        const file = input.files[0];
+        if (!file) return;
+        toast('list-toast', `${file.name} analiz ediliyor...`);
+        const reader = new FileReader();
+        reader.onload = () => {
+            const modDate = file.lastModified ? formatDate(new Date(file.lastModified)) : 'Bilinmiyor';
+            initBinaryView(file.name, reader.result, `
+                <tr><td><b>MIME Türü</b></td><td>${file.type || 'Belirtilmemiş'}</td></tr>
+                <tr><td><b>Son Değiştirilme</b></td><td>${modDate}</td></tr>
+            `);
+            input.value = '';
+        };
+        reader.readAsArrayBuffer(file);
+    };
 
-            document.getElementById('binary-modal').style.display = 'flex';
-        } catch (err) {
-            console.error(err);
-            toast('list-toast', err.message || 'İkili veri çözümlenemedi', true);
+    const openBinaryAnalysis = async name => {
+        toast('list-toast', `${name} yükleniyor...`);
+        try {
+            const res = await req(encodeURIComponent(name));
+            if (!res.ok) throw new Error();
+            const data = await res.json(), bStr = atob(data.content), len = bStr.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = bStr.charCodeAt(i);
+            initBinaryView(name, bytes.buffer, `<tr><td><b>GitHub SHA</b></td><td style="word-break:break-all; font-family:monospace; color:#f59e0b;">${data.sha}</td></tr>`);
+        } catch {
+            toast('list-toast', 'Veri çözümlenemedi', true);
         }
     };
 
     const closeBinaryModal = () => {
-        const box = document.getElementById('binary-modal-box');
+        const box = el('binary-modal-box');
         box.classList.remove('fullscreen-active');
-        document.getElementById('bin-fs-btn').textContent = '⛶ Tam Ekran';
-        document.getElementById('binary-modal').style.display = 'none';
-        binBuf = null; binView = null; binAllStrings = [];
+        el('bin-fs-btn').textContent = '⛶ Tam Ekran';
+        ['bin-hex-sec', 'bin-str-sec'].forEach(id => el(id).classList.remove('bin-sec-fullscreen'));
+        ['bin-hex-expand-btn', 'bin-str-expand-btn'].forEach(id => el(id).textContent = '⛶ Tam Ekran');
+        el('binary-modal').style.display = 'none';
+        binBuf = binView = null; binAllStrings = [];
     };
 
     const toggleBinaryFullscreen = () => {
-        const box = document.getElementById('binary-modal-box');
-        const btn = document.getElementById('bin-fs-btn');
-        const isFull = box.classList.toggle('fullscreen-active');
-        btn.textContent = isFull ? '🗗 Pencere' : '⛶ Tam Ekran';
+        const isFull = el('binary-modal-box').classList.toggle('fullscreen-active');
+        el('bin-fs-btn').textContent = isFull ? '🗗 Pencere' : '⛶ Tam Ekran';
     };
 
-    function runBinaryFormatAnalysis(fileName, fileSize) {
-        let meta = `<tr><td><b>Dosya Adı / Boyut</b></td><td>${fileName} (${(fileSize / 1024).toFixed(2)} KB - ${fileSize.toLocaleString()} bayt)</td></tr>`;
-        const dBox = document.getElementById('bin-details-box');
-        const dContent = document.getElementById('bin-details-content');
+    function runBinaryFormatAnalysis(fileName, fileSize, extraMeta = '') {
+        let meta = `<tr><td><b>Dosya / Boyut</b></td><td>${fileName} (${formatFileSize(fileSize)} - ${fileSize.toLocaleString()} B)</td></tr>` + extraMeta;
+        const dBox = el('bin-details-box'), dContent = el('bin-details-content');
         dBox.style.display = 'none';
 
-        // 1. Windows PE (EXE / DLL)
         if (binBuf[0] === 0x4D && binBuf[1] === 0x5A && binBuf.length > 0x40) {
             const peOffset = binView.getUint32(0x3C, true);
             if (peOffset < binBuf.length - 4 && binBuf[peOffset] === 0x50 && binBuf[peOffset+1] === 0x45) {
@@ -940,105 +864,66 @@
                 const sections = binView.getUint16(peOffset + 6, true);
                 const time = new Date(binView.getUint32(peOffset + 8, true) * 1000).toUTCString();
                 const arch = machine === 0x8664 ? "64-bit (x64)" : (machine === 0x14C ? "32-bit (x86)" : "ARM/Diğer");
-                
-                meta += `<tr><td><b>Format</b></td><td>Windows PE Çalıştırılabilir (EXE/DLL)</td></tr>`;
-                meta += `<tr><td><b>Mimari / Derleme</b></td><td>${arch} | ${time}</td></tr>`;
-                meta += `<tr><td><b>Bölüm Sayısı</b></td><td>${sections}</td></tr>`;
+                meta += `<tr><td><b>Format</b></td><td>Windows PE (EXE/DLL)</td></tr><tr><td><b>Mimari / Tarih</b></td><td>${arch} | ${time}</td></tr><tr><td><b>Bölüm Sayısı</b></td><td>${sections}</td></tr>`;
 
-                let secRows = '';
-                const optSize = binView.getUint16(peOffset + 20, true);
-                let secPtr = peOffset + 24 + optSize;
+                let secRows = '', secPtr = peOffset + 24 + binView.getUint16(peOffset + 20, true);
                 for (let i = 0; i < sections && secPtr + 40 <= binBuf.length; i++) {
-                    let name = '';
-                    for (let j = 0; j < 8; j++) if (binBuf[secPtr + j] !== 0) name += String.fromCharCode(binBuf[secPtr + j]);
-                    secRows += `<tr><td>${name}</td><td>${binView.getUint32(secPtr + 8, true)} B</td><td>0x${binView.getUint32(secPtr + 12, true).toString(16).toUpperCase()}</td></tr>`;
+                    let sName = '';
+                    for (let j = 0; j < 8; j++) if (binBuf[secPtr + j]) sName += String.fromCharCode(binBuf[secPtr + j]);
+                    secRows += `<tr><td>${sName}</td><td>${binView.getUint32(secPtr + 8, true)} B</td><td>0x${binView.getUint32(secPtr + 12, true).toString(16).toUpperCase()}</td></tr>`;
                     secPtr += 40;
                 }
-                dContent.innerHTML = `<table><thead><tr><th>Bölüm</th><th>Sanal Boyut</th><th>Sanal Adres</th></tr></thead><tbody>${secRows}</tbody></table>`;
+                dContent.innerHTML = `<table><thead><tr><th>Bölüm</th><th>Boyut</th><th>Adres</th></tr></thead><tbody>${secRows}</tbody></table>`;
                 dBox.style.display = 'block';
-                document.getElementById('bin-meta-table').innerHTML = meta;
+                el('bin-meta-table').innerHTML = meta;
                 return;
             }
         }
 
-        // 2. Linux ELF
         if (binBuf[0] === 0x7F && binBuf[1] === 0x45 && binBuf[2] === 0x4C && binBuf[3] === 0x46) {
-            const is64 = binBuf[4] === 2;
-            meta += `<tr><td><b>Format</b></td><td>Linux ELF İkili Dosyası (${is64 ? '64-bit' : '32-bit'})</td></tr>`;
-            document.getElementById('bin-meta-table').innerHTML = meta;
-            return;
-        }
-
-        // 3. ZIP / Office Belgeleri
-        if (binBuf[0] === 0x50 && binBuf[1] === 0x4B && binBuf[2] === 0x03 && binBuf[3] === 0x04) {
-            let fileList = [];
-            let ptr = 0;
+            meta += `<tr><td><b>Format</b></td><td>Linux ELF (${binBuf[4] === 2 ? '64-bit' : '32-bit'})</td></tr>`;
+        } else if (binBuf[0] === 0x50 && binBuf[1] === 0x4B && binBuf[2] === 0x03 && binBuf[3] === 0x04) {
+            let files = [], ptr = 0;
             while (ptr < binBuf.length - 30) {
                 if (binBuf[ptr] === 0x50 && binBuf[ptr+1] === 0x4B && binBuf[ptr+2] === 0x03 && binBuf[ptr+3] === 0x04) {
-                    const nameLen = binView.getUint16(ptr + 26, true);
-                    const extraLen = binView.getUint16(ptr + 28, true);
-                    const compSize = binView.getUint32(ptr + 18, true);
-                    let name = '';
-                    for (let i = 0; i < nameLen; i++) name += String.fromCharCode(binBuf[ptr + 30 + i]);
-                    if (name) fileList.push(name);
-                    ptr += 30 + nameLen + extraLen + compSize;
-                } else {
-                    ptr++;
-                }
+                    const nLen = binView.getUint16(ptr + 26, true);
+                    let fName = '';
+                    for (let i = 0; i < nLen; i++) fName += String.fromCharCode(binBuf[ptr + 30 + i]);
+                    if (fName) files.push(fName);
+                    ptr += 30 + nLen + binView.getUint16(ptr + 28, true) + binView.getUint32(ptr + 18, true);
+                } else ptr++;
             }
-            const isOffice = fileList.some(f => f.includes('[Content_Types].xml'));
-            meta += `<tr><td><b>Format</b></td><td>${isOffice ? 'Microsoft Office Belgesi (DOCX/XLSX)' : 'ZIP Arşivi'}</td></tr>`;
-            if (fileList.length > 0) {
-                dContent.innerHTML = `<pre class="bin-pre">${fileList.slice(0, 50).join('\n')}${fileList.length > 50 ? '\n...ve dahası' : ''}</pre>`;
+            meta += `<tr><td><b>Format</b></td><td>${files.some(f => f.includes('[Content_Types].xml')) ? 'Office Belgesi (DOCX/XLSX)' : 'ZIP Arşivi'}</td></tr>`;
+            if (files.length) {
+                dContent.innerHTML = `<pre class="bin-pre">${files.slice(0, 50).join('\n')}${files.length > 50 ? '\n...' : ''}</pre>`;
                 dBox.style.display = 'block';
             }
-            document.getElementById('bin-meta-table').innerHTML = meta;
-            return;
-        }
-
-        // 4. PDF Belgesi
-        if (binBuf[0] === 0x25 && binBuf[1] === 0x50 && binBuf[2] === 0x44 && binBuf[3] === 0x46) {
-            let ver = String.fromCharCode(...binBuf.slice(0, 8));
-            meta += `<tr><td><b>Format</b></td><td>PDF Belgesi (${ver})</td></tr>`;
-            document.getElementById('bin-meta-table').innerHTML = meta;
-            return;
-        }
-
-        // 5. Görsel Formatları (PNG / JPEG / GIF)
-        if (binBuf[0] === 0x89 && binBuf[1] === 0x50 && binBuf[2] === 0x4E && binBuf[3] === 0x47) {
-            const w = binView.getUint32(16, false);
-            const h = binView.getUint32(20, false);
-            meta += `<tr><td><b>Format</b></td><td>PNG Görseli (${w}x${h} px)</td></tr>`;
+        } else if (binBuf[0] === 0x25 && binBuf[1] === 0x50 && binBuf[2] === 0x44 && binBuf[3] === 0x46) {
+            meta += `<tr><td><b>Format</b></td><td>PDF Belgesi (${String.fromCharCode(...binBuf.slice(0, 8))})</td></tr>`;
+        } else if (binBuf[0] === 0x89 && binBuf[1] === 0x50 && binBuf[2] === 0x4E && binBuf[3] === 0x46) {
+            meta += `<tr><td><b>Format</b></td><td>PNG Görseli (${binView.getUint32(16, false)}x${binView.getUint32(20, false)} px)</td></tr>`;
         } else if (binBuf[0] === 0xFF && binBuf[1] === 0xD8) {
             meta += `<tr><td><b>Format</b></td><td>JPEG Görseli</td></tr>`;
         } else if (binBuf[0] === 0x47 && binBuf[1] === 0x49 && binBuf[2] === 0x46) {
-            const w = binView.getUint16(6, true);
-            const h = binView.getUint16(8, true);
-            meta += `<tr><td><b>Format</b></td><td>GIF Görseli (${w}x${h} px)</td></tr>`;
+            meta += `<tr><td><b>Format</b></td><td>GIF Görseli (${binView.getUint16(6, true)}x${binView.getUint16(8, true)} px)</td></tr>`;
         } else {
             meta += `<tr><td><b>Format</b></td><td>Genel İkili / Veri Dosyası</td></tr>`;
         }
-
-        document.getElementById('bin-meta-table').innerHTML = meta;
+        el('bin-meta-table').innerHTML = meta;
     }
 
     function runBinaryExtractStrings() {
         let cur = '';
         for (let i = 0; i < binBuf.length; i++) {
             const c = binBuf[i];
-            if (c >= 32 && c <= 126) {
-                cur += String.fromCharCode(c);
-            } else {
-                if (cur.length >= 4) binAllStrings.push(cur);
-                cur = '';
-            }
+            if (c >= 32 && c <= 126) cur += String.fromCharCode(c);
+            else { if (cur.length >= 4) binAllStrings.push(cur); cur = ''; }
         }
         if (cur.length >= 4) binAllStrings.push(cur);
     }
 
     function renderBinHex() {
-        const start = binHexPage * BIN_H_PAGE;
-        const end = Math.min(start + BIN_H_PAGE, binBuf.length);
+        const start = binHexPage * BIN_H_PAGE, end = Math.min(start + BIN_H_PAGE, binBuf.length);
         let out = '';
         for (let i = start; i < end; i += 16) {
             const chunk = binBuf.subarray(i, Math.min(i + 16, end));
@@ -1046,77 +931,52 @@
             const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126 ? String.fromCharCode(b) : '.')).join('');
             out += i.toString(16).padStart(8, '0').toUpperCase() + '  ' + hex.padEnd(48, ' ') + '  |' + ascii + '|\n';
         }
-        document.getElementById('bin-hex-output').textContent = out;
-        document.getElementById('bin-hex-counter').textContent = `(${start.toLocaleString()} - ${end.toLocaleString()} / ${binBuf.length.toLocaleString()} bayt)`;
-        document.getElementById('bin-hex-prev').disabled = (binHexPage === 0);
-        document.getElementById('bin-hex-next').disabled = (end >= binBuf.length);
-        document.getElementById('bin-hex-slider').value = binHexPage;
-        document.getElementById('bin-hex-page-input').value = binHexPage + 1;
+        el('bin-hex-output').textContent = out;
+        el('bin-hex-counter').textContent = `(${start.toLocaleString()} - ${end.toLocaleString()} / ${binBuf.length.toLocaleString()} B)`;
+        el('bin-hex-prev').disabled = (binHexPage === 0);
+        el('bin-hex-next').disabled = (end >= binBuf.length);
+        el('bin-hex-slider').value = binHexPage;
+        el('bin-hex-page-input').value = binHexPage + 1;
     }
 
     function renderBinStrings() {
-        const start = binStrPage * BIN_S_PAGE;
-        const end = Math.min(start + BIN_S_PAGE, binAllStrings.length);
-        document.getElementById('bin-str-output').textContent = binAllStrings.slice(start, end).join('\n');
-        document.getElementById('bin-str-counter').textContent = `(${start.toLocaleString()} - ${end.toLocaleString()} / ${binAllStrings.length.toLocaleString()} adet)`;
-        document.getElementById('bin-str-prev').disabled = (binStrPage === 0);
-        document.getElementById('bin-str-next').disabled = (end >= binAllStrings.length);
-        document.getElementById('bin-str-slider').value = binStrPage;
-        document.getElementById('bin-str-page-input').value = binStrPage + 1;
+        const start = binStrPage * BIN_S_PAGE, end = Math.min(start + BIN_S_PAGE, binAllStrings.length);
+        el('bin-str-output').textContent = binAllStrings.slice(start, end).join('\n');
+        el('bin-str-counter').textContent = `(${start.toLocaleString()} - ${end.toLocaleString()} / ${binAllStrings.length.toLocaleString()} adet)`;
+        el('bin-str-prev').disabled = (binStrPage === 0);
+        el('bin-str-next').disabled = (end >= binAllStrings.length);
+        el('bin-str-slider').value = binStrPage;
+        el('bin-str-page-input').value = binStrPage + 1;
     }
 
-    function jumpHex(delta) {
-        binHexPage = Math.max(0, Math.min(binTotalHexPages - 1, binHexPage + delta));
-        renderBinHex();
-    }
+    const jumpHex = d => { binHexPage = Math.max(0, Math.min(binTotalHexPages - 1, binHexPage + d)); renderBinHex(); };
+    const jumpStr = d => { binStrPage = Math.max(0, Math.min(binTotalStrPages - 1, binStrPage + d)); renderBinStrings(); };
 
-    function jumpStr(delta) {
-        binStrPage = Math.max(0, Math.min(binTotalStrPages - 1, binStrPage + delta));
-        renderBinStrings();
-    }
+    el('bin-hex-slider').oninput = e => { binHexPage = +e.target.value; renderBinHex(); };
+    el('bin-str-slider').oninput = e => { binStrPage = +e.target.value; renderBinStrings(); };
+    el('bin-hex-page-input').onchange = e => { const v = +e.target.value - 1; if (!isNaN(v)) { binHexPage = Math.max(0, Math.min(binTotalHexPages - 1, v)); renderBinHex(); } };
+    el('bin-str-page-input').onchange = e => { const v = +e.target.value - 1; if (!isNaN(v)) { binStrPage = Math.max(0, Math.min(binTotalStrPages - 1, v)); renderBinStrings(); } };
+    el('bin-hex-prev').onclick = () => jumpHex(-1);
+    el('bin-hex-next').onclick = () => jumpHex(1);
+    el('bin-str-prev').onclick = () => jumpStr(-1);
+    el('bin-str-next').onclick = () => jumpStr(1);
 
-    document.getElementById('bin-hex-slider').oninput = (e) => { binHexPage = parseInt(e.target.value); renderBinHex(); };
-    document.getElementById('bin-str-slider').oninput = (e) => { binStrPage = parseInt(e.target.value); renderBinStrings(); };
+    const closeBtn = el('draggable-close-btn');
+    let isDragging = false, currentX = 0, currentY = 0, initialX, initialY, xOffset = 0, yOffset = 0;
 
-    document.getElementById('bin-hex-page-input').onchange = (e) => {
-        const val = parseInt(e.target.value) - 1;
-        if (!isNaN(val)) { binHexPage = Math.max(0, Math.min(binTotalHexPages - 1, val)); renderBinHex(); }
-    };
-    document.getElementById('bin-str-page-input').onchange = (e) => {
-        const val = parseInt(e.target.value) - 1;
-        if (!isNaN(val)) { binStrPage = Math.max(0, Math.min(binTotalStrPages - 1, val)); renderBinStrings(); }
-    };
-
-    document.getElementById('bin-hex-prev').onclick = () => jumpHex(-1);
-    document.getElementById('bin-hex-next').onclick = () => jumpHex(1);
-    document.getElementById('bin-str-prev').onclick = () => jumpStr(-1);
-    document.getElementById('bin-str-next').onclick = () => jumpStr(1);
-
-    // Sürüklenebilir Önizleme Kapatma Butonu
-    const closeBtn = document.getElementById('draggable-close-btn');
-    let isDragging = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
-
-    const dragStart = (e) => {
-        initialX = (e.type === 'touchstart' ? e.touches[0].clientX : e.clientX) - xOffset;
-        initialY = (e.type === 'touchstart' ? e.touches[0].clientY : e.clientY) - yOffset;
+    const dragStart = e => {
+        const p = e.touches ? e.touches[0] : e;
+        initialX = p.clientX - xOffset; initialY = p.clientY - yOffset;
         if (e.target === closeBtn) isDragging = true;
     };
-
-    const dragEnd = () => {
-        initialX = currentX;
-        initialY = currentY;
-        isDragging = false;
-    };
-
-    const drag = (e) => {
-        if (isDragging) {
-            e.preventDefault();
-            currentX = (e.type === 'touchmove' ? e.touches[0].clientX : e.clientX) - initialX;
-            currentY = (e.type === 'touchmove' ? e.touches[0].clientY : e.clientY) - initialY;
-            xOffset = currentX;
-            yOffset = currentY;
-            closeBtn.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
-        }
+    const dragEnd = () => { initialX = currentX; initialY = currentY; isDragging = false; };
+    const drag = e => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const p = e.touches ? e.touches[0] : e;
+        currentX = p.clientX - initialX; currentY = p.clientY - initialY;
+        xOffset = currentX; yOffset = currentY;
+        closeBtn.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
     };
 
     closeBtn.addEventListener('touchstart', dragStart, {passive: false});
@@ -1126,11 +986,11 @@
     document.addEventListener('mouseup', dragEnd);
     document.addEventListener('mousemove', drag);
 
-    closeBtn.onclick = (e) => {
+    closeBtn.onclick = () => {
         if (!isDragging) {
-            document.getElementById('fullscreen-preview').style.display = 'none';
-            document.getElementById('preview-iframe').srcdoc = '';
-            document.getElementById('html-code-input').focus();
+            el('fullscreen-preview').style.display = 'none';
+            el('preview-iframe').srcdoc = '';
+            el('html-code-input').focus();
         }
     };
 </script>
