@@ -43,51 +43,27 @@
         .hidden { display: none !important; }
 
         .modal { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4); 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5); 
             align-items: flex-start; justify-content: center; padding-top: 20px;
             z-index: 100; display: none; overflow-y: auto; 
         }
         .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; margin-bottom: 20px; }
 
-        .code-editor-wrap { 
-            position: relative; 
-            width: 100%; 
-            margin-bottom: 10px; 
-        }
-        
+        .code-editor-wrap { position: relative; width: 100%; margin-bottom: 10px; }
         #html-code-input { 
-            resize: vertical; 
-            max-height: 42vh; 
-            font-family: monospace; 
-            font-size: 0.85rem; 
-            padding-top: 36px; 
-            display: block;
+            resize: vertical; max-height: 42vh; font-family: monospace; 
+            font-size: 0.85rem; padding-top: 36px; display: block; 
         }
 
         .editor-tool-btn {
-            position: absolute; 
-            top: 6px; 
-            width: auto; 
-            padding: 3px 8px; 
-            font-size: 0.72rem;
-            font-weight: 500; 
-            color: #64748b; 
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(203, 213, 225, 0.9); 
-            border-radius: 6px; 
-            backdrop-filter: blur(8px);
-            z-index: 20; 
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
+            position: absolute; top: 6px; width: auto; padding: 3px 8px; 
+            font-size: 0.72rem; font-weight: 500; color: #64748b; 
+            background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(203, 213, 225, 0.9); 
+            border-radius: 6px; backdrop-filter: blur(8px); z-index: 20; 
+            cursor: pointer; transition: all 0.2s; user-select: none;
         }
-        .editor-tool-btn:hover { 
-            color: var(--text); 
-            background: rgba(241, 245, 249, 0.98); 
-            border-color: #cbd5e1;
-        }
+        .editor-tool-btn:hover { color: var(--text); background: rgba(241, 245, 249, 0.98); border-color: #cbd5e1; }
         
-        /* Buton Sıralaması: Kopyala, Yapıştır, Çalıştır, Temizle, Kaydet, Tam Ekran */
         .btn-copy-code { left: 8px; }
         .btn-paste-code { left: 66px; }
         .btn-run-code { left: 122px; }
@@ -95,33 +71,17 @@
         .btn-save-code-fs { left: 232px; }
         .btn-expand-code { right: 8px; }
 
-        /* Yüzer tam ekran modu */
         .code-editor-wrap.fullscreen-editor {
-            position: fixed; 
-            inset: 0; 
-            z-index: 10001; 
-            background: #ffffff;
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            flex-direction: column;
+            position: fixed; inset: 0; z-index: 10001; background: #ffffff;
+            margin: 0; padding: 0; display: flex; flex-direction: column;
         }
         .code-editor-wrap.fullscreen-editor #html-code-input {
-            width: 100%; 
-            height: 100%; 
-            max-height: none; 
-            resize: none;
-            padding: 48px 16px 16px 16px; 
-            border: none;
-            border-radius: 0;
-            box-shadow: none;
-            outline: none;
+            width: 100%; height: 100%; max-height: none; resize: none;
+            padding: 48px 16px 16px 16px; border: none; border-radius: 0;
+            box-shadow: none; outline: none;
         }
         .code-editor-wrap.fullscreen-editor .editor-tool-btn {
-            position: fixed;
-            top: 10px;
-            background: rgba(255, 255, 255, 0.85);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            position: fixed; top: 10px; background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         .code-editor-wrap.fullscreen-editor .btn-copy-code { left: 12px; }
         .code-editor-wrap.fullscreen-editor .btn-paste-code { left: 70px; }
@@ -130,12 +90,7 @@
         .code-editor-wrap.fullscreen-editor .btn-save-code-fs { left: 236px; color: var(--success); border-color: rgba(16,185,129,0.5); }
         .code-editor-wrap.fullscreen-editor .btn-expand-code { right: 12px; }
 
-        .code-modal-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-
+        .code-modal-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
         .menu-btn {
             background: #f1f5f9; border: 1.5px solid var(--border); color: var(--text);
             border-radius: 10px; padding: 12px; text-align: center; font-size: 0.9rem;
@@ -156,16 +111,35 @@
         .tab-title-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .tab-title { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
         .btn-edit-index { 
-            padding: 4px 8px; 
-            font-size: 0.78rem; 
-            border-radius: 6px; 
-            background: rgba(99,102,241,0.1); 
-            color: var(--primary); 
-            border: 1px solid var(--primary); 
-            cursor: pointer; 
-            width: auto;
-            font-weight: 600;
+            padding: 4px 8px; font-size: 0.78rem; border-radius: 6px; 
+            background: rgba(99,102,241,0.1); color: var(--primary); 
+            border: 1px solid var(--primary); cursor: pointer; width: auto; font-weight: 600;
         }
+
+        /* --- İKİLİ (BINARY) ANALİZ MODAL STİLLERİ --- */
+        #binary-modal-box {
+            background: #18181b; color: #f4f4f5; border-radius: 16px;
+            width: 95%; max-width: 920px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #27272a;
+            position: relative; transition: all 0.2s ease;
+        }
+        #binary-modal-box.fullscreen-active {
+            position: fixed; inset: 0; width: 100vw; max-width: 100vw; height: 100vh;
+            border-radius: 0; margin: 0; z-index: 10005; overflow-y: auto; padding: 24px;
+        }
+        .bin-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .bin-sec { background: #27272a; border: 1px solid #3f3f46; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .bin-sec table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+        .bin-sec th, .bin-sec td { border: 1px solid #3f3f46; padding: 6px 10px; text-align: left; font-size: 12px; }
+        .bin-sec th { background: #3f3f46; color: #38bdf8; }
+        .bin-pre { background: #09090b; padding: 10px; max-height: 220px; overflow-y: auto; font-size: 11px; color: #4ade80; white-space: pre-wrap; word-break: break-all; font-family: monospace; border-radius: 6px; }
+        .bin-ctrl { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .bin-nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .bin-btn { background: #3f3f46; color: #fff; border: 1px solid #52525b; padding: 4px 8px; cursor: pointer; border-radius: 4px; font-size: 11px; width: auto; font-weight: 600; }
+        .bin-btn:hover { background: #52525b; }
+        .bin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .bin-slider { flex-grow: 1; accent-color: #38bdf8; cursor: pointer; height: 6px; }
+        .bin-input { width: 60px; background: #09090b; border: 1px solid #52525b; color: #fff; padding: 3px; text-align: center; border-radius: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -208,7 +182,7 @@
                 <div class="card">
                     <div class="tab-title-wrap">
                         <div id="view-title" class="tab-title">📄 Dosyalarım</div>
-                        <button id="edit-index-btn" class="btn-edit-index hidden" onclick="editHtmlContent('index.html')">⚙️ index.html Düzenle</button>
+                        <button id="edit-index-btn" class="btn-edit-index hidden" onclick="openTargetFile('index.html')">⚙️ index.html Düzenle</button>
                     </div>
                     <ul id="file-list" class="list"><li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li></ul>
                     <div id="list-toast" class="toast"></div>
@@ -218,6 +192,7 @@
     </div>
 </div>
 
+<!-- YENİDEN ADLANDIR MODAL -->
 <div id="modal" class="modal">
     <div class="modal-box">
         <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
@@ -229,11 +204,11 @@
     </div>
 </div>
 
+<!-- KOD DÜZENLEYİCİ MODAL (HTML, TXT, JS vb.) -->
 <div id="code-modal" class="modal">
     <div class="modal-box" style="max-width: 440px;">
         <h4 id="code-modal-title" style="margin-bottom:10px; font-size:0.95rem;">Dosya Kodu İşlemleri</h4>
-        <input type="text" id="html-file-name" placeholder="Dosya adı" autocomplete="off"
-               style="margin-bottom:10px;" aria-label="Dosya adı">
+        <input type="text" id="html-file-name" placeholder="Dosya adı" autocomplete="off" style="margin-bottom:10px;" aria-label="Dosya adı">
         <div class="code-editor-wrap" id="editor-wrap">
             <button class="editor-tool-btn btn-copy-code" id="fs-copy-btn" onclick="copyCodeToClipboard()" type="button">kopyala</button>
             <button class="editor-tool-btn btn-paste-code" onclick="pasteFromClipboard()" type="button">yapıştır</button>
@@ -251,6 +226,67 @@
     </div>
 </div>
 
+<!-- İKİLİ (BINARY / EXE / RESİM / ARŞİV) GELİŞMİŞ ANALİZ MODAL -->
+<div id="binary-modal" class="modal">
+    <div id="binary-modal-box">
+        <div class="bin-header-bar">
+            <h4 id="bin-modal-title" style="font-size:1.05rem; color:#38bdf8;">Dosya İnceleme & Analiz</h4>
+            <div style="display:flex; gap:8px;">
+                <button class="bin-btn" id="bin-fs-btn" onclick="toggleBinaryFullscreen()">⛶ Tam Ekran</button>
+                <button class="bin-btn" style="background:#e11d48;" onclick="closeBinaryModal()">✕ Kapat</button>
+            </div>
+        </div>
+
+        <div class="bin-sec">
+            <h5 style="margin-bottom:6px; color:#94a3b8;">Format & Başlık Bilgileri</h5>
+            <table id="bin-meta-table"></table>
+        </div>
+
+        <div class="bin-sec" id="bin-details-box" style="display:none;">
+            <h5 style="margin-bottom:6px; color:#94a3b8;">Türe Özgü İçerik Analizi</h5>
+            <div id="bin-details-content"></div>
+        </div>
+
+        <div class="bin-sec">
+            <h5 style="margin-bottom:6px; color:#94a3b8;">Hex Dökümü <span id="bin-hex-counter" style="color:#38bdf8;"></span></h5>
+            <pre class="bin-pre" id="bin-hex-output"></pre>
+            <div class="bin-ctrl">
+                <div class="bin-nav">
+                    <input type="range" class="bin-slider" id="bin-hex-slider" min="0" value="0">
+                </div>
+                <div class="bin-nav">
+                    <button class="bin-btn" onclick="jumpHex(-100)">-100</button>
+                    <button class="bin-btn" onclick="jumpHex(-10)">-10</button>
+                    <button class="bin-btn" id="bin-hex-prev">Önceki</button>
+                    <span style="font-size:11px;">Sayfa: <input type="number" id="bin-hex-page-input" class="bin-input" min="1"> / <span id="bin-hex-total-pages">1</span></span>
+                    <button class="bin-btn" id="bin-hex-next">Sonraki</button>
+                    <button class="bin-btn" onclick="jumpHex(10)">+10</button>
+                    <button class="bin-btn" onclick="jumpHex(100)">+100</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bin-sec">
+            <h5 style="margin-bottom:6px; color:#94a3b8;">Sınırsız Metinler (Strings) <span id="bin-str-counter" style="color:#38bdf8;"></span></h5>
+            <pre class="bin-pre" id="bin-str-output"></pre>
+            <div class="bin-ctrl">
+                <div class="bin-nav">
+                    <input type="range" class="bin-slider" id="bin-str-slider" min="0" value="0">
+                </div>
+                <div class="bin-nav">
+                    <button class="bin-btn" onclick="jumpStr(-100)">-100</button>
+                    <button class="bin-btn" onclick="jumpStr(-10)">-10</button>
+                    <button class="bin-btn" id="bin-str-prev">Önceki</button>
+                    <span style="font-size:11px;">Sayfa: <input type="number" id="bin-str-page-input" class="bin-input" min="1"> / <span id="bin-str-total-pages">1</span></span>
+                    <button class="bin-btn" id="bin-str-next">Sonraki</button>
+                    <button class="bin-btn" onclick="jumpStr(10)">+10</button>
+                    <button class="bin-btn" onclick="jumpStr(100)">+100</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="fullscreen-preview">
     <button id="draggable-close-btn" title="Kapat">✕</button>
     <iframe id="preview-iframe"></iframe>
@@ -260,6 +296,14 @@
     const u = 'drsait', r = 'Deneme', api = `https://api.github.com/repos/${u}/${r}/contents`;
     let editMode = false, activeFileData = {}, editingFileName = null, currentTab = 'files';
     let authTimer = null;
+
+    // Metin tabanlı düzenlenebilir uzantılar
+    const editableExtensions = ['.html', '.htm', '.txt', '.js', '.css', '.json', '.md', '.xml', '.svg', '.csv', '.py', '.php'];
+
+    function isEditableTextFile(fileName) {
+        const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+        return editableExtensions.includes(ext);
+    }
 
     window.onload = () => { 
         const tokenInput = document.getElementById('token');
@@ -416,7 +460,6 @@
             if (!res.ok) throw new Error('GitHub dosya listesi alınamadı');
 
             const data = await res.json();
-
             if(!Array.isArray(data)) return list.innerHTML = '<li style="text-align:color:red">Hata</li>';
 
             let files = data.filter(f => f.name.toLowerCase() !== 'index.html' && f.name.toLowerCase() !== 'archive.json');
@@ -478,9 +521,9 @@
 
                 const btnCode = document.createElement('button');
                 btnCode.className = 'btn-sm btn-code';
-                btnCode.innerHTML = '&lt;/&gt;';
-                btnCode.title = 'Kodu Düzenle';
-                btnCode.onclick = () => editHtmlContent(f.name);
+                btnCode.innerHTML = isEditableTextFile(f.name) ? '&lt;/&gt;' : '🔍';
+                btnCode.title = isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili (Binary) Analiz';
+                btnCode.onclick = () => openTargetFile(f.name);
                 actions.appendChild(btnCode);
 
                 const btnArchive = document.createElement('button');
@@ -512,6 +555,15 @@
         } catch (error) {
             console.error(error);
             list.innerHTML = '<li style="text-align:center; color:red">Yüklenirken hata oluştu</li>';
+        }
+    };
+
+    // YÖNLENDİRİCİ: Dosya türüne göre metin editörü veya ikili analizör açılır
+    const openTargetFile = (name) => {
+        if (isEditableTextFile(name)) {
+            editHtmlContent(name);
+        } else {
+            openBinaryAnalysis(name);
         }
     };
 
@@ -748,7 +800,6 @@
 
         try {
             const getRes = await req(encodeURIComponent(activeFileData.name));
-
             if (!getRes.ok) throw new Error('Eski dosya bulunamadı');
 
             const data = await getRes.json();
@@ -789,7 +840,6 @@
 
         try {
             const getRes = await req(encodeURIComponent(name));
-
             if (!getRes.ok) throw new Error('Dosya bulunamadı');
 
             const data = await getRes.json();
@@ -813,6 +863,236 @@
         }
     };
 
+    // --- İKİLİ (BINARY) ANALİZ MOTORU & ETKİLEŞİMİ ---
+    let binBuf = null, binView = null, binAllStrings = [];
+    let binHexPage = 0, binStrPage = 0;
+    let binTotalHexPages = 1, binTotalStrPages = 1;
+    const BIN_H_PAGE = 512, BIN_S_PAGE = 200;
+
+    const openBinaryAnalysis = async (fileName) => {
+        toast('list-toast', `${fileName} ikili verisi yükleniyor...`);
+        try {
+            const res = await req(encodeURIComponent(fileName));
+            if (!res.ok) throw new Error('Dosya alınamadı');
+            const data = await res.json();
+
+            // Base64 çözümleyip Uint8Array oluşturma
+            const binaryStr = atob(data.content);
+            const len = binaryStr.length;
+            binBuf = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                binBuf[i] = binaryStr.charCodeAt(i);
+            }
+            binView = new DataView(binBuf.buffer);
+
+            binAllStrings = [];
+            binHexPage = 0;
+            binStrPage = 0;
+
+            document.getElementById('bin-modal-title').textContent = `İnceleme & Analiz: ${fileName}`;
+            binTotalHexPages = Math.ceil(binBuf.length / BIN_H_PAGE) || 1;
+            document.getElementById('bin-hex-slider').max = binTotalHexPages - 1;
+            document.getElementById('bin-hex-total-pages').textContent = binTotalHexPages;
+
+            runBinaryFormatAnalysis(fileName, binBuf.length);
+            runBinaryExtractStrings();
+
+            binTotalStrPages = Math.ceil(binAllStrings.length / BIN_S_PAGE) || 1;
+            document.getElementById('bin-str-slider').max = binTotalStrPages - 1;
+            document.getElementById('bin-str-total-pages').textContent = binTotalStrPages;
+
+            renderBinHex();
+            renderBinStrings();
+
+            document.getElementById('binary-modal').style.display = 'flex';
+        } catch (err) {
+            console.error(err);
+            toast('list-toast', err.message || 'İkili veri çözümlenemedi', true);
+        }
+    };
+
+    const closeBinaryModal = () => {
+        const box = document.getElementById('binary-modal-box');
+        box.classList.remove('fullscreen-active');
+        document.getElementById('bin-fs-btn').textContent = '⛶ Tam Ekran';
+        document.getElementById('binary-modal').style.display = 'none';
+        binBuf = null; binView = null; binAllStrings = [];
+    };
+
+    const toggleBinaryFullscreen = () => {
+        const box = document.getElementById('binary-modal-box');
+        const btn = document.getElementById('bin-fs-btn');
+        const isFull = box.classList.toggle('fullscreen-active');
+        btn.textContent = isFull ? '🗗 Pencere' : '⛶ Tam Ekran';
+    };
+
+    function runBinaryFormatAnalysis(fileName, fileSize) {
+        let meta = `<tr><td><b>Dosya Adı / Boyut</b></td><td>${fileName} (${(fileSize / 1024).toFixed(2)} KB - ${fileSize.toLocaleString()} bayt)</td></tr>`;
+        const dBox = document.getElementById('bin-details-box');
+        const dContent = document.getElementById('bin-details-content');
+        dBox.style.display = 'none';
+
+        // 1. Windows PE (EXE / DLL)
+        if (binBuf[0] === 0x4D && binBuf[1] === 0x5A && binBuf.length > 0x40) {
+            const peOffset = binView.getUint32(0x3C, true);
+            if (peOffset < binBuf.length - 4 && binBuf[peOffset] === 0x50 && binBuf[peOffset+1] === 0x45) {
+                const machine = binView.getUint16(peOffset + 4, true);
+                const sections = binView.getUint16(peOffset + 6, true);
+                const time = new Date(binView.getUint32(peOffset + 8, true) * 1000).toUTCString();
+                const arch = machine === 0x8664 ? "64-bit (x64)" : (machine === 0x14C ? "32-bit (x86)" : "ARM/Diğer");
+                
+                meta += `<tr><td><b>Format</b></td><td>Windows PE Çalıştırılabilir (EXE/DLL)</td></tr>`;
+                meta += `<tr><td><b>Mimari / Derleme</b></td><td>${arch} | ${time}</td></tr>`;
+                meta += `<tr><td><b>Bölüm Sayısı</b></td><td>${sections}</td></tr>`;
+
+                let secRows = '';
+                const optSize = binView.getUint16(peOffset + 20, true);
+                let secPtr = peOffset + 24 + optSize;
+                for (let i = 0; i < sections && secPtr + 40 <= binBuf.length; i++) {
+                    let name = '';
+                    for (let j = 0; j < 8; j++) if (binBuf[secPtr + j] !== 0) name += String.fromCharCode(binBuf[secPtr + j]);
+                    secRows += `<tr><td>${name}</td><td>${binView.getUint32(secPtr + 8, true)} B</td><td>0x${binView.getUint32(secPtr + 12, true).toString(16).toUpperCase()}</td></tr>`;
+                    secPtr += 40;
+                }
+                dContent.innerHTML = `<table><thead><tr><th>Bölüm</th><th>Sanal Boyut</th><th>Sanal Adres</th></tr></thead><tbody>${secRows}</tbody></table>`;
+                dBox.style.display = 'block';
+                document.getElementById('bin-meta-table').innerHTML = meta;
+                return;
+            }
+        }
+
+        // 2. Linux ELF
+        if (binBuf[0] === 0x7F && binBuf[1] === 0x45 && binBuf[2] === 0x4C && binBuf[3] === 0x46) {
+            const is64 = binBuf[4] === 2;
+            meta += `<tr><td><b>Format</b></td><td>Linux ELF İkili Dosyası (${is64 ? '64-bit' : '32-bit'})</td></tr>`;
+            document.getElementById('bin-meta-table').innerHTML = meta;
+            return;
+        }
+
+        // 3. ZIP / Office Belgeleri
+        if (binBuf[0] === 0x50 && binBuf[1] === 0x4B && binBuf[2] === 0x03 && binBuf[3] === 0x04) {
+            let fileList = [];
+            let ptr = 0;
+            while (ptr < binBuf.length - 30) {
+                if (binBuf[ptr] === 0x50 && binBuf[ptr+1] === 0x4B && binBuf[ptr+2] === 0x03 && binBuf[ptr+3] === 0x04) {
+                    const nameLen = binView.getUint16(ptr + 26, true);
+                    const extraLen = binView.getUint16(ptr + 28, true);
+                    const compSize = binView.getUint32(ptr + 18, true);
+                    let name = '';
+                    for (let i = 0; i < nameLen; i++) name += String.fromCharCode(binBuf[ptr + 30 + i]);
+                    if (name) fileList.push(name);
+                    ptr += 30 + nameLen + extraLen + compSize;
+                } else {
+                    ptr++;
+                }
+            }
+            const isOffice = fileList.some(f => f.includes('[Content_Types].xml'));
+            meta += `<tr><td><b>Format</b></td><td>${isOffice ? 'Microsoft Office Belgesi (DOCX/XLSX)' : 'ZIP Arşivi'}</td></tr>`;
+            if (fileList.length > 0) {
+                dContent.innerHTML = `<pre class="bin-pre">${fileList.slice(0, 50).join('\n')}${fileList.length > 50 ? '\n...ve dahası' : ''}</pre>`;
+                dBox.style.display = 'block';
+            }
+            document.getElementById('bin-meta-table').innerHTML = meta;
+            return;
+        }
+
+        // 4. PDF Belgesi
+        if (binBuf[0] === 0x25 && binBuf[1] === 0x50 && binBuf[2] === 0x44 && binBuf[3] === 0x46) {
+            let ver = String.fromCharCode(...binBuf.slice(0, 8));
+            meta += `<tr><td><b>Format</b></td><td>PDF Belgesi (${ver})</td></tr>`;
+            document.getElementById('bin-meta-table').innerHTML = meta;
+            return;
+        }
+
+        // 5. Görsel Formatları (PNG / JPEG / GIF)
+        if (binBuf[0] === 0x89 && binBuf[1] === 0x50 && binBuf[2] === 0x4E && binBuf[3] === 0x47) {
+            const w = binView.getUint32(16, false);
+            const h = binView.getUint32(20, false);
+            meta += `<tr><td><b>Format</b></td><td>PNG Görseli (${w}x${h} px)</td></tr>`;
+        } else if (binBuf[0] === 0xFF && binBuf[1] === 0xD8) {
+            meta += `<tr><td><b>Format</b></td><td>JPEG Görseli</td></tr>`;
+        } else if (binBuf[0] === 0x47 && binBuf[1] === 0x49 && binBuf[2] === 0x46) {
+            const w = binView.getUint16(6, true);
+            const h = binView.getUint16(8, true);
+            meta += `<tr><td><b>Format</b></td><td>GIF Görseli (${w}x${h} px)</td></tr>`;
+        } else {
+            meta += `<tr><td><b>Format</b></td><td>Genel İkili / Veri Dosyası</td></tr>`;
+        }
+
+        document.getElementById('bin-meta-table').innerHTML = meta;
+    }
+
+    function runBinaryExtractStrings() {
+        let cur = '';
+        for (let i = 0; i < binBuf.length; i++) {
+            const c = binBuf[i];
+            if (c >= 32 && c <= 126) {
+                cur += String.fromCharCode(c);
+            } else {
+                if (cur.length >= 4) binAllStrings.push(cur);
+                cur = '';
+            }
+        }
+        if (cur.length >= 4) binAllStrings.push(cur);
+    }
+
+    function renderBinHex() {
+        const start = binHexPage * BIN_H_PAGE;
+        const end = Math.min(start + BIN_H_PAGE, binBuf.length);
+        let out = '';
+        for (let i = start; i < end; i += 16) {
+            const chunk = binBuf.subarray(i, Math.min(i + 16, end));
+            const hex = Array.from(chunk).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+            const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126 ? String.fromCharCode(b) : '.')).join('');
+            out += i.toString(16).padStart(8, '0').toUpperCase() + '  ' + hex.padEnd(48, ' ') + '  |' + ascii + '|\n';
+        }
+        document.getElementById('bin-hex-output').textContent = out;
+        document.getElementById('bin-hex-counter').textContent = `(${start.toLocaleString()} - ${end.toLocaleString()} / ${binBuf.length.toLocaleString()} bayt)`;
+        document.getElementById('bin-hex-prev').disabled = (binHexPage === 0);
+        document.getElementById('bin-hex-next').disabled = (end >= binBuf.length);
+        document.getElementById('bin-hex-slider').value = binHexPage;
+        document.getElementById('bin-hex-page-input').value = binHexPage + 1;
+    }
+
+    function renderBinStrings() {
+        const start = binStrPage * BIN_S_PAGE;
+        const end = Math.min(start + BIN_S_PAGE, binAllStrings.length);
+        document.getElementById('bin-str-output').textContent = binAllStrings.slice(start, end).join('\n');
+        document.getElementById('bin-str-counter').textContent = `(${start.toLocaleString()} - ${end.toLocaleString()} / ${binAllStrings.length.toLocaleString()} adet)`;
+        document.getElementById('bin-str-prev').disabled = (binStrPage === 0);
+        document.getElementById('bin-str-next').disabled = (end >= binAllStrings.length);
+        document.getElementById('bin-str-slider').value = binStrPage;
+        document.getElementById('bin-str-page-input').value = binStrPage + 1;
+    }
+
+    function jumpHex(delta) {
+        binHexPage = Math.max(0, Math.min(binTotalHexPages - 1, binHexPage + delta));
+        renderBinHex();
+    }
+
+    function jumpStr(delta) {
+        binStrPage = Math.max(0, Math.min(binTotalStrPages - 1, binStrPage + delta));
+        renderBinStrings();
+    }
+
+    document.getElementById('bin-hex-slider').oninput = (e) => { binHexPage = parseInt(e.target.value); renderBinHex(); };
+    document.getElementById('bin-str-slider').oninput = (e) => { binStrPage = parseInt(e.target.value); renderBinStrings(); };
+
+    document.getElementById('bin-hex-page-input').onchange = (e) => {
+        const val = parseInt(e.target.value) - 1;
+        if (!isNaN(val)) { binHexPage = Math.max(0, Math.min(binTotalHexPages - 1, val)); renderBinHex(); }
+    };
+    document.getElementById('bin-str-page-input').onchange = (e) => {
+        const val = parseInt(e.target.value) - 1;
+        if (!isNaN(val)) { binStrPage = Math.max(0, Math.min(binTotalStrPages - 1, val)); renderBinStrings(); }
+    };
+
+    document.getElementById('bin-hex-prev').onclick = () => jumpHex(-1);
+    document.getElementById('bin-hex-next').onclick = () => jumpHex(1);
+    document.getElementById('bin-str-prev').onclick = () => jumpStr(-1);
+    document.getElementById('bin-str-next').onclick = () => jumpStr(1);
+
+    // Sürüklenebilir Önizleme Kapatma Butonu
     const closeBtn = document.getElementById('draggable-close-btn');
     let isDragging = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
 
