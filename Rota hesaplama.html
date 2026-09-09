@@ -244,7 +244,7 @@
       </div>
     </header>
 
-    <!-- Küçük Son Ölçüm Kartları (Kutu İçinde Minik Saat Bilgisiyle) -->
+    <!-- Küçük Son Ölçüm Kartları -->
     <div class="mini-grid">
       <div class="mini-card">
         <div class="mini-card-head">
@@ -303,11 +303,10 @@
               <th>Güzergâh</th>
               <th onclick="sirala(1)">Süre <span class="sort-icon" id="sort-1">↕</span></th>
               <th onclick="sirala(2)">Gecikme <span class="sort-icon" id="sort-2">↕</span></th>
-              <th onclick="sirala(3)">Mesafe <span class="sort-icon" id="sort-3">↕</span></th>
             </tr>
           </thead>
           <tbody id="dataRows">
-            <tr><td colspan="5" class="empty">Yükleniyor...</td></tr>
+            <tr><td colspan="4" class="empty">Yükleniyor...</td></tr>
           </tbody>
         </table>
       </div>
@@ -395,10 +394,10 @@
           ozetGuncelle(tumKayitlar[0]);
           filtreleVeCiz();
         } else {
-          document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Henüz veri yok.</td></tr>';
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="4" class="empty">Henüz veri yok.</td></tr>';
         }
       } catch (e) {
-        document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Veri çekilemedi.</td></tr>';
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="4" class="empty">Veri çekilemedi.</td></tr>';
       }
     }
 
@@ -429,7 +428,7 @@
       if (!tarihStr) return '--:--';
       const parts = tarihStr.trim().split(' ');
       if (parts.length >= 2) {
-        return parts[1].substring(0, 5); // "HH:MM"
+        return parts[1].substring(0, 5);
       }
       return tarihStr;
     }
@@ -471,7 +470,7 @@
         aktifSiralama.artan = true;
       }
 
-      for (let i = 0; i <= 3; i++) {
+      for (let i = 0; i <= 2; i++) {
         const el = document.getElementById(`sort-${i}`);
         if (el) el.innerText = (i === sutunIndex) ? (aktifSiralama.artan ? '▲' : '▼') : '↕';
       }
@@ -482,7 +481,7 @@
     function tabloBas(liste) {
       const tbody = document.getElementById('dataRows');
       if (liste.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
         return;
       }
 
@@ -493,7 +492,6 @@
             <td>${r.guzergah}</td>
             <td><span class="badge">${r.sure} dk</span></td>
             <td>${delayBadgeHTML(r.gecikme)}</td>
-            <td>${r.mesafe} km</td>
           </tr>
         `;
       }).join('');
@@ -509,28 +507,26 @@
             tarih: r[0],
             guzergah: r[1],
             sure: r[2],
-            gecikme: hasDelay ? r[3] : 0,
-            mesafe: hasDelay ? r[4] : r[3]
+            gecikme: hasDelay ? r[3] : 0
           };
         } else {
           return {
             tarih: r[0],
             guzergah: hasDelay ? r[5] : r[4],
             sure: hasDelay ? r[6] : r[5],
-            gecikme: hasDelay ? r[7] : 0,
-            mesafe: hasDelay ? r[8] : r[6]
+            gecikme: hasDelay ? r[7] : 0
           };
         }
       });
 
       let filtrelenen = seciliVeriler.filter(item => {
-        return `${item.tarih} ${item.guzergah} ${item.sure} ${item.mesafe}`.toLowerCase().includes(arama);
+        return `${item.tarih} ${item.guzergah} ${item.sure}`.toLowerCase().includes(arama);
       });
 
       if (aktifSiralama.sutun !== -1) {
         const idx = aktifSiralama.sutun;
         const artan = aktifSiralama.artan;
-        const alanlar = ['tarih', 'sure', 'gecikme', 'mesafe'];
+        const alanlar = ['tarih', 'sure', 'gecikme'];
         const alan = alanlar[idx];
 
         filtrelenen.sort((a, b) => {
