@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canlı Rota & Trafik Takip Paneli</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --primary: #2563eb;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    h1 { margin: 0; font-size: 1.5rem; font-weight: 700; }
+    .badge { background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .badge::before { content: ""; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .stat-title { font-size: 0.875rem; color: #64748b; margin-bottom: 8px; }
+    .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary); }
+    .stat-sub { font-size: 0.85rem; color: #64748b; margin-top: 4px; }
+
+    .controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .controls input { padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; outline: none; background: #fff; font-size: 0.9rem; }
+    .controls input[type="text"] { flex: 1; min-width: 200px; }
+
+    .table-container { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+    th { background: #f1f5f9; padding: 14px 16px; color: #475569; font-weight: 600; white-space: nowrap; }
+    td { padding: 12px 16px; border-top: 1px solid var(--border); white-space: nowrap; }
+    tr:hover { background: #f8fafc; }
+    .chip { display: inline-block; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; }
+    .chip-time { background: #eff6ff; color: #1d4ed8; }
+    .empty { text-align: center; padding: 30px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>Mardin ⇄ Kızıltepe Canlı Rota Trafik Akışı</h1>
+        <small id="lastUpdateText" style="color:#64748b;">Veriler yükleniyor...</small>
+      </div>
+      <span class="badge">Canlı Otomatik Takip</span>
+    </header>
+
+    <!-- Özet Kartları -->
+    <div class="summary-grid">
+      <div class="stat-card">
+        <div class="stat-title">Son Ölçüm: Artuklu ➔ Kızıltepe</div>
+        <div class="stat-value" id="latestGidisSure">-- dk</div>
+        <div class="stat-sub" id="latestGidisMesafe">Mesafe: -- km</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Son Ölçüm: Kızıltepe ➔ Artuklu</div>
+        <div class="stat-value" id="latestDonusSure">-- dk</div>
+        <div class="stat-sub" id="latestDonusMesafe">Mesafe: -- km</div>
+      </div>
+    </div>
+
+    <!-- Filtre Kontrolleri -->
+    <div class="controls">
+      <input type="text" id="searchInput" placeholder="Zaman veya rota ara..." oninput="filtrele()">
+      <input type="date" id="dateFilter" onchange="filtrele()">
+    </div>
+
+    <!-- Tablo -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Tarih & Saat</th>
+            <th>Gidiş Güzergâhı</th>
+            <th>Gidiş Süresi</th>
+            <th>Gidiş Mesafesi</th>
+            <th>Dönüş Güzergâhı</th>
+            <th>Dönüş Süresi</th>
+            <th>Dönüş Mesafesi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="7" class="empty">Veriler alınıyor...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // E-Tablonuzun CSV Export Linki
+    const SHEET_ID = '1yW1DuZuYL-UJb72YpIp7xhWuuaUQbDVcWo_suN-ELXg';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+
+    let tumVeriler = [];
+
+    // Basit CSV Ayrıştırıcı
+    function parseCSV(text) {
+      const satirlar = text.trim().split('\n');
+      return satirlar.slice(1).map(row => {
+        const sutunlar = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+        return sutunlar.map(val => val.replace(/^"|"$/g, '').trim());
+      }).filter(r => r.length >= 7);
+    }
+
+    async function verileriGetir() {
+      try {
+        const res = await fetch(CSV_URL);
+        const data = await res.text();
+        tumVeriler = parseCSV(data);
+
+        if (tumVeriler.length > 0) {
+          // En yeni kayıtlar en üstte görünsün
+          tumVeriler.reverse();
+          guncelleOzetKartlar(tumVeriler[0]);
+          tabloyuCiz(tumVeriler);
+          document.getElementById('lastUpdateText').innerText = `Son Güncelleme: ${tumVeriler[0][0]}`;
+        } else {
+          document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="empty">Kayıtlı veri bulunamadı.</td></tr>';
+        }
+      } catch (err) {
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="7" class="empty">Veri çekilirken hata oluştu. E-tablo erişim izinlerini kontrol edin.</td></tr>';
+      }
+    }
+
+    function guncelleOzetKartlar(enSon) {
+      document.getElementById('latestGidisSure').innerText = `${enSon[2]} dk`;
+      document.getElementById('latestGidisMesafe').innerText = `Mesafe: ${enSon[3]} km`;
+      document.getElementById('latestDonusSure').innerText = `${enSon[5]} dk`;
+      document.getElementById('latestDonusMesafe').innerText = `Mesafe: ${enSon[6]} km`;
+    }
+
+    function tabloyuCiz(veriler) {
+      const tbody = document.getElementById('tableBody');
+      if (veriler.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Aramaya uygun sonuç bulunamadı.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = veriler.map(r => `
+        <tr>
+          <td><strong>${r[0]}</strong></td>
+          <td>${r[1]}</td>
+          <td><span class="chip chip-time">${r[2]} dk</span></td>
+          <td>${r[3]} km</td>
+          <td>${r[4]}</td>
+          <td><span class="chip chip-time">${r[5]} dk</span></td>
+          <td>${r[6]} km</td>
+        </tr>
+      `).join('');
+    }
+
+    function filtrele() {
+      const aramaMetni = document.getElementById('searchInput').value.toLowerCase();
+      const secilenTarih = document.getElementById('dateFilter').value; // YYYY-MM-DD
+
+      const filtrelenmis = tumVeriler.filter(satir => {
+        const zamanMetni = satir[0]; // Format: DD.MM.YYYY HH:mm:ss
+        const satirMetni = satir.join(' ').toLowerCase();
+
+        const metinUygun = satirMetni.includes(aramaMetni);
+        let tarihUygun = true;
+
+        if (secilenTarih) {
+          const [yil, ay, gun] = secilenTarih.split('-');
+          const beklenenFormat = `${gun}.${ay}.${yil}`;
+          tarihUygun = zamanMetni.startsWith(beklenenFormat);
+        }
+
+        return metinUygun && tarihUygun;
+      });
+
+      tabloyuCiz(filtrelenmis);
+    }
+
+    verileriGetir();
+    // Sayfa açıkken her 2 dakikada bir otomatik günceller
+    setInterval(verileriGetir, 2 * 60 * 1000);
+  </script>
+</body>
+</html>
