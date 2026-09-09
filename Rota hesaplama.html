@@ -12,7 +12,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background: var(--bg); color: var(--text); padding: 20px; }
     .container { max-width: 1100px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
     h1 { font-size: 1.35rem; font-weight: 700; }
     .header-actions { display: flex; align-items: center; gap: 10px; }
     .btn-measure {
@@ -32,43 +32,175 @@
     .btn-measure:hover { opacity: 0.9; }
     .btn-measure:disabled { opacity: 0.6; cursor: not-allowed; }
     .status { background: var(--success-bg); color: var(--success-text); padding: 5px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .card { background: var(--card); padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border); }
-    .card-title { font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
-    .card-val { font-size: 2rem; font-weight: 700; color: var(--primary); display: flex; align-items: baseline; gap: 10px; }
-    .card-sub { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+
+    /* Kompakt Son Ölçüm Kartları (Yan Yana & Küçük) */
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .mini-card {
+      background: var(--card);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .mini-card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mini-card-val {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .mini-card-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* Rota Sekmeleri (Kartların Altında) */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      background: #f1f5f9;
+      color: var(--muted);
+      border: 1px solid transparent;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { background: #e2e8f0; color: var(--text); }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
     .filters { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-    .filters input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.9rem; background: #fff; }
+    .filters input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 0.88rem; background: #fff; }
     .filters input[type="text"] { flex: 1; min-width: 200px; }
-    .table-box { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow-x: auto; }
+
+    /* Tablo Alanı & Tam Ekran Desteği */
+    .table-box {
+      background: var(--card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .table-scroll { overflow-x: auto; width: 100%; }
+
+    .table-box:fullscreen {
+      border-radius: 0;
+      border: none;
+      padding: 20px;
+      height: 100vh;
+      width: 100vw;
+      background: #ffffff;
+      overflow-y: auto;
+    }
+    .table-box:-webkit-full-screen {
+      border-radius: 0;
+      border: none;
+      padding: 20px;
+      height: 100vh;
+      width: 100vw;
+      background: #ffffff;
+      overflow-y: auto;
+    }
+
+    /* Şirin Köşe Butonu */
+    .table-actions {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      z-index: 10;
+      display: flex;
+      gap: 6px;
+    }
+    .btn-icon {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+    .btn-icon:hover {
+      background: #f8fafc;
+      color: var(--primary);
+      border-color: #cbd5e1;
+      transform: scale(1.06);
+    }
+    .btn-icon svg { width: 15px; height: 15px; }
+
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem; }
-    th { background: #f1f5f9; padding: 12px 14px; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
+    th { background: #f1f5f9; padding: 10px 12px; color: var(--muted); font-weight: 600; white-space: nowrap; cursor: pointer; user-select: none; }
     th:hover { background: #e2e8f0; }
-    th .sort-icon { margin-left: 4px; color: #94a3b8; font-size: 0.75rem; }
-    td { padding: 12px 14px; border-top: 1px solid var(--border); white-space: nowrap; }
+    th .sort-icon { margin-left: 4px; color: #94a3b8; font-size: 0.72rem; }
+    th:last-child { padding-right: 48px; }
+    td { padding: 10px 12px; border-top: 1px solid var(--border); white-space: nowrap; }
     tr:hover { background: #f8fafc; }
-    .badge { background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
-    .badge-delay { padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; }
+    .badge { background: #eff6ff; color: #1d4ed8; padding: 2px 7px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; }
+    .badge-delay { padding: 2px 7px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
     .delay-red { background: var(--danger-bg); color: var(--danger-text); }
     .delay-none { background: var(--success-bg); color: var(--success-text); }
     .empty { text-align: center; padding: 30px; color: var(--muted); }
 
     /* Mobil Uyumluluk */
     @media (max-width: 768px) {
-      body { padding: 12px; }
-      header { flex-direction: column; align-items: stretch; gap: 12px; }
+      body { padding: 10px; }
+      header { flex-direction: column; align-items: stretch; gap: 10px; }
       h1 { font-size: 1.15rem; text-align: center; }
-      #lastUpdated { display: block; text-align: center; margin-top: 4px; }
-      .header-actions { flex-direction: column; width: 100%; gap: 8px; }
-      .btn-measure { width: 100%; justify-content: center; padding: 11px 16px; font-size: 0.9rem; }
-      .status { text-align: center; width: 100%; padding: 6px; }
-      .grid { grid-template-columns: 1fr; gap: 10px; }
-      .card { padding: 14px 16px; }
-      .card-val { font-size: 1.6rem; }
-      .filters { flex-direction: column; gap: 8px; }
+      #lastUpdated { display: block; text-align: center; margin-top: 2px; }
+      .header-actions { flex-direction: column; width: 100%; gap: 6px; }
+      .btn-measure { width: 100%; justify-content: center; padding: 10px 14px; font-size: 0.88rem; }
+      .status { text-align: center; width: 100%; padding: 5px; }
+      
+      .mini-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .mini-card { padding: 8px 10px; }
+      .mini-card-title { font-size: 0.68rem; }
+      .mini-card-val { font-size: 1.05rem; gap: 4px; }
+      .mini-card-sub { font-size: 0.65rem; }
+      
+      .tabs { flex-direction: row; gap: 6px; }
+      .tab-btn { flex: 1; justify-content: center; padding: 8px 6px; font-size: 0.78rem; }
+      
+      .filters { flex-direction: column; gap: 6px; }
       .filters input { width: 100%; min-width: unset; }
       .table-box { border-radius: 8px; }
-      th, td { padding: 8px 10px; font-size: 0.78rem; }
+      th, td { padding: 8px 10px; font-size: 0.76rem; }
+      th:last-child { padding-right: 44px; }
     }
   </style>
 </head>
@@ -86,49 +218,69 @@
       </div>
     </header>
 
-    <div class="grid">
-      <div class="card">
-        <div class="card-title">Son Ölçüm: Artuklu ➔ Kızıltepe</div>
-        <div class="card-val">
+    <!-- Her İki Rota İçin Küçük Son Ölçüm Kartları -->
+    <div class="mini-grid">
+      <div class="mini-card">
+        <div class="mini-card-title">Artuklu ➔ Kızıltepe</div>
+        <div class="mini-card-val">
           <span id="gidisSure">-- dk</span>
-          <span id="gidisGecikmeBadge"></span>
+          <span id="gidisBadge"></span>
         </div>
-        <div class="card-sub" id="gidisMesafe">Mesafe: -- km</div>
+        <div class="mini-card-sub" id="gidisMesafe">Mesafe: -- km</div>
       </div>
-      <div class="card">
-        <div class="card-title">Son Ölçüm: Kızıltepe ➔ Artuklu</div>
-        <div class="card-val">
+
+      <div class="mini-card">
+        <div class="mini-card-title">Kızıltepe ➔ Artuklu</div>
+        <div class="mini-card-val">
           <span id="donusSure">-- dk</span>
-          <span id="donusGecikmeBadge"></span>
+          <span id="donusBadge"></span>
         </div>
-        <div class="card-sub" id="donusMesafe">Mesafe: -- km</div>
+        <div class="mini-card-sub" id="donusMesafe">Mesafe: -- km</div>
       </div>
+    </div>
+
+    <!-- Son Ölçümün Altında Yer Alan Rota Sekmeleri -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabGidis" onclick="sekmeDegistir('gidis')">➔ Artuklu → Kızıltepe Tablosu</button>
+      <button class="tab-btn" id="tabDonus" onclick="sekmeDegistir('donus')">➔ Kızıltepe → Artuklu Tablosu</button>
     </div>
 
     <div class="filters">
-      <input type="text" id="filterSearch" placeholder="Güzergâh veya tarih ara..." oninput="filtreleVeCiz()">
+      <input type="text" id="filterSearch" placeholder="Arama yap..." oninput="filtreleVeCiz()">
       <input type="date" id="filterDate" onchange="filtreleVeCiz()">
     </div>
 
-    <div class="table-box">
-      <table>
-        <thead>
-          <tr>
-            <th onclick="sirala(0)">Tarih & Saat <span class="sort-icon" id="sort-0">↕</span></th>
-            <th onclick="sirala(1)">Gidiş <span class="sort-icon" id="sort-1">↕</span></th>
-            <th onclick="sirala(2)">Süre <span class="sort-icon" id="sort-2">↕</span></th>
-            <th onclick="sirala(3)">Gecikme <span class="sort-icon" id="sort-3">↕</span></th>
-            <th onclick="sirala(4)">Mesafe <span class="sort-icon" id="sort-4">↕</span></th>
-            <th onclick="sirala(5)">Dönüş <span class="sort-icon" id="sort-5">↕</span></th>
-            <th onclick="sirala(6)">Süre <span class="sort-icon" id="sort-6">↕</span></th>
-            <th onclick="sirala(7)">Gecikme <span class="sort-icon" id="sort-7">↕</span></th>
-            <th onclick="sirala(8)">Mesafe <span class="sort-icon" id="sort-8">↕</span></th>
-          </tr>
-        </thead>
-        <tbody id="dataRows">
-          <tr><td colspan="9" class="empty">Yükleniyor...</td></tr>
-        </tbody>
-      </table>
+    <!-- Tablo Kutusu -->
+    <div class="table-box" id="tableContainer">
+      <div class="table-actions">
+        <button class="btn-icon" id="btnFullscreen" onclick="tamEkranDegistir()" title="Tam Ekran">
+          <!-- Büyüt İkonu -->
+          <svg id="iconExpand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+          </svg>
+          <!-- Küçült İkonu -->
+          <svg id="iconCompress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sirala(0)">Tarih & Saat <span class="sort-icon" id="sort-0">↕</span></th>
+              <th>Güzergâh</th>
+              <th onclick="sirala(1)">Süre <span class="sort-icon" id="sort-1">↕</span></th>
+              <th onclick="sirala(2)">Gecikme <span class="sort-icon" id="sort-2">↕</span></th>
+              <th onclick="sirala(3)">Mesafe <span class="sort-icon" id="sort-3">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="dataRows">
+            <tr><td colspan="5" class="empty">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -137,11 +289,49 @@
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwjqfUlGYClVY8esmlvxWf_tBKSUGPldx7WevQdY4fl-p0yxtLJFDW3ExLc8-6oZUvjSQ/exec';
 
     let tumKayitlar = [];
+    let aktifSekme = 'gidis';
     let aktifSiralama = { sutun: -1, artan: true };
+
+    function tamEkranDegistir() {
+      const elem = document.getElementById('tableContainer');
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        }
+      }
+    }
+
+    function tamEkranDurumuGuncelle() {
+      const isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const iconExpand = document.getElementById('iconExpand');
+      const iconCompress = document.getElementById('iconCompress');
+      const btn = document.getElementById('btnFullscreen');
+
+      if (isFull) {
+        iconExpand.style.display = 'none';
+        iconCompress.style.display = 'block';
+        btn.setAttribute('title', 'Küçült');
+      } else {
+        iconExpand.style.display = 'block';
+        iconCompress.style.display = 'none';
+        btn.setAttribute('title', 'Tam Ekran');
+      }
+    }
+
+    document.addEventListener('fullscreenchange', tamEkranDurumuGuncelle);
+    document.addEventListener('webkitfullscreenchange', tamEkranDurumuGuncelle);
 
     function delayBadgeHTML(delayVal) {
       const d = parseInt(delayVal) || 0;
-      if (d > 0) return `<span class="badge-delay delay-red">+${d} dk yoğunluk</span>`;
+      if (d > 0) return `<span class="badge-delay delay-red">+${d} dk</span>`;
       return `<span class="badge-delay delay-none">Akıcı</span>`;
     }
 
@@ -151,6 +341,13 @@
         const sutunlar = satir.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
         return sutunlar.map(s => s.replace(/^"|"$/g, '').trim());
       }).filter(s => s.length >= 7);
+    }
+
+    function sekmeDegistir(sekme) {
+      aktifSekme = sekme;
+      document.getElementById('tabGidis').classList.toggle('active', sekme === 'gidis');
+      document.getElementById('tabDonus').classList.toggle('active', sekme === 'donus');
+      filtreleVeCiz();
     }
 
     async function verileriCek() {
@@ -165,11 +362,11 @@
           filtreleVeCiz();
           document.getElementById('lastUpdated').innerText = `Son Güncelleme: ${tumKayitlar[0][0]}`;
         } else {
-          document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Henüz veri yok. Butona tıklayarak ilk ölçümü yapabilirsiniz.</td></tr>';
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Henüz veri yok. Butona tıklayarak ilk ölçümü yapabilirsiniz.</td></tr>';
           document.getElementById('lastUpdated').innerText = 'Bekleniyor';
         }
       } catch (e) {
-        document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="5" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
       }
     }
 
@@ -200,20 +397,25 @@
     }
 
     function ozetGuncelle(son) {
-      const gidisSure = son[2];
-      const gidisGecikme = son.length >= 9 ? son[3] : 0;
-      const gidisMesafe = son.length >= 9 ? son[4] : son[3];
-      const donusSure = son.length >= 9 ? son[6] : son[5];
-      const donusGecikme = son.length >= 9 ? son[7] : 0;
-      const donusMesafe = son.length >= 9 ? son[8] : son[6];
+      const hasDelay = son.length >= 9;
 
-      document.getElementById('gidisSure').innerText = `${gidisSure} dk`;
-      document.getElementById('gidisGecikmeBadge').innerHTML = delayBadgeHTML(gidisGecikme);
-      document.getElementById('gidisMesafe').innerText = `Mesafe: ${gidisMesafe} km`;
+      const gSure = son[2];
+      const gGecikme = hasDelay ? son[3] : 0;
+      const gMesafe = hasDelay ? son[4] : son[3];
 
-      document.getElementById('donusSure').innerText = `${donusSure} dk`;
-      document.getElementById('donusGecikmeBadge').innerHTML = delayBadgeHTML(donusGecikme);
-      document.getElementById('donusMesafe').innerText = `Mesafe: ${donusMesafe} km`;
+      const dSure = hasDelay ? son[6] : son[5];
+      const dGecikme = hasDelay ? son[7] : 0;
+      const dMesafe = hasDelay ? son[8] : son[6];
+
+      // Gidiş kartı
+      document.getElementById('gidisSure').innerText = `${gSure} dk`;
+      document.getElementById('gidisBadge').innerHTML = delayBadgeHTML(gGecikme);
+      document.getElementById('gidisMesafe').innerText = `Mesafe: ${gMesafe} km`;
+
+      // Dönüş kartı
+      document.getElementById('donusSure').innerText = `${dSure} dk`;
+      document.getElementById('donusBadge').innerHTML = delayBadgeHTML(dGecikme);
+      document.getElementById('donusMesafe').innerText = `Mesafe: ${dMesafe} km`;
     }
 
     function parseTarih(str) {
@@ -229,7 +431,7 @@
         aktifSiralama.artan = true;
       }
 
-      for (let i = 0; i <= 8; i++) {
+      for (let i = 0; i <= 3; i++) {
         const el = document.getElementById(`sort-${i}`);
         if (el) el.innerText = (i === sutunIndex) ? (aktifSiralama.artan ? '▲' : '▼') : '↕';
       }
@@ -240,30 +442,18 @@
     function tabloBas(liste) {
       const tbody = document.getElementById('dataRows');
       if (liste.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
         return;
       }
-      tbody.innerHTML = liste.map(r => {
-        const hasDelay = r.length >= 9;
-        const gSure = r[2];
-        const gGecikme = hasDelay ? r[3] : 0;
-        const gMesafe = hasDelay ? r[4] : r[3];
-        const dAd = hasDelay ? r[5] : r[4];
-        const dSure = hasDelay ? r[6] : r[5];
-        const dGecikme = hasDelay ? r[7] : 0;
-        const dMesafe = hasDelay ? r[8] : r[6];
 
+      tbody.innerHTML = liste.map(r => {
         return `
           <tr>
-            <td><strong>${r[0]}</strong></td>
-            <td>${r[1]}</td>
-            <td><span class="badge">${gSure} dk</span></td>
-            <td>${delayBadgeHTML(gGecikme)}</td>
-            <td>${gMesafe} km</td>
-            <td>${dAd}</td>
-            <td><span class="badge">${dSure} dk</span></td>
-            <td>${delayBadgeHTML(dGecikme)}</td>
-            <td>${dMesafe} km</td>
+            <td><strong>${r.tarih}</strong></td>
+            <td>${r.guzergah}</td>
+            <td><span class="badge">${r.sure} dk</span></td>
+            <td>${delayBadgeHTML(r.gecikme)}</td>
+            <td>${r.mesafe} km</td>
           </tr>
         `;
       }).join('');
@@ -273,12 +463,33 @@
       const arama = document.getElementById('filterSearch').value.toLowerCase();
       const tarihSecimi = document.getElementById('filterDate').value;
 
-      let filtrelenen = tumKayitlar.filter(satir => {
-        const metinUygun = satir.join(' ').toLowerCase().includes(arama);
+      let seciliVeriler = tumKayitlar.map(r => {
+        const hasDelay = r.length >= 9;
+        if (aktifSekme === 'gidis') {
+          return {
+            tarih: r[0],
+            guzergah: r[1],
+            sure: r[2],
+            gecikme: hasDelay ? r[3] : 0,
+            mesafe: hasDelay ? r[4] : r[3]
+          };
+        } else {
+          return {
+            tarih: r[0],
+            guzergah: hasDelay ? r[5] : r[4],
+            sure: hasDelay ? r[6] : r[5],
+            gecikme: hasDelay ? r[7] : 0,
+            mesafe: hasDelay ? r[8] : r[6]
+          };
+        }
+      });
+
+      let filtrelenen = seciliVeriler.filter(item => {
+        const metinUygun = `${item.tarih} ${item.guzergah}`.toLowerCase().includes(arama);
         let tarihUygun = true;
         if (tarihSecimi) {
           const [yil, ay, gun] = tarihSecimi.split('-');
-          tarihUygun = satir[0].startsWith(`${gun}.${ay}.${yil}`);
+          tarihUygun = item.tarih.startsWith(`${gun}.${ay}.${yil}`);
         }
         return metinUygun && tarihUygun;
       });
@@ -286,10 +497,12 @@
       if (aktifSiralama.sutun !== -1) {
         const idx = aktifSiralama.sutun;
         const artan = aktifSiralama.artan;
+        const alanlar = ['tarih', 'sure', 'gecikme', 'mesafe'];
+        const alan = alanlar[idx];
 
         filtrelenen.sort((a, b) => {
-          let valA = a[idx] || '';
-          let valB = b[idx] || '';
+          let valA = a[alan] || '';
+          let valB = b[alan] || '';
 
           if (idx === 0) {
             const tA = parseTarih(valA);
@@ -297,13 +510,13 @@
             return artan ? tA - tB : tB - tA;
           }
 
-          const numA = parseFloat(valA.replace(/[^\d.-]/g, ''));
-          const numB = parseFloat(valB.replace(/[^\d.-]/g, ''));
+          const numA = parseFloat(String(valA).replace(/[^\d.-]/g, ''));
+          const numB = parseFloat(String(valB).replace(/[^\d.-]/g, ''));
           if (!isNaN(numA) && !isNaN(numB)) {
             return artan ? numA - numB : numB - numA;
           }
 
-          return artan ? valA.localeCompare(valB, 'tr') : valB.localeCompare(a[idx], 'tr');
+          return artan ? String(valA).localeCompare(String(valB), 'tr') : String(valB).localeCompare(String(valA), 'tr');
         });
       }
 
