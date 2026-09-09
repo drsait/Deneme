@@ -137,8 +137,163 @@
 
     async function verileriCek() {
       try {
-        const res = await fetch(`${CSV_Bu bağlantı, Google Apps Script üzerinde çalışan özel bir web uygulamasına (Web App) ait. 
+        const res = await fetch(`${CSV_URL}&t=${Date.now()}`);
+        const text = await res.text();
+        const parseEdilmis = csvSatirlariBol(text);
 
-* **Tür:** Google Apps Script Web App
-* **İşlev:** Arka planda bir Google E-Tablo, form, otomasyon veya özel bir API/veri çekme betiği çalıştırır.
-* **Durum:** Bağlantı harici kimlik doğrulama veya dinamik parametreler gerektirebileceğinden, içeriğini doğrudan inceleyebilmem için arkasındaki kodları veya projenin amacını iletebilirsiniz.
+        if (parseEdilmis.length > 0) {
+          tumKayitlar = parseEdilmis.reverse();
+          ozetGuncelle(tumKayitlar[0]);
+          filtreleVeCiz();
+          document.getElementById('lastUpdated').innerText = `Son Güncelleme: ${tumKayitlar[0][0]}`;
+        } else {
+          document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Henüz veri yok. Butona tıklayarak ilk ölçümü yapabilirsiniz.</td></tr>';
+          document.getElementById('lastUpdated').innerText = 'Bekleniyor';
+        }
+      } catch (e) {
+        document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
+      }
+    }
+
+    async function anlikOlcumTetikle() {
+      const btn = document.getElementById('btnMeasure');
+      btn.disabled = true;
+      btn.innerText = '⏳ Hesaplanıyor & Yazılıyor...';
+
+      try {
+        const res = await fetch(WEB_APP_URL);
+        const result = await res.json();
+
+        if (result.status === "ok" && result.data) {
+          tumKayitlar.unshift(result.data.map(String));
+          ozetGuncelle(result.data);
+          filtreleVeCiz();
+          document.getElementById('lastUpdated').innerText = `Son Güncelleme: ${result.data[0]}`;
+        } else {
+          await verileriCek();
+        }
+      } catch (err) {
+        await new Promise(r => setTimeout(r, 2500));
+        await verileriCek();
+      } finally {
+        btn.innerText = '⚡ Şimdi Ölç ve Kaydet';
+        btn.disabled = false;
+      }
+    }
+
+    function ozetGuncelle(son) {
+      const gidisSure = son[2];
+      const gidisGecikme = son.length >= 9 ? son[3] : 0;
+      const gidisMesafe = son.length >= 9 ? son[4] : son[3];
+      const donusSure = son.length >= 9 ? son[6] : son[5];
+      const donusGecikme = son.length >= 9 ? son[7] : 0;
+      const donusMesafe = son.length >= 9 ? son[8] : son[6];
+
+      document.getElementById('gidisSure').innerText = `${gidisSure} dk`;
+      document.getElementById('gidisGecikmeBadge').innerHTML = delayBadgeHTML(gidisGecikme);
+      document.getElementById('gidisMesafe').innerText = `Mesafe: ${gidisMesafe} km`;
+
+      document.getElementById('donusSure').innerText = `${donusSure} dk`;
+      document.getElementById('donusGecikmeBadge').innerHTML = delayBadgeHTML(donusGecikme);
+      document.getElementById('donusMesafe').innerText = `Mesafe: ${donusMesafe} km`;
+    }
+
+    function parseTarih(str) {
+      const p = str.split(/[. :]/);
+      return p.length >= 6 ? new Date(p[2], p[1] - 1, p[0], p[3], p[4], p[5]).getTime() : 0;
+    }
+
+    function sirala(sutunIndex) {
+      if (aktifSiralama.sutun === sutunIndex) {
+        aktifSiralama.artan = !aktifSiralama.artan;
+      } else {
+        aktifSiralama.sutun = sutunIndex;
+        aktifSiralama.artan = true;
+      }
+
+      for (let i = 0; i <= 8; i++) {
+        const el = document.getElementById(`sort-${i}`);
+        if (el) el.innerText = (i === sutunIndex) ? (aktifSiralama.artan ? '▲' : '▼') : '↕';
+      }
+
+      filtreleVeCiz();
+    }
+
+    function tabloBas(liste) {
+      const tbody = document.getElementById('dataRows');
+      if (liste.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">Filtreye uygun sonuç bulunamadı.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = liste.map(r => {
+        const hasDelay = r.length >= 9;
+        const gSure = r[2];
+        const gGecikme = hasDelay ? r[3] : 0;
+        const gMesafe = hasDelay ? r[4] : r[3];
+        const dAd = hasDelay ? r[5] : r[4];
+        const dSure = hasDelay ? r[6] : r[5];
+        const dGecikme = hasDelay ? r[7] : 0;
+        const dMesafe = hasDelay ? r[8] : r[6];
+
+        return `
+          <tr>
+            <td><strong>${r[0]}</strong></td>
+            <td>${r[1]}</td>
+            <td><span class="badge">${gSure} dk</span></td>
+            <td>${delayBadgeHTML(gGecikme)}</td>
+            <td>${gMesafe} km</td>
+            <td>${dAd}</td>
+            <td><span class="badge">${dSure} dk</span></td>
+            <td>${delayBadgeHTML(dGecikme)}</td>
+            <td>${dMesafe} km</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filtreleVeCiz() {
+      const arama = document.getElementById('filterSearch').value.toLowerCase();
+      const tarihSecimi = document.getElementById('filterDate').value;
+
+      let filtrelenen = tumKayitlar.filter(satir => {
+        const metinUygun = satir.join(' ').toLowerCase().includes(arama);
+        let tarihUygun = true;
+        if (tarihSecimi) {
+          const [yil, ay, gun] = tarihSecimi.split('-');
+          tarihUygun = satir[0].startsWith(`${gun}.${ay}.${yil}`);
+        }
+        return metinUygun && tarihUygun;
+      });
+
+      if (aktifSiralama.sutun !== -1) {
+        const idx = aktifSiralama.sutun;
+        const artan = aktifSiralama.artan;
+
+        filtrelenen.sort((a, b) => {
+          let valA = a[idx] || '';
+          let valB = b[idx] || '';
+
+          if (idx === 0) {
+            const tA = parseTarih(valA);
+            const tB = parseTarih(valB);
+            return artan ? tA - tB : tB - tA;
+          }
+
+          const numA = parseFloat(valA.replace(/[^\d.-]/g, ''));
+          const numB = parseFloat(valB.replace(/[^\d.-]/g, ''));
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return artan ? numA - numB : numB - numA;
+          }
+
+          return artan ? valA.localeCompare(valB, 'tr') : valB.localeCompare(valA, 'tr');
+        });
+      }
+
+      tabloBas(filtrelenen);
+    }
+
+    verileriCek();
+    setInterval(verileriCek, 2 * 60 * 1000);
+  </script>
+</body>
+</html>
