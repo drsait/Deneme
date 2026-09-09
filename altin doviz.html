@@ -26,7 +26,8 @@
   </div>
   <div class="row"><span>Dolar</span><span id="usd" class="val">-</span></div>
   <div class="row"><span>Euro</span><span id="eur" class="val">-</span></div>
-  <div class="row"><span>Gram Altın</span><span id="gold" class="val">-</span></div>
+  <div class="row"><span>Gram Altın (24K)</span><span id="gold" class="val">-</span></div>
+  <div class="row"><span>22 Ayar Altın</span><span id="gold22" class="val">-</span></div>
   <div id="time" class="time"></div>
 </div>
 
@@ -38,9 +39,13 @@
         fetch('https://api.gold-api.com/price/XAU').then(r => r.json())
       ]);
       const usd = cur.rates.TRY;
+      const gram24 = (gold.price * usd) / 31.1035;
+      const gram22 = gram24 * 0.916; // 22 / 24 saflık oranı
+
       document.getElementById('usd').innerText = `₺${usd.toFixed(4)}`;
       document.getElementById('eur').innerText = `₺${(usd / cur.rates.EUR).toFixed(4)}`;
-      document.getElementById('gold').innerText = `₺${((gold.price * usd) / 31.1035).toFixed(2)}`;
+      document.getElementById('gold').innerText = `₺${gram24.toFixed(2)}`;
+      document.getElementById('gold22').innerText = `₺${gram22.toFixed(2)}`;
       document.getElementById('time').innerText = new Date().toLocaleTimeString('tr-TR');
     } catch {
       document.getElementById('time').innerText = 'Hata oluştu';
