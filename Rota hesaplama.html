@@ -22,6 +22,23 @@
     .container { max-width: 1100px; margin: 0 auto; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     h1 { font-size: 1.35rem; font-weight: 700; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .btn-refresh {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .btn-refresh:hover { opacity: 0.9; }
+    .btn-refresh:disabled { opacity: 0.6; cursor: not-allowed; }
     .status { background: var(--success-bg); color: var(--success-text); padding: 5px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
     .card { background: var(--card); padding: 18px 20px; border-radius: 12px; border: 1px solid var(--border); }
@@ -53,7 +70,10 @@
         <h1>Mardin ⇄ Kızıltepe Canlı Trafik & Gecikme Takibi</h1>
         <small id="lastUpdated" style="color: var(--muted);">Veriler yükleniyor...</small>
       </div>
-      <div class="status">● Canlı Takip</div>
+      <div class="header-actions">
+        <button class="btn-refresh" id="btnRefresh" onclick="manuelYenile()">🔄 Yenile</button>
+        <div class="status">● Canlı Takip</div>
+      </div>
     </header>
 
     <div class="grid">
@@ -138,6 +158,15 @@
       } catch (e) {
         document.getElementById('dataRows').innerHTML = '<tr><td colspan="9" class="empty">Veri çekilemedi. Bağlantıyı kontrol edin.</td></tr>';
       }
+    }
+
+    async function manuelYenile() {
+      const btn = document.getElementById('btnRefresh');
+      btn.disabled = true;
+      btn.innerText = 'Yenileniyor...';
+      await verileriCek();
+      btn.innerText = '🔄 Yenile';
+      btn.disabled = false;
     }
 
     function ozetGuncelle(son) {
