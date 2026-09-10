@@ -43,13 +43,23 @@
     .chart-legend { display: flex; gap: 6px; font-size: 0.65rem; color: var(--muted); font-weight: 400; }
     .leg-box { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 
-    /* SVG Grafikler */
+    /* SVG Grafikler & Animasyonlar */
     .chart-wrap { width: 100%; height: 165px; position: relative; touch-action: none; user-select: none; }
     .chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
     .bar-green { fill: var(--success); }
     .bar-red { fill: var(--danger); }
     .bar-zone { fill: transparent; }
     .bar-zone.active { fill: rgba(37, 99, 235, 0.12); }
+
+    /* 2 Kat Hızlı Çubuk Yükselme / Dans Animasyonu (0.25s) */
+    .bar-animate {
+      transform-origin: bottom;
+      animation: barDance 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    @keyframes barDance {
+      0% { transform: scaleY(0); opacity: 0; }
+      100% { transform: scaleY(1); opacity: 1; }
+    }
 
     /* Tablo */
     .tbl-box { background: var(--card); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
@@ -351,10 +361,15 @@
         const normH = (normalPart / maxVal) * plotH;
         const gecH = (gecikmePart / maxVal) * plotH;
 
+        // 2 kat daha hızlı sıralı animasyon gecikmesi (15 ms)
+        const animDelay = (i * 0.015).toFixed(3);
+
         barsHtml += `
           <g class="bar-group" data-idx="${i}">
-            <rect x="${bx}" y="${baseY - normH}" width="${barW}" height="${normH}" class="bar-green"/>
-            ${gecikmePart > 0 ? `<rect x="${bx}" y="${baseY - normH - gecH}" width="${barW}" height="${gecH}" rx="1" class="bar-red"/>` : ''}
+            <g class="bar-animate" style="animation-delay: ${animDelay}s;">
+              <rect x="${bx}" y="${baseY - normH}" width="${barW}" height="${normH}" class="bar-green"/>
+              ${gecikmePart > 0 ? `<rect x="${bx}" y="${baseY - normH - gecH}" width="${barW}" height="${gecH}" rx="1" class="bar-red"/>` : ''}
+            </g>
             <rect x="${cx - slotW/2}" y="${pT}" width="${slotW}" height="${plotH}" class="bar-zone" id="zone-${wrapId}-${i}"/>
           </g>
         `;
