@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SİNA Bağlantı Yönlendirici</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #1a365d;
+        }
+        .link-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .link-btn {
+            display: block;
+            padding: 12px 16px;
+            background-color: #0066cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        .link-btn:hover {
+            background-color: #004b99;
+        }
+        .status {
+            font-size: 1.1rem;
+            color: #2b6cb0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="content">
+        <h1>SİNA Hızlı Erişim</h1>
+        <p>Lütfen erişmek istediğiniz modülü seçin:</p>
+        <div id="button-container" class="link-list">
+            <!-- Butonlar JavaScript ile otomatik oluşturulacak -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // 1. SABİT DEĞİŞKENLER (Tek yerden değiştireceğiniz değerler)
+    // =========================================================================
+    const PARAMS = {
+        BIRIM_KODU: "461491",
+        YIL: "2026",
+        AY: "EYLUL",
+        AY_KHT: "EYLÜL", // EYLÜL (URL Encoded)
+        AHB_ADI: "Mardin Kızıltepe 18 Nolu AHB - Mardin"
+    };
+
+    // =========================================================================
+    // 2. LİNK ŞABLONLARI
+    // Süslü parantez içindeki {DEGISKEN_ADI} alanları yukarıdaki değerlerle dolacaktır.
+    // =========================================================================
+    const LINK_SABLONLARI = {
+        "sina": "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840={AY}%26252860={BIRIM_KODU}%26252916={YIL}",
+        "kht": "https://sina.saglik.gov.tr/showcases/SC-2DF3A82DF98O48J/SCI-VCQ97DDE181J1HA?filters=300699={YIL}%26300707={AY_KHT}%26300711={BIRIM_KODU}",
+        "memnuniyet": "https://sina.saglik.gov.tr/showcases/SC-AA6Q1F9AU1B4B2O/SCI-E52DD7UAC0Y24Z5?filters=27693={YIL}-01-01%252000%253A00%253A00%2627693={YIL}-12-31%252023%253A59%253A59",
+        "muayene": "https://sina.saglik.gov.tr/showcases/SC-AA6Q1F9AU1B4B2O/SCI-E52DD7UAC0Y24Z5?filters=27477={AHB_ADI}",
+        "otizm": "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-4N2O921XV9IX02M?filters=372133={BIRIM_KODU}"
+    };
+
+    // =========================================================================
+    // SİSTEM DÖNÜŞTÜRÜCÜ MOTORU (Değişkenleri Linklere Enjekte Eder)
+    // =========================================================================
+    function linkOlustur(sablon) {
+        let url = sablon;
+        for (const [key, val] of Object.entries(PARAMS)) {
+            url = url.replaceAll(`{${key}}`, val);
+        }
+        return url;
+    }
+
+    // Gerçek linklerin hazırlanması
+    const FINAL_LINKS = {};
+    for (const key in LINK_SABLONLARI) {
+        FINAL_LINKS[key] = linkOlustur(LINK_SABLONLARI[key]);
+    }
+
+    // Ekranda Butonları Oluştur
+    const container = document.getElementById('button-container');
+    for (const key in FINAL_LINKS) {
+        const btn = document.createElement('a');
+        btn.className = 'link-btn';
+        btn.href = FINAL_LINKS[key];
+        btn.target = '_blank';
+        btn.rel = 'noopener noreferrer';
+        btn.innerText = key.toUpperCase();
+        container.appendChild(btn);
+    }
+
+    // URL parametresini oku (örn: ?link=otizm)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetKey = urlParams.get('link');
+
+    // Otomatik Yönlendirme (Varsa yeni sekmede aç)
+    if (targetKey && FINAL_LINKS[targetKey.toLowerCase()]) {
+        const targetUrl = FINAL_LINKS[targetKey.toLowerCase()];
+        
+        // Yeni sekmede aç
+        window.open(targetUrl, '_blank');
+
+        // Ekran bildirimi
+        document.getElementById('content').innerHTML = `
+            <p class="status"><strong>${targetKey.toUpperCase()}</strong> yeni sekmede açıldı.</p>
+            <p><a href="javascript:history.back()">Geri dön</a> veya pencereyi kapatabilirsiniz.</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
