@@ -44,14 +44,17 @@
       animation-fill-mode: forwards;
     }
 
-    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); color: white; border: none; font-size: 30px; width: 50px; height: 60px; border-radius: 6px; cursor: pointer; transition: opacity 0.3s; z-index: 102; }
+    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); color: white; border: none; font-size: 30px; width: 50px; height: 60px; border-radius: 6px; cursor: pointer; transition: opacity 0.3s; z-index: 102; display: none; }
     .nav-btn:hover { background: rgba(255,255,255,0.3); }
     .prev-btn { left: 20px; }
     .next-btn { right: 20px; }
 
-    .top-bar { position: absolute; top: 20px; left: 25px; right: 25px; display: flex; justify-content: space-between; align-items: center; z-index: 102; transition: opacity 0.4s ease; }
+    .top-bar { position: absolute; top: 20px; left: 25px; right: 25px; display: flex; justify-content: flex-end; align-items: center; z-index: 102; transition: opacity 0.4s ease; }
     .modal-actions { display: flex; gap: 10px; align-items: center; }
     .close-btn { background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; margin-left: 10px; }
+    
+    /* Gizlenmesi istenen diğer öğeler için başlangıç sınıfı */
+    .initial-hidden { display: none !important; }
 
     .slide-controls { display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
     .slide-controls select { padding: 4px 8px; font-size: 12px; }
@@ -97,10 +100,10 @@
 
   <div id="modal">
     <div class="top-bar" id="modal-top-bar">
-      <span id="counter" style="color: #ccc; font-size: 15px;">1 / 20</span>
+      <span id="counter" class="initial-hidden" style="color: #ccc; font-size: 15px;">1 / 20</span>
       
       <div class="modal-actions">
-        <div class="slide-controls" id="slide-settings">
+        <div class="slide-controls initial-hidden" id="slide-settings">
           <span style="font-size: 12px; color: #ddd;">Süre:</span>
           <select id="slayt-hiz" onchange="slaytSuresiDegisti()">
             <option value="5000">5 sn</option>
@@ -111,8 +114,8 @@
           <button class="btn btn-slide" id="slayt-toggle-btn" style="padding: 4px 10px; font-size: 12px;" onclick="slaytDurdurBaslat()">Durdur</button>
         </div>
 
-        <button class="btn" id="modal-select-btn" onclick="toggleSelectFromModal()">Seç</button>
-        <button class="btn btn-download" onclick="indirMevcutModal()">İndir</button>
+        <button class="btn initial-hidden" id="modal-select-btn" onclick="toggleSelectFromModal()">Seç</button>
+        <button class="btn btn-download initial-hidden" onclick="indirMevcutModal()">İndir</button>
         <button class="close-btn" onclick="closeModal()">✕</button>
       </div>
     </div>
@@ -496,7 +499,7 @@
       if (isSlideActive) {
         slaytiDurdur();
         modalImg.classList.remove('random-ken-burns');
-        slaytToggleBtn.textContent = 'Devam Et';
+        slaytToggleDef.textContent = 'Devam Et';
       } else {
         isSlideActive = true;
         slaytToggleBtn.textContent = 'Durdur';
@@ -528,16 +531,12 @@
 
     function showControls() {
       topBar.classList.remove('ui-hidden');
-      btnPrev.classList.remove('ui-hidden');
-      btnNext.classList.remove('ui-hidden');
       modal.style.cursor = 'default';
     }
 
     function hideControls() {
       if (modal.style.display === 'flex') {
         topBar.classList.add('ui-hidden');
-        btnPrev.classList.add('ui-hidden');
-        btnNext.classList.add('ui-hidden');
         modal.style.cursor = 'none';
       }
     }
@@ -545,7 +544,7 @@
     function resetHideTimer() {
       showControls();
       clearTimeout(hideControlsTimeout);
-      hideControlsTimeout = setTimeout(hideControls, 5000);
+      hideControlsTimeout = setTimeout(hideControls, 3000);
     }
 
     modal.addEventListener('mousemove', resetHideTimer);
