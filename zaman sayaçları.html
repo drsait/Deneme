@@ -1,195 +1,69 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zaman Sayaçları</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 30px 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #e2e8f0;
-            text-align: center;
-            overflow-x: hidden;
-            background-color: #030712;
-        }
-
-        /* Hareketli Arka Plan Animasyonu */
-        .mystic-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-            background: linear-gradient(135deg, #030712 0%, #0f172a 50%, #1e1b4b 100%);
-        }
-
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            animation: floatOrb 15s infinite alternate ease-in-out;
-        }
-
-        .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: #4338ca;
-            top: -100px;
-            left: -100px;
-        }
-
-        .orb-2 {
-            width: 500px;
-            height: 500px;
-            background: #7c3aed;
-            bottom: -150px;
-            right: -150px;
-            animation-delay: -5s;
-        }
-
-        .orb-3 {
-            width: 300px;
-            height: 300px;
-            background: #0ea5e9;
-            top: 40%;
-            left: 30%;
-            animation-delay: -10s;
-            opacity: 0.2;
-        }
-
-        @keyframes floatOrb {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(50px, 80px) scale(1.1); }
-            100% { transform: translate(-50px, -50px) scale(0.9); }
-        }
-
-        h1 {
-            margin-bottom: 30px;
-            color: #f8fafc;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
-        }
-
-        .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            width: 260px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(124, 58, 237, 0.5);
-            box-shadow: 0 12px 40px 0 rgba(124, 58, 237, 0.2);
-        }
-
-        .card h3 {
-            margin-top: 0;
-            color: #c4b5fd;
-            letter-spacing: 1px;
-        }
-
-        .card p {
-            font-size: 14px;
-            margin: 8px 0;
-            color: #94a3b8;
-        }
-
-        .result {
-            font-weight: 600;
-            color: #f1f5f9;
-            margin-top: 12px !important;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-    </style>
-</head>
+<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Zaman Sayaçları</title>
+<style>
+body{margin:0;padding:10px;font-family:system-ui,sans-serif;text-align:center;overflow-x:hidden;background:#a1c4fd}
+.bg{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;background:linear-gradient(-45deg,#ff9a9e,#d4a5ff,#a1c4fd,#8fd3f4,#ffb199);background-size:400% 400%;animation:wg 12s ease infinite}
+@keyframes wg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.7;animation:fo 10s infinite alternate ease-in-out}
+.o1{width:350px;height:350px;background:#ffdfba;top:-50px;left:-50px}
+.o2{width:450px;height:450px;background:#c2e9fb;bottom:-100px;right:-100px;animation-delay:-3s}
+.o3{width:300px;height:300px;background:#fecfef;top:40%;left:30%;animation-delay:-6s}
+@keyframes fo{0%{transform:translate(0,0) scale(1)}50%{transform:translate(70px,40px) scale(1.15)}100%{transform:translate(-30px,-50px) scale(.9)}}
+h1{margin:10px 0 15px;color:#fff;font-weight:800;letter-spacing:1px;text-shadow:0 2px 10px rgba(0,0,0,.3);font-size:1.6em}
+.cnt{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:1200px;margin:0 auto;padding:5px}
+@keyframes dd{0%{transform:translateY(-50px) scale(.9);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+.card{background:rgba(255,255,255,.75);backdrop-filter:blur(20px);border:2px solid rgba(255,255,255,.6);border-radius:16px;padding:15px;width:220px;box-shadow:0 8px 20px rgba(0,0,0,.15);transition:all .3s;opacity:0;animation:dd .6s cubic-bezier(.34,1.56,.64,1) forwards;animation-delay:calc(var(--i) * .1s);position:relative;cursor:grab}
+.card:active{cursor:grabbing}
+.card:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 15px 30px rgba(161,196,253,.6);border-color:#d4a5ff}
+.cbtn{position:absolute;top:8px;right:8px;background:#ff4757;color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:12px;cursor:pointer;opacity:0;transition:all .3s;box-shadow:0 2px 5px rgba(255,71,87,.4)}
+.card:hover .cbtn{opacity:1}
+.cbtn:hover{transform:scale(1.15) rotate(90deg);background:#ff6b81}
+.card h3{margin:0;color:#8e44ad;font-size:1.2em;text-transform:uppercase;text-shadow:1px 1px 2px rgba(255,255,255,.8)}
+.card p{font-size:13px;margin:6px 0;color:#2d3436;font-weight:500}
+.res{font-weight:800;color:#0984e3;font-size:14px;margin-top:10px;padding-top:10px;border-top:2px dashed rgba(142,68,173,.3)}
+.tot{font-size:11px;color:#00b894;margin-top:8px;font-weight:800;background:rgba(0,184,148,.15);padding:8px;border-radius:8px}
+.drag{opacity:.4;transform:scale(.95) rotate(2deg);box-shadow:0 20px 40px rgba(0,0,0,.3)}
+</style></head>
 <body>
+<div class="bg"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<h1>✨ Zaman Sayaçları ✨</h1>
+<div class="cnt" id="C"></div>
 
-    <div class="mystic-bg">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
-    </div>
-
-    <h1>Zaman Sayaçları</h1>
-
-    <div class="container" id="cardContainer">
-        <!-- Kartlar -->
-    </div>
-
-    <script>
-        const initialData = [
-            { name: "Sait", date: "1986-01-13" },
-            { name: "Hatice", date: "1997-03-18" },
-            { name: "Zeynep", date: "2016-08-15" },
-            { name: "Rengin", date: "2021-05-19" },
-            { name: "Evlilik", date: "2015-05-24" },
-            { name: "Gerçek", date: "1985-08-08" }
-        ];
-
-        function calculateAge(dateString) {
-            const birthDate = new Date(dateString);
-            const today = new Date();
-
-            let years = today.getFullYear() - birthDate.getFullYear();
-            let months = today.getMonth() - birthDate.getMonth();
-            let days = today.getDate() - birthDate.getDate();
-
-            if (days < 0) {
-                months--;
-                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-                days += prevMonth.getDate();
-            }
-            if (months < 0) {
-                years--;
-                months += 12;
-            }
-
-            return `${years} yıl, ${months} ay, ${days} gün`;
-        }
-
-        function formatDateTr(dateString) {
-            const parts = dateString.split('-');
-            return `${parts[2]}.${parts[1]}.${parts[0]}`;
-        }
-
-        function renderCards() {
-            const container = document.getElementById('cardContainer');
-            container.innerHTML = '';
-
-            initialData.forEach((item) => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <h3>${item.name}</h3>
-                    <p>Tarih: <strong>${formatDateTr(item.date)}</strong></p>
-                    <p class="result">${calculateAge(item.date)}</p>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        renderCards();
-        setInterval(renderCards, 60000);
-    </script>
-</body>
-</html>
+<script>
+const D=[{n:"Sait",d:"1986-01-13"},{n:"Hatice",d:"1997-03-18"},{n:"Zeynep",d:"2016-08-15"},{n:"Rengin",d:"2021-05-19"},{n:"Evlilik",d:"2015-05-24"},{n:"Gerçek",d:"1985-08-08"}],C=document.getElementById('C');
+function calc(d){
+    let b=new Date(d),t=new Date(),y=t.getFullYear()-b.getFullYear(),m=t.getMonth()-b.getMonth(),days=t.getDate()-b.getDate();
+    if(days<0){m--;days+=new Date(t.getFullYear(),t.getMonth(),0).getDate()}
+    if(m<0){y--;m+=12}
+    let td=Math.floor((t-b)/864e5);
+    return [`${y} Yıl, ${m} Ay, ${days} Gün`,`${y*12+m} Ay • ${Math.floor(td/7).toLocaleString('tr')} Hft • ${td.toLocaleString('tr')} Gün`];
+}
+function render(){
+    D.forEach((i,x)=>{
+        let c=document.createElement('div');c.className='card';c.draggable=!0;c.dataset.d=i.d;c.style.setProperty('--i',x);
+        c.innerHTML=`<button class="cbtn" onclick="this.parentElement.remove()">✖</button><h3>${i.n}</h3><p>Tarih: <strong>${i.d.split('-').reverse().join('.')}</strong></p><p class="res"></p><p class="tot"></p>`;
+        C.appendChild(c);
+    });
+    update();dragDrop();
+}
+function update(){
+    document.querySelectorAll('.card').forEach(c=>{
+        let [a,t]=calc(c.dataset.d);
+        c.querySelector('.res').innerText=a;c.querySelector('.tot').innerText=t;
+    });
+}
+function dragDrop(){
+    let cur=null;
+    C.addEventListener('dragstart',e=>{if(e.target.classList.contains('card')){cur=e.target;setTimeout(()=>cur.classList.add('drag'),0)}});
+    C.addEventListener('dragend',e=>{if(cur){cur.classList.remove('drag');cur=null}});
+    C.addEventListener('dragover',e=>{
+        e.preventDefault();
+        let aft=[...C.querySelectorAll('.card:not(.drag)')].reduce((a,c)=>{
+            let b=c.getBoundingClientRect(),oy=e.clientY-b.top-b.height/2;
+            return oy<0&&oy>a.o?{o:oy,e:c}:a;
+        },{o:Number.NEGATIVE_INFINITY}).e;
+        if(cur) aft?C.insertBefore(cur,aft):C.appendChild(cur);
+    });
+}
+render();setInterval(update,6e4);
+</script>
+</body></html>
