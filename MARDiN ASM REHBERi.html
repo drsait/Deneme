@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+<script>/* =========================================================
+   DOKTORLARI GÖSTER / GİZLE (true = gösterir, false = gizler)
+   ========================================================= */
+const DOKTORLARI_GOSTER = true;</script><!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
@@ -114,10 +117,7 @@ tr.hl td{color:#fff!important;font-weight:700}
   <div id="list"></div>
 </div>
 <script>
-/* =========================================================
-   DOKTORLARI GÖSTER / GİZLE (true = gösterir, false = gizler)
-   ========================================================= */
-const DOKTORLARI_GOSTER = true;
+if (!DOKTORLARI_GOSTER) document.body.classList.add('gizle-dr');
 
 const D = [
   ["Artuklu", "ARTUKLU YENİYOL ASM", ["470101:ŞÜKRÜ URAKÇI", "470102:UMRAN YILDIRIM", "470103:ÖZLEM AKMAN YAZGAN", "470104:ÖMER DURMAZ"]],
@@ -223,8 +223,6 @@ const D = [
   ["Yeşilli", "YEŞİLLİ ASM", ["471001:MUHAMMED BARAN", "471002:YUSUF ŞAHİN", "471005:SÜMEYYE AK", "471006:ŞAHİN YAŞAR", "471007:BUŞRA YALINKILIÇ"]],
   ["Yeşilli", "YEŞİLLİ BAHÇE BAŞI ASM", ["471003:MAHSUN PULAD", "471004:BİLAL ÇETİN"]]
 ];
-
-if (!DOKTORLARI_GOSTER) document.body.classList.add('gizle-dr');
 
 const data = D.map(([i, a, b]) => ({
   ilce: i,
