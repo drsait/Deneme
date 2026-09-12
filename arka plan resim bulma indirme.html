@@ -2,14 +2,14 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Windows Masaüstü Arkaplan Duvar Kağıtları</title>
+  <title>Windows Kilit Ekranı Duvar Kağıtları</title>
+  <style id="dynamic-kenburns-style"></style>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #fff; padding: 20px; }
     .header { text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
     .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
 
-    /* Çoklu Seçim Açılır Menü (Dropdown) */
     .dropdown-container { position: relative; display: inline-block; }
     .dropdown-btn { background: #222; color: #fff; border: 1px solid #444; padding: 9px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
     .dropdown-btn:hover { border-color: #0078d4; }
@@ -35,9 +35,17 @@
     .card-check { position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; cursor: pointer; z-index: 2; accent-color: #0078d4; }
     #loader { text-align: center; padding: 25px; color: #888; font-size: 14px; }
 
-    /* Modal / Slayt */
-    #modal { display: none; position: fixed; inset: 0; background: #000; z-index: 100; justify-content: center; align-items: center; user-select: none; }
-    #modal-img { max-width: 100vw; max-height: 100vh; object-fit: contain; }
+    /* Modal / Tam Ekran Slayt */
+    #modal { display: none; position: fixed; inset: 0; background: #000; z-index: 100; justify-content: center; align-items: center; user-select: none; overflow: hidden; }
+    #modal-img { max-width: 100vw; max-height: 100vh; object-fit: contain; transform-origin: center center; }
+
+    /* Aktif dinamik rastgele animasyon sınıfı */
+    .random-ken-burns {
+      animation-name: randomMovement;
+      animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+      animation-fill-mode: forwards;
+    }
+
     .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); color: white; border: none; font-size: 30px; width: 50px; height: 60px; border-radius: 6px; cursor: pointer; transition: opacity 0.3s; z-index: 102; }
     .nav-btn:hover { background: rgba(255,255,255,0.3); }
     .prev-btn { left: 20px; }
@@ -56,10 +64,9 @@
 <body>
 
   <div class="header">
-    <h2>Windows Masaüstü Arkaplan Duvar Kağıtları</h2>
+    <h2>Windows Kilit Ekranı Duvar Kağıtları</h2>
     
     <div class="controls">
-      <!-- Çoklu Kategori Açılır Menü -->
       <div class="dropdown-container">
         <button class="dropdown-btn" id="category-btn" onclick="toggleDropdown(event)">
           Kategoriler (Tümü) ▾
@@ -90,7 +97,6 @@
   <div class="gallery" id="gallery"></div>
   <div id="loader">Daha fazla görsel yükleniyor...</div>
 
-  <!-- Tam Ekran Modal / Slayt Alanı -->
   <div id="modal">
     <div class="top-bar" id="modal-top-bar">
       <span id="counter" style="color: #ccc; font-size: 15px;">1 / 20</span>
@@ -119,7 +125,6 @@
   </div>
 
   <script>
-    // 22 Ayrı Kategori (Uzay bağımsız)
     const KATEGORI_LISTESI = [
       { id: "space", label: "Uzay & Galaksi" },
       { id: "nature", label: "Doğa & Manzara" },
@@ -158,6 +163,7 @@
 
     const modal = document.getElementById('modal');
     const modalImg = document.getElementById('modal-img');
+    const dynamicStyle = document.getElementById('dynamic-kenburns-style');
     const counter = document.getElementById('counter');
     const gallery = document.getElementById('gallery');
     const loader = document.getElementById('loader');
@@ -171,7 +177,6 @@
     const dropdownMenu = document.getElementById('dropdown-menu');
     const categoryBtn = document.getElementById('category-btn');
 
-    // Menü İçeriğini Oluşturma
     function kategoriMenusuHazirla() {
       const container = document.getElementById('category-items');
       KATEGORI_LISTESI.forEach(k => {
@@ -221,12 +226,9 @@
         }
       }
 
-      // Buton başlığını güncelle
-      if (seciliKategoriler.has('all')) {
-        categoryBtn.textContent = 'Kategoriler (Tümü) ▾';
-      } else {
-        categoryBtn.textContent = `Kategoriler (${seciliKategoriler.size}) ▾`;
-      }
+      categoryBtn.textContent = seciliKategoriler.has('all') 
+        ? 'Kategoriler (Tümü) ▾' 
+        : `Kategoriler (${seciliKategoriler.size}) ▾`;
 
       filtreYenile();
     }
@@ -293,18 +295,15 @@
     }
 
     async function boyutBilgisiniGetir(url, idx) {
+      const sizeSpan = document.getElementById(`size-${idx}`);
       try {
-        const res = await fetch(url, { method: 'HEAD' });
-        const bytes = res.headers.get('content-length');
-        const sizeSpan = document.getElementById(`size-${idx}`);
-        if (sizeSpan && bytes) {
-          const mb = (bytes / (1024 * 1024)).toFixed(2);
+        const res = await fetch(url);
+        const blob = await res.blob();
+        if (sizeSpan && blob.size > 0) {
+          const mb = (blob.size / (1024 * 1024)).toFixed(2);
           sizeSpan.textContent = `${mb} MB`;
-        } else if (sizeSpan) {
-          sizeSpan.textContent = '~2-4 MB';
         }
       } catch {
-        const sizeSpan = document.getElementById(`size-${idx}`);
         if (sizeSpan) sizeSpan.textContent = 'Bilinmiyor';
       }
     }
@@ -374,7 +373,7 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
-      } catch (err) {
+      } catch {
         window.open(url, '_blank');
       }
     }
@@ -398,6 +397,32 @@
       guncelleSecimSayisi();
     }
 
+    // Her görsel için baştan üretilen rastgele hareket motoru
+    function rastgeleAnimasyonUret(sureMs) {
+      const zoomInMi = Math.random() > 0.5;
+      const startScale = zoomInMi ? 1.0 : (1.20 + Math.random() * 0.10);
+      const endScale = zoomInMi ? (1.20 + Math.random() * 0.10) : 1.0;
+
+      // -4% ile +4% arasında her yöne rastgele kayma (X ve Y)
+      const startX = (Math.random() * 8 - 4).toFixed(2);
+      const startY = (Math.random() * 8 - 4).toFixed(2);
+      const endX = (Math.random() * 8 - 4).toFixed(2);
+      const endY = (Math.random() * 8 - 4).toFixed(2);
+
+      dynamicStyle.textContent = `
+        @keyframes randomMovement {
+          0% {
+            transform: scale(${startScale.toFixed(2)}) translate(${startX}%, ${startY}%);
+          }
+          100% {
+            transform: scale(${endScale.toFixed(2)}) translate(${endX}%, ${endY}%);
+          }
+        }
+      `;
+
+      modalImg.style.animationDuration = `${sureMs}ms`;
+    }
+
     function openModal(index) {
       if (!fotograflar.length) return;
       currentIndex = index;
@@ -412,11 +437,22 @@
         document.exitFullscreen().catch(() => {});
       }
       modal.style.display = 'none';
+      modalImg.classList.remove('random-ken-burns');
       showControls();
     }
 
     function updateModal() {
+      modalImg.classList.remove('random-ken-burns');
       modalImg.src = fotograflar[currentIndex].url;
+      
+      const sure = parseInt(document.getElementById('slayt-hiz').value, 10) || 10000;
+
+      if (isSlideActive) {
+        rastgeleAnimasyonUret(sure);
+        void modalImg.offsetWidth;
+        modalImg.classList.add('random-ken-burns');
+      }
+
       counter.textContent = `${currentIndex + 1} / ${fotograflar.length}`;
       guncelleModalSecimButonu();
 
@@ -449,16 +485,19 @@
 
       isSlideActive = true;
       slaytToggleBtn.textContent = 'Durdur';
+      updateModal();
       slaytDöngüsüAyarla();
     }
 
     function slaytDurdurBaslat() {
       if (isSlideActive) {
         slaytiDurdur();
+        modalImg.classList.remove('random-ken-burns');
         slaytToggleBtn.textContent = 'Devam Et';
       } else {
         isSlideActive = true;
         slaytToggleBtn.textContent = 'Durdur';
+        updateModal();
         slaytDöngüsüAyarla();
       }
     }
@@ -469,7 +508,10 @@
     }
 
     function slaytSuresiDegisti() {
-      if (isSlideActive) slaytDöngüsüAyarla();
+      if (isSlideActive) {
+        updateModal();
+        slaytDöngüsüAyarla();
+      }
       resetHideTimer();
     }
 
