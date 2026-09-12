@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -18,10 +17,7 @@ body{background:#080c14;color:#f8fafc;min-height:100vh;padding:24px 14px 80px;ov
 @keyframes flt{0%{transform:translate(0,0) scale(1)}50%{transform:translate(75px,55px) scale(1.15)}100%{transform:translate(-45px,85px) scale(.92)}}
 .cnt{max-width:940px;margin:0 auto;position:relative;z-index:1}
 header{text-align:center;margin-bottom:24px}
-.badge{display:inline-flex;align-items:center;background:rgba(99,102,241,.18);border:1px solid rgba(165,180,252,.35);padding:4px 14px;border-radius:999px;font-size:.78rem;font-weight:700;color:#c7d2fe;text-transform:uppercase;margin-bottom:10px;box-shadow:0 0 20px rgba(99,102,241,.3);animation:pg 3s infinite}
-@keyframes pg{50%{box-shadow:0 0 32px rgba(236,72,153,.55);border-color:rgba(244,114,182,.6)}}
 h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#38bdf8 0%,#c084fc 50%,#f43f5e 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.025em}
-.sub{color:#94a3b8;font-size:.95rem}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
 .sc{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:14px;text-align:center;transition:.3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .sc:hover{transform:translateY(-5px) scale(1.02);border-color:rgba(165,180,252,.4);box-shadow:0 14px 30px -6px rgba(99,102,241,.35)}
@@ -50,19 +46,39 @@ td{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.035);color:#e2e8f
 tr:last-child td{border-bottom:none}
 tr:hover td{background:rgba(255,255,255,.03)}
 
-.ahb-b{font-family:'Plus Jakarta Sans',monospace;font-weight:700;font-size:.85rem;background:rgba(255,255,255,.06);padding:4px 10px;border-radius:8px;color:#93c5fd;border:1px solid rgba(147,197,253,.18);user-select:text!important;-webkit-user-select:text!important;cursor:text}
-
-
-
-
+/* AHB Tıklanabilir Rozet */
+.ahb-b{font-family:'Plus Jakarta Sans',monospace;font-weight:700;font-size:.85rem;background:rgba(255,255,255,.06);padding:5px 12px;border-radius:8px;color:#93c5fd;border:1px solid rgba(147,197,253,.18);display:inline-block;text-decoration:none;transition:.2s}
+.ahb-b:hover{background:rgba(147,197,253,.2);color:#fff;transform:scale(1.05);box-shadow:0 0 10px rgba(147,197,253,.3)}
 
 .m-badge{background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:999px;margin-left:8px;box-shadow:0 0 14px rgba(236,72,153,.6);display:inline-block;animation:wgl 1.8s infinite}
 @keyframes wgl{50%{transform:translateY(-2px) scale(1.06)}}
 .uzm{color:#38bdf8;font-weight:600}
 .vac{background:rgba(239,68,68,.18);color:#f87171;font-size:.74rem;font-weight:800;padding:2px 7px;border-radius:6px;border:1px solid rgba(248,113,113,.3)}
-
-
 .emp{text-align:center;padding:50px 20px;background:rgba(255,255,255,.03);border-radius:18px;border:1px dashed rgba(255,255,255,.15);color:#94a3b8}
+
+/* Doktor Gizleme Modu ve Grid Düzeni */
+body.gizle-dr th.col-dr, body.gizle-dr td.col-dr { display: none; }
+body.gizle-dr table { display: none; }
+body.gizle-dr .card-body-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  padding: 16px 20px;
+}
+@media (min-width: 768px) {
+  body.gizle-dr .card-body-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+body.gizle-dr .grid-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
 tr.hl{
   background:linear-gradient(90deg,rgba(236,72,153,.35) 0%,rgba(139,92,246,.3) 50%,rgba(6,182,212,.25) 100%)!important;
@@ -98,561 +114,117 @@ tr.hl td{color:#fff!important;font-weight:700}
   <div id="list"></div>
 </div>
 <script>
+/* =========================================================
+   DOKTORLARI GÖSTER / GİZLE (true = gösterir, false = gizler)
+   ========================================================= */
+const DOKTORLARI_GOSTER = false;
+
 const D = [
-  ["Artuklu", "ARTUKLU YENİYOL ASM", [
-    "470101:ŞÜKRÜ URAKÇI",
-    "470102:UMRAN YILDIRIM",
-    "470103:ÖZLEM AKMAN YAZGAN",
-    "470104:ÖMER DURMAZ"
-  ]],
-  ["Artuklu", "ARTUKLU DİYARBAKIR KAPI ASM", [
-    "470107:MEHMET GÖKTÜRK",
-    "470108:MEHTAP VARLIKLAR"
-  ]],
-  ["Artuklu", "ARTUKLU ZİNCİRİYE ASM", [
-    "470109:ŞEYHMUS DEMİRCAN",
-    "470110:EMRULLAH BARAN"
-  ]],
-  ["Artuklu", "ARTUKLU TOKİ ASM", [
-    "470146:BİLAL AĞALDAY",
-    "470148:HAMDULLAH ATSIZ",
-    "470156:METİN KAYA",
-    "470174:GÜLİSTAN ADIN KILIÇ",
-    "470182:GÜLŞAH KEZER EKMEKÇİOĞLU (uzman)"
-  ]],
-  ["Artuklu", "ARTUKLU İSTASYON ASM", [
-    "470111:ABDULKADİR PİTEK",
-    "470112:MEHMET ÖNER",
-    "470113:FIRAT YILDIRIM",
-    "470149:AHMET ÖZEL"
-  ]],
-  ["Artuklu", "ARTUKLU YENİŞEHİR ASM", [
-    "470114:MESUT AKYÜN",
-    "470115:SEVDA ASLAN (uzman)",
-    "470116:KAMİRAN ELÇİ",
-    "470142:HASAN SEVİNÇ (KD)",
-    "470162:ALİ ÇAM",
-    "470163:YILMAZ TURĞAY",
-    "470164:FERHAT KIZILIRMAK (uzman)"
-  ]],
-  ["Artuklu", "ARTUKLU KÖTEK ASM", [
-    "470117:ZEYNEP BİLEN",
-    "470159:ESRA ATASEVER"
-  ]],
-  ["Artuklu", "ARTUKLU AHMET LÜTFİYE ÇAĞLAR ASM", [
-    "470118:ORHAN ÜNEL",
-    "470119:AZAT NANTU",
-    "470120:LOKMAN ATAY",
-    "470121:HÜSEYİN NANTU"
-  ]],
-  ["Artuklu", "ARTUKLU ARTUKBEY ASM", [
-    "470122:YAVUZ ADIBELLİ",
-    "470123:HERDEM YAVUZ",
-    "470124:BARAN ŞEŞEN",
-    "470125:ÜMMÜGÜLSÜM AKTEMUR ÇELİK (uzman)",
-    "470143:MURTAZA KAN"
-  ]],
-  ["Artuklu", "ARTUKLU SEVGİ ASM", [
-    "470127:NARİN TADİK (uzman)",
-    "470141:SİNEM ULUOCAK (uzman)",
-    "470155:NAZIM ERGÜL",
-    "470154:YILMAZ SEKİZKARDEŞ"
-  ]],
-  ["Artuklu", "ARTUKLU KABALA ASM", [
-    "470128:FADİLE ERGÜL",
-    "470144:BERFİN TANBOĞA",
-    "470129:DENİZ DENK",
-    "470173:SÜLEYMAN AK",
-    "470145:EVİN KORHAN"
-  ]],
-  ["Artuklu", "ARTUKLU ORTAKÖY ASM", [
-    "470130:ŞAFAK OÇAL",
-    "470131:ABDULHAKİM ÖZTÜRK",
-    "470132:AHMET ACAR",
-    "470133:ŞAHİN SERTKAYA",
-    "470157:MEHMET ARDA CAN ABUL"
-  ]],
-  ["Artuklu", "ARTUKLU KÖPRÜBAŞI ASM", [
-    "470178:BEYZA ÖZDEMİR",
-    "470179:ALAADDİN GENCAN"
-  ]],
-  ["Artuklu", "ARTUKLU SULTANKÖY ASM", [
-    "470134:YUNUS BAYRAM",
-    "470135:VEHBİ ERKEK"
-  ]],
-  ["Artuklu", "ARTUKLU DARA ASM", [
-    "470136:SİNAN ERGİN"
-  ]],
-  ["Artuklu", "ARTUKLU AKINCI ASM", [
-    "470137:MEHMET HALİM ÖZMEN"
-  ]],
-  ["Artuklu", "ARTUKLU GÖKÇE ASM", [
-    "470138:MAHSUM GÖNDÜZ",
-    "470139:AMED FIRAT AY",
-    "470140:MERVE MİZGİN TİMUR",
-    "470158:MUSTAFA TANRIKULU",
-    "470175:ÇAĞLAYAN CİCİM"
-  ]],
-  ["Artuklu", "ARTUKLU YALIMKÖY ASM", [
-    "470126:MAHSUM ERGÜL",
-    "470147:ŞEYHMUS ALGAN",
-    "470106:ORHAN ÖZDEMİR"
-  ]],
-  ["Artuklu", "ARTUKLU ZINNAR ASM", [
-    "470150:YUSUF IRMAK",
-    "470151:NİHAT YİĞİT",
-    "470160:SÜLEYMAN BERRAK",
-    "470177:TURĞUT ÇELİK"
-  ]],
-  ["Artuklu", "ARTUKLU RAVZA ASM", [
-    "470152:SABİHA HAZAL DEMİRSOY (uzman)",
-    "470153:HALİME BAYRAM",
-    "470161:BURHAN TURAN",
-    "470105:CÜNEYT KAYAN"
-  ]],
-  ["Artuklu", "ARTUKLU 13 MART ASM", [
-    "470165:ESAT ERDEVE",
-    "470166:MEHMET ŞİRİN EKİNCİ",
-    "470176:ŞAHİN MUTLU"
-  ]],
-  ["Artuklu", "ARTUKLU GÜMÜŞ ASM", [
-    "470167:İBRAHİM HAYRULLAH DURMAZ",
-    "470168:BİLAL DİNÇER",
-    "470169:NURAY DEVECİ"
-  ]],
-  ["Artuklu", "ARTUKLU NUR ASM", [
-    "470170:ZEYDAN ZİYA ARSLANHAN",
-    "470171:CÜNEYT HACIMUSTAFAOĞLU",
-    "470172:ÖZGÜR AKSOY"
-  ]],
-  ["Artuklu", "ARTUKLU 1 NOLU ASM", [
-    "470180:BOŞ",
-    "470181:BOŞ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE CUMHURİYET ASM", [
-    "470402:AHMET ARSLAN",
-    "470403:ABDULLAH SUNAR",
-    "470405:EMİNE UZUN (uzman)",
-    "470409:MÜSLÜM KURT",
-    "470412:NURİ ENSARİ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE TEPEBAŞI ASM", [
-    "470407:İBRAHİM ÇİFÇİ",
-    "470408:SEMA GÖKTAŞ",
-    "470410:SEYFETTİN KAPLAN",
-    "470459:ADİL GÖREN"
-  ]],
-  ["Kiziltepe", "KIZILTEPE REŞİT GÜNDOĞDU ASM", [
-    "470414:HİKMET ARÇİN",
-    "470415:İRFAN DEGER",
-    "470416:ABDURRAHİM AKSOY",
-    "470417:MUHAMMED ALAN",
-    "470418:SAİT KURT",
-    "470419:SERHAT GEGEZ (uzman)",
-    "470420:SELAHATTİN KAPLAN",
-    "470421:BİLAL GÖK"
-  ]],
-  ["Kiziltepe", "KIZILTEPE FIRAT ASM", [
-    "470425:MUSTAFA ALIR",
-    "470428:FETHULLAH KILINÇ",
-    "470429:FIRAT ARSLAN",
-    "470430:BÜŞRA DOĞMUŞÖZ",
-    "470470:AYDIN ALAR"
-  ]],
-  ["Kiziltepe", "KIZILTEPE ZERGAN ASM", [
-    "470431:SHOGUFFA HAQYAR",
-    "470432:HASAN KAYA",
-    "470433:BARIŞ ALDEMİR",
-    "470434:HASAN AKYÜN",
-    "470435:CİBRAİL ABUL",
-    "470457:İBRAHİM TARI",
-    "470411:ABDULLAH ELÇİÇEK"
-  ]],
-  ["Kiziltepe", "KIZILTEPE MEDYA ASM", [
-    "470436:CANSU YALÇIN ŞENGÜL",
-    "470437:HAKAN ABAK",
-    "470438:HASAN EMEK",
-    "470469:EMRULLAH YILDIZ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE YENİ MAH ASM", [
-    "470440:ÇETİN ÖZGÜN",
-    "470441:MERYEM EREN",
-    "470442:SİNEM İLHAN",
-    "470462:SİBEL (KAPÇAK) ELÇİÇEK",
-    "470471:ABDURRAHİM DAMAR"
-  ]],
-  ["Kiziltepe", "KIZILTEPE BAHÇELİEVLER ASM", [
-    "470443:DİLAN BIÇAK",
-    "470444:ABDULCELİL ÇİÇEK",
-    "470445:MAHMUT ERKAN",
-    "470422:MEHMET KORKUT"
-  ]],
-  ["Kiziltepe", "KIZILTEPE OSMAN-NURİYE BAKIRCI ASM", [
-    "470446:AHMET ARAZ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE AKDOĞAN ASM", [
-    "470447:ZEYNELABİDİN ŞEN",
-    "470491:BAHAR TEKGÜL"
-  ]],
-  ["Kiziltepe", "KIZILTEPE ŞENYURT ASM", [
-    "470448:KUMRU ENÜŞTEKİN"
-  ]],
-  ["Kiziltepe", "KIZILTEPE HOCAKÖY ASM", [
-    "470449:NURİ ADIYAMAN"
-  ]],
-  ["Kiziltepe", "KIZILTEPE SÜREKLİ ASM", [
-    "470450:SERHAT ERGÜL"
-  ]],
-  ["Kiziltepe", "KIZILTEPE DİKMEN ASM", [
-    "470451:YAKUP ALDEMİR",
-    "470452:ABDULCELİL ABİÇ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE BOZHÖYÜK ASM", [
-    "470453:ABDULLAH AYDIN",
-    "470454:SERHAT ÖZBADEM",
-    "4704116:ROJHAT ASLAN"
-  ]],
-  ["Kiziltepe", "KIZILTEPE TOKİ ASM", [
-    "470455:AHMET YILMAZ",
-    "470456:MUSTAFA KILIÇ",
-    "470466:RIDVAN ARGUN (uzman)",
-    "470472:FIRAT KILIÇ",
-    "470480:BEKİR KILIÇ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE BAŞAK ASM", [
-    "470404:ÇİĞDEM (ŞEN) UNAT",
-    "470458:YUSUF ÇAĞRI",
-    "470463:BURHAN TEK",
-    "470473:MEHMET YALÇINKAYA",
-    "4704106:SİDAR AKDAĞ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE İPEK MAH. ASM", [
-    "470423:VEDAT KİP",
-    "470424:SELMAN YAŞAR",
-    "470426:YUSUF ZİYA BALIKÇI (uzman)",
-    "470427:İDRİS DELEK",
-    "470493:SERHAT YÜNLİ",
-    "4704115:ŞİYAR ÇITIL"
-  ]],
-  ["Kiziltepe", "KIZILTEPE ŞAHMERAN ASM", [
-    "470401:YASİN ALAN",
-    "470406:YAKIN AKTAŞ",
-    "470413:AHMED ÇELEBİ",
-    "470439:SÜLEYMAN KILIÇ",
-    "4704107:ÖMER FARUK GÜZEL"
-  ]],
-  ["Kiziltepe", "KIZILTEPE ŞİFA ASM", [
-    "470460:MAHSUM PARMAK",
-    "470461:MEHMET GEZİCİ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE HÜSEYİN-ERDİHAN ÇELİK ASM", [
-    "470464:EMRULLAH VURAL",
-    "470465:HELBEST ÇEN",
-    "470474:MEHMET HAMZA KALENDER",
-    "470475:VAİSUDDİN MOHAMMADİ",
-    "4704110:ERKAM DİNLENME"
-  ]],
-  ["Kiziltepe", "KIZILTEPE TOPRAK ASM", [
-    "470467:MEHMET ŞERİF ÇELİK",
-    "470468:MEHMET İŞ",
-    "4704103:HALİL EMRE GENÇDAL"
-  ]],
-  ["Kiziltepe", "KIZILTEPE BERÇEM ASM", [
-    "470476:SEVİM ÇELİK",
-    "470477:CENGİZ ADAL",
-    "4704117:DİYAR BAŞ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE OVA ASM", [
-    "470478:AGİT ÖNER",
-    "470479:SEDAT ORAN",
-    "470492:MEHMET FARUK AKDAĞ"
-  ]],
-  ["Kiziltepe", "KIZILTEPE YENİKENT ASM", [
-    "470481:İDRİS ACAR",
-    "470482:ELİF KASAP",
-    "4704101:FARUK KASAP",
-    "4704102:MUSTAFA EROĞLU",
-    "4704109:ECE ÖKTEN KORKMAZ (uzman)"
-  ]],
-  ["Kiziltepe", "KIZILTEPE KOÇHİSAR ASM", [
-    "470483:ALİ AYYILDIZ",
-    "470484:İBRAHİM DEMİRCAN",
-    "470485:MERVE KÖSESOY ÜZGÜN",
-    "4704100:BÜNYAMİN GÖKDEMİR"
-  ]],
-  ["Kiziltepe", "KIZILTEPE ATATÜRK ASM", [
-    "470486:TUNCAY DEMİR",
-    "470487:CÜNEYT AYDIN",
-    "4704105:İBRAHİM IŞIK"
-  ]],
-  ["Kiziltepe", "KIZILTEPE PAMUK ASM", [
-    "470488:AYŞE TUNCAY",
-    "470489:DİLAN ARĞİŞ",
-    "470490:YUNUS DEGER",
-    "470498:TUBA AYKUL"
-  ]],
-  ["Kiziltepe", "KIZILTEPE MEVLANA ASM", [
-    "470494:BERFİN BİRGÜL BAHADIR",
-    "470495:MURAT OKUR"
-  ]],
-  ["Kiziltepe", "KIZILTEPE 14 MART ASM", [
-    "470496:İBRAHİM HALİL KAPLAN",
-    "470497:AHMET AYDINALP",
-    "4704104:ABDURRAHMAN GÜZEL",
-    "4704108:MUSTAFA KORKMAZ (uzman)"
-  ]],
-  ["Mazidaği", "MAZIDAĞI ASM", [
-    "470501:ZAHİT AKKUŞ",
-    "470502:MİRCAN YAĞMUR DARK",
-    "470503:EMİN BELEK",
-    "470504:SERDAR ÇELEBİ",
-    "470505:ŞİYAR ŞEN",
-    "470506:HAMİL DARK",
-    "470507:SELÇUK MUSTAFAOĞLU",
-    "470508:MEHMET KAYA (uzman)"
-  ]],
-  ["Mazidaği", "MAZIDAĞI EVCİLER ASM", [
-    "470509:ESMA RODA BARUT"
-  ]],
-  ["Mazidaği", "MAZIDAĞI FOSFAT ASM", [
-    "470510:DOĞAN TARHAN",
-    "470511:EYLEM AKTAŞ",
-    "470512:ZAL İLERİ"
-  ]],
-  ["Mazidaği", "MAZIDAĞI KOCAKENT ASM", [
-    "470513:MEHMET HATİP COŞKUN",
-    "470515:BOŞ"
-  ]],
-  ["Dargeçi̇t", "DARGEÇİT ASM", [
-    "470201:CİHAN ANIK",
-    "470202:LEVENT ÇOBAN (uzman)",
-    "470203:İLYAS ARSLAN",
-    "470204:AHMET GÜLTEKİN",
-    "470205:ŞEHMUS AYDIN",
-    "470206:SULTAN KAYA (uzman)",
-    "470207:MUZAFFER ÇAKIR",
-    "470208:AHMET YUNUS DEMİR"
-  ]],
-  ["Dargeçi̇t", "DARGEÇİT BAHÇEBAŞI ASM", [
-    "470209:YUSUF HEBUN KORELLI",
-    "470210:MEHMET ZÜLKÜF ÇİT"
-  ]],
-  ["Deri̇k", "DERİK RÜZGAR ASM", [
-    "470304:HACİ (KOYUN) KALENDER",
-    "470305:HAMZA TAŞPINAR",
-    "470306:SEVAL AKTAŞ",
-    "470318:AHMET BARAN"
-  ]],
-  ["Deri̇k", "DERİK ASM", [
-    "470302:ORHAN SÜER",
-    "470307:SAİT ARMAN AKASLAN",
-    "470308:MİRALLAH BAYDU",
-    "470309:MURAT HANÇER",
-    "470319:BOŞ"
-  ]],
-  ["Deri̇k", "DERİK DERİNSU ASM", [
-    "470311:RESUL KAYA"
-  ]],
-  ["Deri̇k", "DERİK ATLI ASM", [
-    "470312:MUHAMMET AY",
-    "470313:MEHMET ARİF AKAY"
-  ]],
-  ["Deri̇k", "DERİK BOYAKLI ASM", [
-    "470314:NAGİHAN KARAKAYA"
-  ]],
-  ["Deri̇k", "DERİK ZEYTİN ASM", [
-    "470315:ERKAN KOCAASLAN",
-    "470316:ZİLAN ALTUNTAŞ",
-    "470301:ALPER ÇELİK",
-    "470321:CUMALI AKMAN",
-    "470303:FERHAT (KOYUN) KALENDER"
-  ]],
-  ["Deri̇k", "DERİK KOVALI ASM", [
-    "470317:ALAATTİN TARHAN",
-    "470320:MUSTAFA ÇETİN"
-  ]],
-  ["Mi̇dyat", "MİDYAT ESTEL ASM", [
-    "470601:ABDURRAHİM AKINCI",
-    "470602:HIDIR ERKEN",
-    "470603:ARAM ALPERGİN",
-    "470604:BİRGÜL CANKURT"
-  ]],
-  ["Mi̇dyat", "MİDYAT YAŞAM ASM", [
-    "470606:EMİNE ERBİL",
-    "470607:ABDULAZİZ DENİZ",
-    "470608:HASAN DAĞ",
-    "470625:SEVDA AKSAN"
-  ]],
-  ["Mi̇dyat", "MİDYAT ULUCAMİ ASM", [
-    "470610:SAVAŞ ALDEMİR",
-    "470611:ABDULKADİR PAMUK",
-    "470612:VAHDETTİN GÜNDÜZ",
-    "470628:MUHAMMED AKİF AYDIN"
-  ]],
-  ["Mi̇dyat", "MİDYAT NAHİD ASM", [
-    "470613:İRŞAT DÜZGÜN",
-    "470614:AHMET ARSLAN",
-    "470615:ABDULİLAH DÜZGÜN",
-    "470617:ERDEM DAŞ",
-    "470618:HASAN ÖZCAN"
-  ]],
-  ["Mi̇dyat", "MİDYAT ŞENKÖY ASM", [
-    "470619:RIDVAN BİLEN"
-  ]],
-  ["Mi̇dyat", "MİDYAT ACIRLI ASM", [
-    "470620:HASİNE DALAK"
-  ]],
-  ["Mi̇dyat", "MİDYAT YOLBAŞI ASM", [
-    "470621:SEDEF ERBİL"
-  ]],
-  ["Mi̇dyat", "MİDYAT ÇAVUŞLU ASM", [
-    "470622:MEHDİ İŞNAS",
-    "470623:BOŞ"
-  ]],
-  ["Mi̇dyat", "MİDYAT KAYALIPINAR ASM", [
-    "470624:ÖMER GÜNDÜZ"
-  ]],
-  ["Mi̇dyat", "MİDYAT FAYSAL ASLAN ASM", [
-    "470609:NECAT ARSLAN",
-    "470616:EMİN ÇAĞATAY PAÇAL",
-    "470630:YUNUS YILDIRIM"
-  ]],
-  ["Mi̇dyat", "MİDYAT TELKARİ ASM", [
-    "470626:HÜMEYRA KAYABAŞI",
-    "470605:İSA ÜLKÜ",
-    "470627:EMRE SİPER",
-    "470629:BİRGÜL ÇEVİK"
-  ]],
-  ["Mi̇dyat", "MİDYAT BAĞLAR ASM", [
-    "470631:NİHAL (BÜTÜN) DOĞAN",
-    "470632:AHMET YILDIZ",
-    "470633:RUKİYE GÜZEN NASANLI",
-    "470634:UMRAN ERDOĞAN",
-    "470645:İMRAN DEMİR"
-  ]],
-  ["Mi̇dyat", "MİDYAT SANAYİ ASM", [
-    "470635:MAHMUT GÜNEŞ",
-    "470636:ESMER YILDIRIM",
-    "470637:AYNUR NOYAN"
-  ]],
-  ["Mi̇dyat", "MİDYAT YENİMAHALLE ASM", [
-    "470638:HALİL DOĞAN",
-    "470639:ZEKİ SAGDIÇ",
-    "470642:ERAY CAN ÇALIŞKAN (uzman)"
-  ]],
-  ["Mi̇dyat", "MİDYAT SEYİTLER ASM", [
-    "470640:BOŞ",
-    "470641:BOŞ"
-  ]],
-  ["Mi̇dyat", "MİDYAT BAHÇELİEVLER ASM", [
-    "470643:BOŞ",
-    "470644:BOŞ"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN HAYAT ASM", [
-    "470701:ALİ YÜKSEL",
-    "470702:HEVLE GÖZÜ",
-    "470703:BİLAL BAYAR",
-    "470704:ORHAN IŞIK",
-    "470705:RÜŞTÜ KIVANÇ"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN İPEKYOLU ASM", [
-    "470706:MEHMET EMİN AVERBEK",
-    "470707:SERDAR TEKİN",
-    "470708:ABDÜLCELİL BÜLBÜL",
-    "470709:MEHMET EMİN DEMİR",
-    "470710:BEŞİR ŞAHİN",
-    "470711:ERCAN YALÇIN"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN BEYAZSU ASM", [
-    "470712:HALİL YÜKSEKDAĞ",
-    "470713:ZEKİ ÖZEK",
-    "470714:HÜSEYİN ÖZMEN",
-    "470715:RIDVAN ŞAMİLOĞLU",
-    "470716:HALİL OĞUZ",
-    "470717:HASAN ÖZMEN"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN SAĞLIK ASM", [
-    "470718:MESÜT ELGÜN",
-    "470719:ABDULKERİM AKİTA",
-    "470720:ADNAN YENİGÜN",
-    "470721:EMİNE (DEMİR) YÜKSEL",
-    "470722:ABDULKERİM YUNUS"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN DURUCA ASM", [
-    "470723:VEDAT KAVAK"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN GİRMELİ ASM", [
-    "470724:MÜSLÜM GÜMÜŞ",
-    "470725:HATİCE ALPASLAN"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN AKARSU ASM", [
-    "470726:LORAN KARADENİZ",
-    "470727:HÜSEYİN AYAZ"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN BARIŞ ASM", [
-    "470728:SÜMEYYE NUR YÖNTEN (uzman)",
-    "470729:YUNUS YILDIZ",
-    "470730:HATİP YILDIZ"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN YENİŞEHİR ASM", [
-    "470731:MURAT BİLGİÇ",
-    "470732:AHMET ARJEN UÇAR",
-    "470733:VELİ AY"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN ABDULKADİRPAŞA ASM", [
-    "470734:DİYAR UÇAR",
-    "470735:MEHMET ERDİNÇ DİNÇ",
-    "470744:SERHAT DEMİR",
-    "470745:ÖMER DEMİR"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN ÇATALÖZÜ ASM", [
-    "470736:GÜLNAZ ALTUNKAYA",
-    "470737:FIRAT YAKICİ"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN 8 MART ASM", [
-    "470738:NESİBE SARITAŞ",
-    "470739:CELAL YARICI",
-    "470742:MEHMET SAİT DAĞ",
-    "470743:LEYLA TARHAN ÖZÇELİK"
-  ]],
-  ["Nusaybi̇n", "NUSAYBİN KIŞLA ASM", [
-    "470740:MEHMET ALİ DOĞAN",
-    "470741:MAKBULE KARADUMAN DOĞAN"
-  ]],
-  ["Savur", "SAVUR PROF.DR.MURAT DİLMENER ASM", [
-    "470901:HALİL PAMUKÇU",
-    "470902:EMİNE ACAR",
-    "470903:ABDULKADİR EKİN",
-    "470904:AZAD BUDAK",
-    "470905:KASIM AKSU"
-  ]],
-  ["Savur", "SAVUR SÜRGÜCÜ ASM", [
-    "470906:EMRE YAŞAR",
-    "470907:KEMAL ÖZDEMİR"
-  ]],
-  ["Savur", "SAVUR PINARDERE ASM", [
-    "470908:OĞUZ ÇELİK (uzman)"
-  ]],
-  ["Ömerli̇", "ÖMERLİ ASM", [
-    "470801:YASEMİN ERYILMAZ (uzman)",
-    "470802:AHMET OLĞAÇ",
-    "470803:YAKUP ZÖNGÜR",
-    "470804:ADİL YILDIRIM",
-    "470805:MUSTAFA AYGÜN",
-    "470806:FERHAT ÇETİNKAYA"
-  ]],
-  ["Yeşi̇lli̇", "YEŞİLLİ ASM", [
-    "471001:MUHAMMED BARAN",
-    "471002:YUSUF ŞAHİN",
-    "471005:SÜMEYYE AK",
-    "471006:ŞAHİN YAŞAR",
-    "471007:BUŞRA YALINKILIÇ"
-  ]],
-  ["Yeşi̇lli̇", "YEŞİLLİ BAHÇE BAŞI ASM", [
-    "471003:MAHSUN PULAD",
-    "471004:BİLAL ÇETİN"
-  ]]
+  ["Artuklu", "ARTUKLU YENİYOL ASM", ["470101:ŞÜKRÜ URAKÇI", "470102:UMRAN YILDIRIM", "470103:ÖZLEM AKMAN YAZGAN", "470104:ÖMER DURMAZ"]],
+  ["Artuklu", "ARTUKLU DİYARBAKIR KAPI ASM", ["470107:MEHMET GÖKTÜRK", "470108:MEHTAP VARLIKLAR"]],
+  ["Artuklu", "ARTUKLU ZİNCİRİYE ASM", ["470109:ŞEYHMUS DEMİRCAN", "470110:EMRULLAH BARAN"]],
+  ["Artuklu", "ARTUKLU TOKİ ASM", ["470146:BİLAL AĞALDAY", "470148:HAMDULLAH ATSIZ", "470156:METİN KAYA", "470174:GÜLİSTAN ADIN KILIÇ", "470182:GÜLŞAH KEZER EKMEKÇİOĞLU (uzman)"]],
+  ["Artuklu", "ARTUKLU İSTASYON ASM", ["470111:ABDULKADİR PİTEK", "470112:MEHMET ÖNER", "470113:FIRAT YILDIRIM", "470149:AHMET ÖZEL"]],
+  ["Artuklu", "ARTUKLU YENİŞEHİR ASM", ["470114:MESUT AKYÜN", "470115:SEVDA ASLAN (uzman)", "470116:KAMİRAN ELÇİ", "470142:HASAN SEVİNÇ (KD)", "470162:ALİ ÇAM", "470163:YILMAZ TURĞAY", "470164:FERHAT KIZILIRMAK (uzman)"]],
+  ["Artuklu", "ARTUKLU KÖTEK ASM", ["470117:ZEYNEP BİLEN", "470159:ESRA ATASEVER"]],
+  ["Artuklu", "ARTUKLU AHMET LÜTFİYE ÇAĞLAR ASM", ["470118:ORHAN ÜNEL", "470119:AZAT NANTU", "470120:LOKMAN ATAY", "470121:HÜSEYİN NANTU"]],
+  ["Artuklu", "ARTUKLU ARTUKBEY ASM", ["470122:YAVUZ ADIBELLİ", "470123:HERDEM YAVUZ", "470124:BARAN ŞEŞEN", "470125:ÜMMÜGÜLSÜM AKTEMUR ÇELİK (uzman)", "470143:MURTAZA KAN"]],
+  ["Artuklu", "ARTUKLU SEVGİ ASM", ["470127:NARİN TADİK (uzman)", "470141:SİNEM ULUOCAK (uzman)", "470155:NAZIM ERGÜL", "470154:YILMAZ SEKİZKARDEŞ"]],
+  ["Artuklu", "ARTUKLU KABALA ASM", ["470128:FADİLE ERGÜL", "470144:BERFİN TANBOĞA", "470129:DENİZ DENK", "470173:SÜLEYMAN AK", "470145:EVİN KORHAN"]],
+  ["Artuklu", "ARTUKLU ORTAKÖY ASM", ["470130:ŞAFAK OÇAL", "470131:ABDULHAKİM ÖZTÜRK", "470132:AHMET ACAR", "470133:ŞAHİN SERTKAYA", "470157:MEHMET ARDA CAN ABUL"]],
+  ["Artuklu", "ARTUKLU KÖPRÜBAŞI ASM", ["470178:BEYZA ÖZDEMİR", "470179:ALAADDİN GENCAN"]],
+  ["Artuklu", "ARTUKLU SULTANKÖY ASM", ["470134:YUNUS BAYRAM", "470135:VEHBİ ERKEK"]],
+  ["Artuklu", "ARTUKLU DARA ASM", ["470136:SİNAN ERGİN"]],
+  ["Artuklu", "ARTUKLU AKINCI ASM", ["470137:MEHMET HALİM ÖZMEN"]],
+  ["Artuklu", "ARTUKLU GÖKÇE ASM", ["470138:MAHSUM GÖNDÜZ", "470139:AMED FIRAT AY", "470140:MERVE MİZGİN TİMUR", "470158:MUSTAFA TANRIKULU", "470175:ÇAĞLAYAN CİCİM"]],
+  ["Artuklu", "ARTUKLU YALIMKÖY ASM", ["470126:MAHSUM ERGÜL", "470147:ŞEYHMUS ALGAN", "470106:ORHAN ÖZDEMİR"]],
+  ["Artuklu", "ARTUKLU ZINNAR ASM", ["470150:YUSUF IRMAK", "470151:NİHAT YİĞİT", "470160:SÜLEYMAN BERRAK", "470177:TURĞUT ÇELİK"]],
+  ["Artuklu", "ARTUKLU RAVZA ASM", ["470152:SABİHA HAZAL DEMİRSOY (uzman)", "470153:HALİME BAYRAM", "470161:BURHAN TURAN", "470105:CÜNEYT KAYAN"]],
+  ["Artuklu", "ARTUKLU 13 MART ASM", ["470165:ESAT ERDEVE", "470166:MEHMET ŞİRİN EKİNCİ", "470176:ŞAHİN MUTLU"]],
+  ["Artuklu", "ARTUKLU GÜMÜŞ ASM", ["470167:İBRAHİM HAYRULLAH DURMAZ", "470168:BİLAL DİNÇER", "470169:NURAY DEVECİ"]],
+  ["Artuklu", "ARTUKLU NUR ASM", ["470170:ZEYDAN ZİYA ARSLANHAN", "470171:CÜNEYT HACIMUSTAFAOĞLU", "470172:ÖZGÜR AKSOY"]],
+  ["Artuklu", "ARTUKLU 1 NOLU ASM", ["470180:BOŞ", "470181:BOŞ"]],
+  ["Kızıltepe", "KIZILTEPE CUMHURİYET ASM", ["470402:AHMET ARSLAN", "470403:ABDULLAH SUNAR", "470405:EMİNE UZUN (uzman)", "470409:MÜSLÜM KURT", "470412:NURİ ENSARİ"]],
+  ["Kızıltepe", "KIZILTEPE TEPEBAŞI ASM", ["470407:İBRAHİM ÇİFÇİ", "470408:SEMA GÖKTAŞ", "470410:SEYFETTİN KAPLAN", "470459:ADİL GÖREN"]],
+  ["Kızıltepe", "KIZILTEPE REŞİT GÜNDOĞDU ASM", ["470414:HİKMET ARÇİN", "470415:İRFAN DEGER", "470416:ABDURRAHİM AKSOY", "470417:MUHAMMED ALAN", "470418:SAİT KURT", "470419:SERHAT GEGEZ (uzman)", "470420:SELAHATTİN KAPLAN", "470421:BİLAL GÖK"]],
+  ["Kızıltepe", "KIZILTEPE FIRAT ASM", ["470425:MUSTAFA ALIR", "470428:FETHULLAH KILINÇ", "470429:FIRAT ARSLAN", "470430:BÜŞRA DOĞMUŞÖZ", "470470:AYDIN ALAR"]],
+  ["Kızıltepe", "KIZILTEPE ZERGAN ASM", ["470431:SHOGUFFA HAQYAR", "470432:HASAN KAYA", "470433:BARIŞ ALDEMİR", "470434:HASAN AKYÜN", "470435:CİBRAİL ABUL", "470457:İBRAHİM TARI", "470411:ABDULLAH ELÇİÇEK"]],
+  ["Kızıltepe", "KIZILTEPE MEDYA ASM", ["470436:CANSU YALÇIN ŞENGÜL", "470437:HAKAN ABAK", "470438:HASAN EMEK", "470469:EMRULLAH YILDIZ"]],
+  ["Kızıltepe", "KIZILTEPE YENİ MAH ASM", ["470440:ÇETİN ÖZGÜN", "470441:MERYEM EREN", "470442:SİNEM İLHAN", "470462:SİBEL (KAPÇAK) ELÇİÇEK", "470471:ABDURRAHİM DAMAR"]],
+  ["Kızıltepe", "KIZILTEPE BAHÇELİEVLER ASM", ["470443:DİLAN BIÇAK", "470444:ABDULCELİL ÇİÇEK", "470445:MAHMUT ERKAN", "470422:MEHMET KORKUT"]],
+  ["Kızıltepe", "KIZILTEPE OSMAN-NURİYE BAKIRCI ASM", ["470446:AHMET ARAZ"]],
+  ["Kızıltepe", "KIZILTEPE AKDOĞAN ASM", ["470447:ZEYNELABİDİN ŞEN", "470491:BAHAR TEKGÜL"]],
+  ["Kızıltepe", "KIZILTEPE ŞENYURT ASM", ["470448:KUMRU ENÜŞTEKİN"]],
+  ["Kızıltepe", "KIZILTEPE HOCAKÖY ASM", ["470449:NURİ ADIYAMAN"]],
+  ["Kızıltepe", "KIZILTEPE SÜREKLİ ASM", ["470450:SERHAT ERGÜL"]],
+  ["Kızıltepe", "KIZILTEPE DİKMEN ASM", ["470451:YAKUP ALDEMİR", "470452:ABDULCELİL ABİÇ"]],
+  ["Kızıltepe", "KIZILTEPE BOZHÖYÜK ASM", ["470453:ABDULLAH AYDIN", "470454:SERHAT ÖZBADEM", "4704116:ROJHAT ASLAN"]],
+  ["Kızıltepe", "KIZILTEPE TOKİ ASM", ["470455:AHMET YILMAZ", "470456:MUSTAFA KILIÇ", "470466:RIDVAN ARGUN (uzman)", "470472:FIRAT KILIÇ", "470480:BEKİR KILIÇ"]],
+  ["Kızıltepe", "KIZILTEPE BAŞAK ASM", ["470404:ÇİĞDEM (ŞEN) UNAT", "470458:YUSUF ÇAĞRI", "470463:BURHAN TEK", "470473:MEHMET YALÇINKAYA", "4704106:SİDAR AKDAĞ"]],
+  ["Kızıltepe", "KIZILTEPE İPEK MAH. ASM", ["470423:VEDAT KİP", "470424:SELMAN YAŞAR", "470426:YUSUF ZİYA BALIKÇI (uzman)", "470427:İDRİS DELEK", "470493:SERHAT YÜNLİ", "4704115:ŞİYAR ÇITIL"]],
+  ["Kızıltepe", "KIZILTEPE ŞAHMERAN ASM", ["470401:YASİN ALAN", "470406:YAKIN AKTAŞ", "470413:AHMED ÇELEBİ", "470439:SÜLEYMAN KILIÇ", "4704107:ÖMER FARUK GÜZEL"]],
+  ["Kızıltepe", "KIZILTEPE ŞİFA ASM", ["470460:MAHSUM PARMAK", "470461:MEHMET GEZİCİ"]],
+  ["Kızıltepe", "KIZILTEPE HÜSEYİN-ERDİHAN ÇELİK ASM", ["470464:EMRULLAH VURAL", "470465:HELBEST ÇEN", "470474:MEHMET HAMZA KALENDER", "470475:VAİSUDDİN MOHAMMADİ", "4704110:ERKAM DİNLENME"]],
+  ["Kızıltepe", "KIZILTEPE TOPRAK ASM", ["470467:MEHMET ŞERİF ÇELİK", "470468:MEHMET İŞ", "4704103:HALİL EMRE GENÇDAL"]],
+  ["Kızıltepe", "KIZILTEPE BERÇEM ASM", ["470476:SEVİM ÇELİK", "470477:CENGİZ ADAL", "4704117:DİYAR BAŞ"]],
+  ["Kızıltepe", "KIZILTEPE OVA ASM", ["470478:AGİT ÖNER", "470479:SEDAT ORAN", "470492:MEHMET FARUK AKDAĞ"]],
+  ["Kızıltepe", "KIZILTEPE YENİKENT ASM", ["470481:İDRİS ACAR", "470482:ELİF KASAP", "4704101:FARUK KASAP", "4704102:MUSTAFA EROĞLU", "4704109:ECE ÖKTEN KORKMAZ (uzman)"]],
+  ["Kızıltepe", "KIZILTEPE KOÇHİSAR ASM", ["470483:ALİ AYYILDIZ", "470484:İBRAHİM DEMİRCAN", "470485:MERVE KÖSESOY ÜZGÜN", "4704100:BÜNYAMİN GÖKDEMİR"]],
+  ["Kızıltepe", "KIZILTEPE ATATÜRK ASM", ["470486:TUNCAY DEMİR", "470487:CÜNEYT AYDIN", "4704105:İBRAHİM IŞIK"]],
+  ["Kızıltepe", "KIZILTEPE PAMUK ASM", ["470488:AYŞE TUNCAY", "470489:DİLAN ARĞİŞ", "470490:YUNUS DEGER", "470498:TUBA AYKUL"]],
+  ["Kızıltepe", "KIZILTEPE MEVLANA ASM", ["470494:BERFİN BİRGÜL BAHADIR", "470495:MURAT OKUR"]],
+  ["Kızıltepe", "KIZILTEPE 14 MART ASM", ["470496:İBRAHİM HALİL KAPLAN", "470497:AHMET AYDINALP", "4704104:ABDURRAHMAN GÜZEL", "4704108:MUSTAFA KORKMAZ (uzman)"]],
+  ["Mazıdağı", "MAZIDAĞI ASM", ["470501:ZAHİT AKKUŞ", "470502:MİRCAN YAĞMUR DARK", "470503:EMİN BELEK", "470504:SERDAR ÇELEBİ", "470505:ŞİYAR ŞEN", "470506:HAMİL DARK", "470507:SELÇUK MUSTAFAOĞLU", "470508:MEHMET KAYA (uzman)"]],
+  ["Mazıdağı", "MAZIDAĞI EVCİLER ASM", ["470509:ESMA RODA BARUT"]],
+  ["Mazıdağı", "MAZIDAĞI FOSFAT ASM", ["470510:DOĞAN TARHAN", "470511:EYLEM AKTAŞ", "470512:ZAL İLERİ"]],
+  ["Mazıdağı", "MAZIDAĞI KOCAKENT ASM", ["470513:MEHMET HATİP COŞKUN", "470515:BOŞ"]],
+  ["Dargeçit", "DARGEÇİT ASM", ["470201:CİHAN ANIK", "470202:LEVENT ÇOBAN (uzman)", "470203:İLYAS ARSLAN", "470204:AHMET GÜLTEKİN", "470205:ŞEHMUS AYDIN", "470206:SULTAN KAYA (uzman)", "470207:MUZAFFER ÇAKIR", "470208:AHMET YUNUS DEMİR"]],
+  ["Dargeçit", "DARGEÇİT BAHÇEBAŞI ASM", ["470209:YUSUF HEBUN KORELLI", "470210:MEHMET ZÜLKÜF ÇİT"]],
+  ["Derik", "DERİK RÜZGAR ASM", ["470304:HACİ (KOYUN) KALENDER", "470305:HAMZA TAŞPINAR", "470306:SEVAL AKTAŞ", "470318:AHMET BARAN"]],
+  ["Derik", "DERİK ASM", ["470302:ORHAN SÜER", "470307:SAİT ARMAN AKASLAN", "470308:MİRALLAH BAYDU", "470309:MURAT HANÇER", "470319:BOŞ"]],
+  ["Derik", "DERİK DERİNSU ASM", ["470311:RESUL KAYA"]],
+  ["Derik", "DERİK ATLI ASM", ["470312:MUHAMMET AY", "470313:MEHMET ARİF AKAY"]],
+  ["Derik", "DERİK BOYAKLI ASM", ["470314:NAGİHAN KARAKAYA"]],
+  ["Derik", "DERİK ZEYTİN ASM", ["470315:ERKAN KOCAASLAN", "470316:ZİLAN ALTUNTAŞ", "470301:ALPER ÇELİK", "470321:CUMALI AKMAN", "470303:FERHAT (KOYUN) KALENDER"]],
+  ["Derik", "DERİK KOVALI ASM", ["470317:ALAATTİN TARHAN", "470320:MUSTAFA ÇETİN"]],
+  ["Midyat", "MİDYAT ESTEL ASM", ["470601:ABDURRAHİM AKINCI", "470602:HIDIR ERKEN", "470603:ARAM ALPERGİN", "470604:BİRGÜL CANKURT"]],
+  ["Midyat", "MİDYAT YAŞAM ASM", ["470606:EMİNE ERBİL", "470607:ABDULAZİZ DENİZ", "470608:HASAN DAĞ", "470625:SEVDA AKSAN"]],
+  ["Midyat", "MİDYAT ULUCAMİ ASM", ["470610:SAVAŞ ALDEMİR", "470611:ABDULKADİR PAMUK", "470612:VAHDETTİN GÜNDÜZ", "470628:MUHAMMED AKİF AYDIN"]],
+  ["Midyat", "MİDYAT NAHİD ASM", ["470613:İRŞAT DÜZGÜN", "470614:AHMET ARSLAN", "470615:ABDULİLAH DÜZGÜN", "470617:ERDEM DAŞ", "470618:HASAN ÖZCAN"]],
+  ["Midyat", "MİDYAT ŞENKÖY ASM", ["470619:RIDVAN BİLEN"]],
+  ["Midyat", "MİDYAT ACIRLI ASM", ["470620:HASİNE DALAK"]],
+  ["Midyat", "MİDYAT YOLBAŞI ASM", ["470621:SEDEF ERBİL"]],
+  ["Midyat", "MİDYAT ÇAVUŞLU ASM", ["470622:MEHDİ İŞNAS", "470623:BOŞ"]],
+  ["Midyat", "MİDYAT KAYALIPINAR ASM", ["470624:ÖMER GÜNDÜZ"]],
+  ["Midyat", "MİDYAT FAYSAL ASLAN ASM", ["470609:NECAT ARSLAN", "470616:EMİN ÇAĞATAY PAÇAL", "470630:YUNUS YILDIRIM"]],
+  ["Midyat", "MİDYAT TELKARİ ASM", ["470626:HÜMEYRA KAYABAŞI", "470605:İSA ÜLKÜ", "470627:EMRE SİPER", "470629:BİRGÜL ÇEVİK"]],
+  ["Midyat", "MİDYAT BAĞLAR ASM", ["470631:NİHAL (BÜTÜN) DOĞAN", "470632:AHMET YILDIZ", "470633:RUKİYE GÜZEN NASANLI", "470634:UMRAN ERDOĞAN", "470645:İMRAN DEMİR"]],
+  ["Midyat", "MİDYAT SANAYİ ASM", ["470635:MAHMUT GÜNEŞ", "470636:ESMER YILDIRIM", "470637:AYNUR NOYAN"]],
+  ["Midyat", "MİDYAT YENİMAHALLE ASM", ["470638:HALİL DOĞAN", "470639:ZEKİ SAGDIÇ", "470642:ERAY CAN ÇALIŞKAN (uzman)"]],
+  ["Midyat", "MİDYAT SEYİTLER ASM", ["470640:BOŞ", "470641:BOŞ"]],
+  ["Midyat", "MİDYAT BAHÇELİEVLER ASM", ["470643:BOŞ", "470644:BOŞ"]],
+  ["Nusaybin", "NUSAYBİN HAYAT ASM", ["470701:ALİ YÜKSEL", "470702:HEVLE GÖZÜ", "470703:BİLAL BAYAR", "470704:ORHAN IŞIK", "470705:RÜŞTÜ KIVANÇ"]],
+  ["Nusaybin", "NUSAYBİN İPEKYOLU ASM", ["470706:MEHMET EMİN AVERBEK", "470707:SERDAR TEKİN", "470708:ABDÜLCELİL BÜLBÜL", "470709:MEHMET EMİN DEMİR", "470710:BEŞİR ŞAHİN", "470711:ERCAN YALÇIN"]],
+  ["Nusaybin", "NUSAYBİN BEYAZSU ASM", ["470712:HALİL YÜKSEKDAĞ", "470713:ZEKİ ÖZEK", "470714:HÜSEYİN ÖZMEN", "470715:RIDVAN ŞAMİLOĞLU", "470716:HALİL OĞUZ", "470717:HASAN ÖZMEN"]],
+  ["Nusaybin", "NUSAYBİN SAĞLIK ASM", ["470718:MESÜT ELGÜN", "470719:ABDULKERİM AKİTA", "470720:ADNAN YENİGÜN", "470721:EMİNE (DEMİR) YÜKSEL", "470722:ABDULKERİM YUNUS"]],
+  ["Nusaybin", "NUSAYBİN DURUCA ASM", ["470723:VEDAT KAVAK"]],
+  ["Nusaybin", "NUSAYBİN GİRMELİ ASM", ["470724:MÜSLÜM GÜMÜŞ", "470725:HATİCE ALPASLAN"]],
+  ["Nusaybin", "NUSAYBİN AKARSU ASM", ["470726:LORAN KARADENİZ", "470727:HÜSEYİN AYAZ"]],
+  ["Nusaybin", "NUSAYBİN BARIŞ ASM", ["470728:SÜMEYYE NUR YÖNTEN (uzman)", "470729:YUNUS YILDIZ", "470730:HATİP YILDIZ"]],
+  ["Nusaybin", "NUSAYBİN YENİŞEHİR ASM", ["470731:MURAT BİLGİÇ", "470732:AHMET ARJEN UÇAR", "470733:VELİ AY"]],
+  ["Nusaybin", "NUSAYBİN ABDULKADİRPAŞA ASM", ["470734:DİYAR UÇAR", "470735:MEHMET ERDİNÇ DİNÇ", "470744:SERHAT DEMİR", "470745:ÖMER DEMİR"]],
+  ["Nusaybin", "NUSAYBİN ÇATALÖZÜ ASM", ["470736:GÜLNAZ ALTUNKAYA", "470737:FIRAT YAKICİ"]],
+  ["Nusaybin", "NUSAYBİN 8 MART ASM", ["470738:NESİBE SARITAŞ", "470739:CELAL YARICI", "470742:MEHMET SAİT DAĞ", "470743:LEYLA TARHAN ÖZÇELİK"]],
+  ["Nusaybin", "NUSAYBİN KIŞLA ASM", ["470740:MEHMET ALİ DOĞAN", "470741:MAKBULE KARADUMAN DOĞAN"]],
+  ["Savur", "SAVUR PROF.DR.MURAT DİLMENER ASM", ["470901:HALİL PAMUKÇU", "470902:EMİNE ACAR", "470903:ABDULKADİR EKİN", "470904:AZAD BUDAK", "470905:KASIM AKSU"]],
+  ["Savur", "SAVUR SÜRGÜCÜ ASM", ["470906:EMRE YAŞAR", "470907:KEMAL ÖZDEMİR"]],
+  ["Savur", "SAVUR PINARDERE ASM", ["470908:OĞUZ ÇELİK (uzman)"]],
+  ["Ömerli", "ÖMERLİ ASM", ["470801:YASEMİN ERYILMAZ (uzman)", "470802:AHMET OLĞAÇ", "470803:YAKUP ZÖNGÜR", "470804:ADİL YILDIRIM", "470805:MUSTAFA AYGÜN", "470806:FERHAT ÇETİNKAYA"]],
+  ["Yeşilli", "YEŞİLLİ ASM", ["471001:MUHAMMED BARAN", "471002:YUSUF ŞAHİN", "471005:SÜMEYYE AK", "471006:ŞAHİN YAŞAR", "471007:BUŞRA YALINKILIÇ"]],
+  ["Yeşilli", "YEŞİLLİ BAHÇE BAŞI ASM", ["471003:MAHSUN PULAD", "471004:BİLAL ÇETİN"]]
 ];
+
+if (!DOKTORLARI_GOSTER) document.body.classList.add('gizle-dr');
 
 const data = D.map(([i, a, b]) => ({
   ilce: i,
@@ -678,7 +250,8 @@ window.onmousemove = e => {
 });
 
 const S_URL = "https://www.google.com/search?udm=50&q=";
-const S_PAT = " resmi web sayfası ve iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı çalıştığı birimin numarasıyla birlikte bul ve tablo yap detaylı ve ayrıntılı olsun.her satıra birimleri ayrı ayrı yaz";
+const S_ASMPAT = " resmi web sayfası ve iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı çalıştığı birimin numarasıyla birlikte bul ve tablo yap detaylı ve ayrıntılı olsun.her satıra birimleri ayrı ayrı yaz";
+const S_AHBPAT = " nolu aile hekimliği birimi resmi web sayfası ve iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı bul detaylı ve ayrıntılı olsun.";
 
 function aV(id, v) {
   const el = document.getElementById(id);
@@ -711,16 +284,29 @@ function render(items, q = '') {
   }
 
   lE.innerHTML = items.map((x, idx) => {
-    const lk = S_URL + encodeURIComponent('Mardin ' + x.asm + S_PAT);
-    const rows = x.units.map(u => {
-      const m = q && (u.no.includes(q) || u.h.toLowerCase().includes(q));
-      const vac = u.h.toUpperCase().includes('BOŞ');
-      const uz = u.h.includes('(uzman)');
-      let h = vac ? '<span class="vac">BOŞ BİRİM</span>' : (uz ? u.h.replace('(uzman)', '<span class="uzm">(uzman)</span>') : u.h);
-      return `<tr class="${m ? 'hl' : ''}"><td style="width:210px"><span class="ahb-b">${u.no} Nolu AHB</span></td><td>${h}${m ? '<span class="m-badge">⚡ Aranan</span>' : ''}</td></tr>`;
-    }).join('');
+    const asmLink = S_URL + encodeURIComponent('Mardin ' + x.asm + S_ASMPAT);
+    
+    if (!DOKTORLARI_GOSTER) {
+      const gridItems = x.units.map(u => {
+        const m = q && (u.no.includes(q) || u.h.toLowerCase().includes(q));
+        const ahbLink = S_URL + encodeURIComponent("Mardin " + x.ilce + " " + x.asm + " " + u.no + S_AHBPAT);
+        return `<div class="grid-item ${m ? 'hl' : ''}"><a href="${ahbLink}" target="_blank" rel="noopener noreferrer" class="ahb-b" title="Bu birim için detaylı arama yap">${u.no} Nolu AHB</a>${m ? '<span class="m-badge">⚡</span>' : ''}</div>`;
+      }).join('');
 
-    return `<div class="card" style="animation-delay:${Math.min(idx * 0.03, 0.35)}s"><div class="c-head"><a href="${lk}" target="_blank" rel="noopener noreferrer" class="asm-l"><span class="dot"></span><span>${x.asm}</span></a><a href="${lk}" target="_blank" rel="noopener noreferrer" class="btn">İletişim Bilgileri ↗</a></div><table><thead><tr><th style="width:210px">Birim No</th><th>Aile Hekimi</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      return `<div class="card" style="animation-delay:${Math.min(idx * 0.03, 0.35)}s"><div class="c-head"><a href="${asmLink}" target="_blank" rel="noopener noreferrer" class="asm-l"><span class="dot"></span><span>${x.asm}</span></a><a href="${asmLink}" target="_blank" rel="noopener noreferrer" class="btn">İletişim Bilgileri ↗</a></div><div class="card-body-grid">${gridItems}</div></div>`;
+    } else {
+      const rows = x.units.map(u => {
+        const m = q && (u.no.includes(q) || u.h.toLowerCase().includes(q));
+        const vac = u.h.toUpperCase().includes('BOŞ');
+        const uz = u.h.includes('(uzman)');
+        let h = vac ? '<span class="vac">BOŞ BİRİM</span>' : (uz ? u.h.replace('(uzman)', '<span class="uzm">(uzman)</span>') : u.h);
+        const ahbLink = S_URL + encodeURIComponent("Mardin " + x.ilce + " " + x.asm + " " + u.no + S_AHBPAT);
+
+        return `<tr class="${m ? 'hl' : ''}"><td style="width:210px"><a href="${ahbLink}" target="_blank" rel="noopener noreferrer" class="ahb-b" title="Bu birim için detaylı arama yap">${u.no} Nolu AHB</a></td><td class="col-dr">${h}${m ? '<span class="m-badge">⚡ Aranan</span>' : ''}</td></tr>`;
+      }).join('');
+
+      return `<div class="card" style="animation-delay:${Math.min(idx * 0.03, 0.35)}s"><div class="c-head"><a href="${asmLink}" target="_blank" rel="noopener noreferrer" class="asm-l"><span class="dot"></span><span>${x.asm}</span></a><a href="${asmLink}" target="_blank" rel="noopener noreferrer" class="btn">İletişim Bilgileri ↗</a></div><table><thead><tr><th style="width:210px">Birim No</th><th class="col-dr">Aile Hekimi</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    }
   }).join('');
 }
 
@@ -732,7 +318,6 @@ function flt() {
 qI.oninput = flt;
 dI.onchange = flt;
 render(data);
-
 </script>
 </body>
 </html>
