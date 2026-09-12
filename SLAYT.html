@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Duvar Kağıtları</title>
+  <style id="dynamic-kenburns-style"></style>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #fff; padding: 20px; }
+    .header { text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+    .dropdown-container { position: relative; display: inline-block; }
+    .dropdown-btn { background: #222; color: #fff; border: 1px solid #444; padding: 9px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
+    .dropdown-btn:hover { border-color: #0078d4; }
+    .dropdown-menu { display: none; position: absolute; top: calc(100% + 5px); left: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; width: 280px; max-height: 360px; overflow-y: auto; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.6); padding: 8px; }
+    .dropdown-menu.show { display: block; }
+    .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; color: #ddd; user-select: none; }
+    .dropdown-item:hover { background: #2a2a2a; }
+    .dropdown-item input { accent-color: #0078d4; width: 16px; height: 16px; cursor: pointer; }
+
+    select { padding: 9px 14px; border-radius: 6px; font-size: 14px; font-weight: bold; background: #222; color: #fff; border: 1px solid #444; outline: none; cursor: pointer; }
+    .btn { background: #0078d4; color: white; padding: 9px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; }
+    .btn:hover { background: #005a9e; }
+    .btn-download { background: #28a745; }
+    .btn-download:hover { background: #218838; }
+    .btn-slide { background: #8a2be2; }
+    .btn-slide:hover { background: #731ec2; }
+
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column; position: relative; }
+    .card img { width: 100%; height: 180px; object-fit: cover; cursor: pointer; transition: transform 0.2s; background: #2a2a2a; }
+    .card img:hover { transform: scale(1.02); }
+    .card-info { padding: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #bbb; }
+    .card-check { position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; cursor: pointer; z-index: 2; accent-color: #0078d4; }
+    #loader { text-align: center; padding: 25px; color: #888; font-size: 14px; }
+
+    #modal { display: flex; position: fixed; inset: 0; background: #000; z-index: 100; justify-content: center; align-items: center; user-select: none; overflow: hidden; }
+    #modal-img { max-width: 100vw; max-height: 100vh; object-fit: contain; transform-origin: center center; }
+
+    .random-ken-burns {
+      animation-name: randomMovement;
+      animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+      animation-fill-mode: forwards;
+    }
+
+    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); color: white; border: none; font-size: 30px; width: 50px; height: 60px; border-radius: 6px; cursor: pointer; transition: opacity 0.3s; z-index: 102; display: none; }
+    .nav-btn:hover { background: rgba(255,255,255,0.3); }
+    .prev-btn { left: 20px; }
+    .next-btn { right: 20px; }
+
+    .top-bar { position: absolute; top: 20px; left: 25px; right: 25px; display: flex; justify-content: flex-end; align-items: center; z-index: 102; transition: opacity 0.4s ease; }
+    .modal-actions { display: flex; gap: 10px; align-items: center; }
+    .close-btn { background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; margin-left: 10px; }
+    
+    /* Gizlenmesi istenen diğer öğeler için başlangıç sınıfı */
+    .initial-hidden { display: none !important; }
+
+    .slide-controls { display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
+    .slide-controls select { padding: 4px 8px; font-size: 12px; }
+
+    .ui-hidden { opacity: 0 !important; pointer-events: none !important; cursor: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>Duvar Kağıtları</h2>
+    
+    <div class="controls">
+      <div class="dropdown-container">
+        <button class="dropdown-btn" id="category-btn" onclick="toggleDropdown(event)">
+          Kategoriler (Tümü) ▾
+        </button>
+        <div class="dropdown-menu" id="dropdown-menu">
+          <label class="dropdown-item">
+            <input type="checkbox" id="cat-all" value="all" checked onchange="kategoriSecimDegisti(this)">
+            <strong>Tüm Kategoriler</strong>
+          </label>
+          <hr style="border: 0; border-top: 1px solid #333; margin: 4px 0;">
+          <div id="category-items"></div>
+        </div>
+      </div>
+
+      <select id="kalite" onchange="filtreYenile()">
+        <option value="1920x1080">FHD (1920x1080)</option>
+        <option value="2560x1440">2K QHD (2560x1440)</option>
+        <option value="3840x2160">4K UHD (3840x2160)</option>
+      </select>
+
+      <button class="btn btn-slide" onclick="slaytBaslat()">▶ Slayt Gösterisi</button>
+      <button class="btn" id="select-all-btn" onclick="tumunuSecToggle()">Tümünü Seç</button>
+      <button class="btn" onclick="filtreYenile()">Yenile</button>
+      <button class="btn btn-download" id="bulk-btn" onclick="topluIndir()">Seçilenleri İndir (0)</button>
+    </div>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+  <div id="loader">Daha fazla görsel yükleniyor...</div>
+
+  <div id="modal">
+    <div class="top-bar" id="modal-top-bar">
+      <span id="counter" class="initial-hidden" style="color: #ccc; font-size: 15px;">1 / 20</span>
+      
+      <div class="modal-actions">
+        <div class="slide-controls initial-hidden" id="slide-settings">
+          <span style="font-size: 12px; color: #ddd;">Süre:</span>
+          <select id="slayt-hiz" onchange="slaytSuresiDegisti()">
+            <option value="5000">5 sn</option>
+            <option value="10000" selected>10 sn</option>
+            <option value="15000">15 sn</option>
+            <option value="30000">30 sn</option>
+          </select>
+          <button class="btn btn-slide" id="slayt-toggle-btn" style="padding: 4px 10px; font-size: 12px;" onclick="slaytDurdurBaslat()">Durdur</button>
+        </div>
+
+        <button class="btn initial-hidden" id="modal-select-btn" onclick="toggleSelectFromModal()">Seç</button>
+        <button class="btn btn-download initial-hidden" onclick="indirMevcutModal()">İndir</button>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+
+    <button class="nav-btn prev-btn" id="btn-prev" onclick="prevImg(event)">‹</button>
+    <img id="modal-img" src="" alt="Önizleme">
+    <button class="nav-btn next-btn" id="btn-next" onclick="nextImg(event)">›</button>
+  </div>
+
+  <script>
+    const KATEGORI_LISTESI = [
+      { id: "space", label: "Uzay & Galaksi" },
+      { id: "nature", label: "Doğa & Manzara" },
+      { id: "mountain", label: "Dağlar & Zirveler" },
+      { id: "sea", label: "Deniz & Okyanus" },
+      { id: "forest", label: "Orman & Ağaçlar" },
+      { id: "city", label: "Şehir & Metropol" },
+      { id: "architecture", label: "Mimari & Yapılar" },
+      { id: "sunset", label: "Gün Batımı & Şafak" },
+      { id: "desert", label: "Çöl & Kanyon" },
+      { id: "aurora", label: "Kutup Işıkları (Aurora)" },
+      { id: "animals", label: "Vahşi Yaşam & Hayvanlar" },
+      { id: "underwater", label: "Sualtı & Mercanlar" },
+      { id: "night", label: "Gece Işıkları" },
+      { id: "minimal", label: "Minimalist & Sade" },
+      { id: "abstract", label: "Soyut & Geometrik" },
+      { id: "macro", label: "Makro Doğa" },
+      { id: "winter", label: "Kış & Kar Manzaraları" },
+      { id: "autumn", label: "Sonbahar Yaprakları" },
+      { id: "waterfall", label: "Şelaleler & Nehirler" },
+      { id: "clouds", label: "Bulutlar & Gökyüzü" },
+      { id: "roads", label: "Yollar & Yolculuk" },
+      { id: "aerial", label: "Havadan (Drone) Çekim" }
+    ];
+
+    let fotograflar = [];
+    let seciliSet = new Set();
+    let seciliKategoriler = new Set(['all']);
+    let currentIndex = 0;
+    let page = 1;
+    let isLoading = false;
+
+    let slideTimer = null;
+    let isSlideActive = true;
+    let hideControlsTimeout = null;
+
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modal-img');
+    const dynamicStyle = document.getElementById('dynamic-kenburns-style');
+    const counter = document.getElementById('counter');
+    const gallery = document.getElementById('gallery');
+    const loader = document.getElementById('loader');
+    const bulkBtn = document.getElementById('bulk-btn');
+    const modalSelectBtn = document.getElementById('modal-select-btn');
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const topBar = document.getElementById('modal-top-bar');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const slaytToggleBtn = document.getElementById('slayt-toggle-btn');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const categoryBtn = document.getElementById('category-btn');
+
+    function kategoriMenusuHazirla() {
+      const container = document.getElementById('category-items');
+      KATEGORI_LISTESI.forEach(k => {
+        const lbl = document.createElement('label');
+        lbl.className = 'dropdown-item';
+        lbl.innerHTML = `<input type="checkbox" value="${k.id}" onchange="kategoriSecimDegisti(this)"> ${k.label}`;
+        container.appendChild(lbl);
+      });
+    }
+
+    function toggleDropdown(e) {
+      e.stopPropagation();
+      dropdownMenu.classList.toggle('show');
+    }
+
+    window.addEventListener('click', (e) => {
+      if (!dropdownMenu.contains(e.target) && e.target !== categoryBtn) {
+        dropdownMenu.classList.remove('show');
+      }
+    });
+
+    function kategoriSecimDegisti(target) {
+      const allCheck = document.getElementById('cat-all');
+      const inputs = document.querySelectorAll('#category-items input');
+
+      if (target.value === 'all') {
+        if (target.checked) {
+          inputs.forEach(i => i.checked = false);
+          seciliKategoriler.clear();
+          seciliKategoriler.add('all');
+        } else {
+          target.checked = true;
+        }
+      } else {
+        allCheck.checked = false;
+        seciliKategoriler.delete('all');
+
+        if (target.checked) {
+          seciliKategoriler.add(target.value);
+        } else {
+          seciliKategoriler.delete(target.value);
+        }
+
+        if (seciliKategoriler.size === 0) {
+          allCheck.checked = true;
+          seciliKategoriler.add('all');
+        }
+      }
+
+      categoryBtn.textContent = seciliKategoriler.has('all') 
+        ? 'Kategoriler (Tümü) ▾' 
+        : `Kategoriler (${seciliKategoriler.size}) ▾`;
+
+      filtreYenile();
+    }
+
+    function filtreYenile() {
+      page = 1;
+      fotograflar = [];
+      seciliSet.clear();
+      guncelleSecimSayisi();
+      gallery.innerHTML = '';
+      resimleriYukle();
+    }
+
+    async function resimleriYukle(ilkAcilis = false) {
+      if (isLoading) return;
+      isLoading = true;
+      loader.style.display = 'block';
+
+      const [width, height] = document.getElementById('kalite').value.split('x');
+      const catArray = seciliKategoriler.has('all') 
+        ? KATEGORI_LISTESI.map(k => k.id) 
+        : Array.from(seciliKategoriler);
+
+      const yeniFotolar = [];
+
+      for (let i = 0; i < 20; i++) {
+        const rastgeleKategori = catArray[Math.floor(Math.random() * catArray.length)];
+        const seed = `${rastgeleKategori}_${Date.now()}_${(page - 1) * 20 + i}`;
+        const url = `https://picsum.photos/seed/${seed}/${width}/${height}`;
+        
+        yeniFotolar.push({
+          url: url,
+          id: `kilit_ekrani_${seed}.jpg`,
+          width: width,
+          height: height
+        });
+      }
+
+      for (const foto of yeniFotolar) {
+        fotograflar.push(foto);
+        const idx = fotograflar.length - 1;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <input type="checkbox" class="card-check" id="chk-${idx}" onchange="kartSecim(${idx}, this.checked)">
+          <img src="${foto.url}" loading="lazy" onclick="openModal(${idx})">
+          <div class="card-info">
+            <div>
+              <strong>${foto.width}x${foto.height}</strong><br>
+              <span id="size-${idx}" style="color: #888;">Hesaplanıyor...</span>
+            </div>
+            <button class="btn btn-download" style="padding: 4px 10px; font-size: 12px;" onclick="tekilIndir('${foto.url}', '${foto.id}')">İndir</button>
+          </div>
+        `;
+        gallery.appendChild(card);
+        boyutBilgisiniGetir(foto.url, idx);
+      }
+
+      page++;
+      isLoading = false;
+      loader.style.display = 'none';
+      guncelleTumunuSecButonu();
+
+      if (ilkAcilis && fotograflar.length > 0) {
+        currentIndex = Math.floor(Math.random() * fotograflar.length);
+        updateModal();
+        slaytDöngüsüAyarla();
+        resetHideTimer();
+      }
+    }
+
+    async function boyutBilgisiniGetir(url, idx) {
+      const sizeSpan = document.getElementById(`size-${idx}`);
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        if (sizeSpan && blob.size > 0) {
+          const mb = (blob.size / (1024 * 1024)).toFixed(2);
+          sizeSpan.textContent = `${mb} MB`;
+        }
+      } catch {
+        if (sizeSpan) sizeSpan.textContent = 'Bilinmiyor';
+      }
+    }
+
+    function kartSecim(idx, durum) {
+      if (durum) seciliSet.add(idx);
+      else seciliSet.delete(idx);
+      guncelleSecimSayisi();
+      guncelleTumunuSecButonu();
+      if (modal.style.display === 'flex' && currentIndex === idx) {
+        guncelleModalSecimButonu();
+      }
+    }
+
+    function tumunuSecToggle() {
+      const hepsiSecili = seciliSet.size === fotograflar.length && fotograflar.length > 0;
+      if (hepsiSecili) {
+        seciliSet.clear();
+      } else {
+        fotograflar.forEach((_, idx) => seciliSet.add(idx));
+      }
+
+      fotograflar.forEach((_, idx) => {
+        const chk = document.getElementById(`chk-${idx}`);
+        if (chk) chk.checked = !hepsiSecili;
+      });
+
+      guncelleSecimSayisi();
+      guncelleTumunuSecButonu();
+      if (modal.style.display === 'flex') guncelleModalSecimButonu();
+    }
+
+    function guncelleTumunuSecButonu() {
+      selectAllBtn.textContent = (fotograflar.length > 0 && seciliSet.size === fotograflar.length) ? 'Seçimi Kaldır' : 'Tümünü Seç';
+    }
+
+    function toggleSelectFromModal() {
+      const seciliMi = seciliSet.has(currentIndex);
+      kartSecim(currentIndex, !seciliMi);
+      const chk = document.getElementById(`chk-${currentIndex}`);
+      if (chk) chk.checked = !seciliMi;
+      guncelleModalSecimButonu();
+    }
+
+    function guncelleModalSecimButonu() {
+      if (seciliSet.has(currentIndex)) {
+        modalSelectBtn.textContent = '✓ Seçildi';
+        modalSelectBtn.style.background = '#d9534f';
+      } else {
+        modalSelectBtn.textContent = '+ Listeye Seç';
+        modalSelectBtn.style.background = '#0078d4';
+      }
+    }
+
+    function guncelleSecimSayisi() {
+      bulkBtn.textContent = `Seçilenleri İndir (${seciliSet.size})`;
+    }
+
+    async function tekilIndir(url, dosyaAdi) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = dosyaAdi;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      } catch {
+        window.open(url, '_blank');
+      }
+    }
+
+    function indirMevcutModal() {
+      const foto = fotograflar[currentIndex];
+      tekilIndir(foto.url, foto.id);
+    }
+
+    async function topluIndir() {
+      if (seciliSet.size === 0) return alert('Lütfen önce fotoğrafları seçin.');
+      bulkBtn.textContent = 'İndiriliyor...';
+      bulkBtn.disabled = true;
+
+      for (const idx of seciliSet) {
+        const foto = fotograflar[idx];
+        await tekilIndir(foto.url, foto.id);
+        await new Promise(r => setTimeout(r, 400));
+      }
+      bulkBtn.disabled = false;
+      guncelleSecimSayisi();
+    }
+
+    function rastgeleAnimasyonUret(sureMs) {
+      const zoomInMi = Math.random() > 0.5;
+      const startScale = zoomInMi ? 1.0 : (1.20 + Math.random() * 0.10);
+      const endScale = zoomInMi ? (1.20 + Math.random() * 0.10) : 1.0;
+
+      const startX = (Math.random() * 8 - 4).toFixed(2);
+      const startY = (Math.random() * 8 - 4).toFixed(2);
+      const endX = (Math.random() * 8 - 4).toFixed(2);
+      const endY = (Math.random() * 8 - 4).toFixed(2);
+
+      dynamicStyle.textContent = `
+        @keyframes randomMovement {
+          0% {
+            transform: scale(${startScale.toFixed(2)}) translate(${startX}%, ${startY}%);
+          }
+          100% {
+            transform: scale(${endScale.toFixed(2)}) translate(${endX}%, ${endY}%);
+          }
+        }
+      `;
+
+      modalImg.style.animationDuration = `${sureMs}ms`;
+    }
+
+    function openModal(index) {
+      if (!fotograflar.length) return;
+      currentIndex = index;
+      updateModal();
+      modal.style.display = 'flex';
+      resetHideTimer();
+    }
+
+    function closeModal() {
+      slaytiDurdur();
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      modal.style.display = 'none';
+      modalImg.classList.remove('random-ken-burns');
+      showControls();
+    }
+
+    function updateModal() {
+      modalImg.classList.remove('random-ken-burns');
+      modalImg.src = fotograflar[currentIndex].url;
+      
+      const sure = parseInt(document.getElementById('slayt-hiz').value, 10) || 10000;
+
+      if (isSlideActive) {
+        rastgeleAnimasyonUret(sure);
+        void modalImg.offsetWidth;
+        modalImg.classList.add('random-ken-burns');
+      }
+
+      counter.textContent = `${currentIndex + 1} / ${fotograflar.length}`;
+      guncelleModalSecimButonu();
+
+      if (currentIndex >= fotograflar.length - 3) {
+        resimleriYukle();
+      }
+    }
+
+    function prevImg(e) {
+      if (e) e.stopPropagation();
+      currentIndex = (currentIndex - 1 + fotograflar.length) % fotograflar.length;
+      updateModal();
+      resetHideTimer();
+    }
+
+    function nextImg(e) {
+      if (e) e.stopPropagation();
+      currentIndex = (currentIndex + 1) % fotograflar.length;
+      updateModal();
+      resetHideTimer();
+    }
+
+    function slaytBaslat() {
+      if (!fotograflar.length) return;
+      openModal(currentIndex);
+      
+      const docEl = document.documentElement;
+      if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
+      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
+
+      isSlideActive = true;
+      slaytToggleBtn.textContent = 'Durdur';
+      updateModal();
+      slaytDöngüsüAyarla();
+    }
+
+    function slaytDurdurBaslat() {
+      if (isSlideActive) {
+        slaytiDurdur();
+        modalImg.classList.remove('random-ken-burns');
+        slaytToggleDef.textContent = 'Devam Et';
+      } else {
+        isSlideActive = true;
+        slaytToggleBtn.textContent = 'Durdur';
+        updateModal();
+        slaytDöngüsüAyarla();
+      }
+    }
+
+    function slaytiDurdur() {
+      isSlideActive = false;
+      if (slideTimer) clearInterval(slideTimer);
+    }
+
+    function slaytSuresiDegisti() {
+      if (isSlideActive) {
+        updateModal();
+        slaytDöngüsüAyarla();
+      }
+      resetHideTimer();
+    }
+
+    function slaytDöngüsüAyarla() {
+      if (slideTimer) clearInterval(slideTimer);
+      const sure = parseInt(document.getElementById('slayt-hiz').value, 10) || 10000;
+      slideTimer = setInterval(() => {
+        nextImg();
+      }, sure);
+    }
+
+    function showControls() {
+      topBar.classList.remove('ui-hidden');
+      modal.style.cursor = 'default';
+    }
+
+    function hideControls() {
+      if (modal.style.display === 'flex') {
+        topBar.classList.add('ui-hidden');
+        modal.style.cursor = 'none';
+      }
+    }
+
+    function resetHideTimer() {
+      showControls();
+      clearTimeout(hideControlsTimeout);
+      hideControlsTimeout = setTimeout(hideControls, 3000);
+    }
+
+    modal.addEventListener('mousemove', resetHideTimer);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target === modalImg) resetHideTimer();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (modal.style.display === 'flex') {
+        resetHideTimer();
+        if (e.key === 'ArrowRight') nextImg();
+        if (e.key === 'ArrowLeft') prevImg();
+        if (e.key === 'Escape') closeModal();
+        if (e.key === ' ') {
+          e.preventDefault();
+          slaytDurdurBaslat();
+        }
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+        resimleriYukle();
+      }
+    });
+
+    kategoriMenusuHazirla();
+    resimleriYukle(true);
+  </script>
+</body>
+</html>
