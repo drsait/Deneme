@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Windows Kilit Ekranı Duvar Kağıtları</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #fff; padding: 20px; }
+    .header { text-align: center; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    select { padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; background: #222; color: #fff; border: 1px solid #444; outline: none; cursor: pointer; }
+    .btn { background: #0078d4; color: white; padding: 10px 18px; border-radius: 6px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+    .btn:hover { background: #005a9e; }
+    .btn-download { background: #28a745; }
+    .btn-download:hover { background: #218838; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column; position: relative; }
+    .card img { width: 100%; height: 180px; object-fit: cover; cursor: pointer; transition: transform 0.2s; background: #2a2a2a; }
+    .card img:hover { transform: scale(1.02); }
+    .card-info { padding: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #bbb; }
+    .card-check { position: absolute; top: 10px; left: 10px; width: 22px; height: 22px; cursor: pointer; z-index: 2; accent-color: #0078d4; }
+    #loader { text-align: center; padding: 25px; color: #888; font-size: 14px; }
+    
+    /* Modal / Önizleme */
+    #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 100; justify-content: center; align-items: center; user-select: none; }
+    #modal-img { max-width: 88vw; max-height: 80vh; object-fit: contain; border-radius: 6px; }
+    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); color: white; border: none; font-size: 30px; width: 50px; height: 60px; border-radius: 6px; cursor: pointer; }
+    .nav-btn:hover { background: rgba(255,255,255,0.3); }
+    .prev-btn { left: 20px; }
+    .next-btn { right: 20px; }
+    
+    /* Modal Üst Bar ve Butonlar */
+    .top-bar { position: absolute; top: 20px; left: 25px; right: 25px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-actions { display: flex; gap: 10px; align-items: center; }
+    .close-btn { background: transparent; border: none; color: white; font-size: 28px; cursor: pointer; margin-left: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>Kilit Ekranı Duvar Kağıtları</h2>
+    <div class="controls">
+      <select id="kategori" onchange="kategoriDegisti()">
+        <option value="all">Tüm Kategoriler (Karışık)</option>
+        <option value="nature">Doğa & Manzara</option>
+        <option value="mountain">Dağlar & Göller</option>
+        <option value="city">Şehir & Mimari</option>
+        <option value="space">Uzay & Minimalist</option>
+      </select>
+      <button class="btn" onclick="kategoriDegisti()">Yeniden Başlat</button>
+      <button class="btn btn-download" id="bulk-btn" onclick="topluIndir()">Seçilenleri İndir (0)</button>
+    </div>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+  <div id="loader">Daha fazla görsel yükleniyor...</div>
+
+  <!-- Tam Ekran Modal -->
+  <div id="modal">
+    <div class="top-bar">
+      <span id="counter" style="color: #ccc; font-size: 15px;">1 / 20</span>
+      <div class="modal-actions">
+        <button class="btn" id="modal-select-btn" onclick="toggleSelectFromModal()">Seç</button>
+        <button class="btn btn-download" onclick="indirMevcutModal()">Görseli İndir</button>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <button class="nav-btn prev-btn" onclick="prevImg(event)">‹</button>
+    <img id="modal-img" src="" alt="Önizleme">
+    <button class="nav-btn next-btn" onclick="nextImg(event)">›</button>
+  </div>
+
+  <script>
+    let fotograflar = [];
+    let seciliSet = new Set();
+    let currentIndex = 0;
+    let page = 1;
+    let isLoading = false;
+
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modal-img');
+    const counter = document.getElementById('counter');
+    const gallery = document.getElementById('gallery');
+    const loader = document.getElementById('loader');
+    const bulkBtn = document.getElementById('bulk-btn');
+    const modalSelectBtn = document.getElementById('modal-select-btn');
+
+    function kategoriDegisti() {
+      page = 1;
+      fotograflar = [];
+      seciliSet.clear();
+      guncelleSecimSayisi();
+      gallery.innerHTML = '';
+      resimleriYukle();
+    }
+
+    async function resimleriYukle() {
+      if (isLoading) return;
+      isLoading = true;
+      loader.style.display = 'block';
+
+      const secilenKategori = document.getElementById('kategori').value;
+      const yeniFotolar = [];
+
+      for (let i = 0; i < 20; i++) {
+        const seedIndex = (page - 1) * 20 + i;
+        const seed = `${secilenKategori}_${seedIndex}`;
+        const url = `https://picsum.photos/seed/${seed}/1920/1080`;
+        yeniFotolar.push({
+          url: url,
+          id: `kilit_ekrani_${seed}.jpg`
+        });
+      }
+
+      yeniFotolar.forEach(foto => {
+        fotograflar.push(foto);
+        const idx = fotograflar.length - 1;
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <input type="checkbox" class="card-check" id="chk-${idx}" onchange="kartSecim(${idx}, this.checked)">
+          <img src="${foto.url}" loading="lazy" onclick="openModal(${idx})">
+          <div class="card-info">
+            <span>FHD (1080p)</span>
+            <button class="btn btn-download" style="padding: 4px 10px; font-size: 12px;" onclick="tekilIndir('${foto.url}', '${foto.id}')">İndir</button>
+          </div>
+        `;
+        gallery.appendChild(card);
+      });
+
+      page++;
+      isLoading = false;
+      loader.style.display = 'none';
+    }
+
+    // Seçim Yönetimi
+    function kartSecim(idx, durum) {
+      if (durum) seciliSet.add(idx);
+      else seciliSet.delete(idx);
+      guncelleSecimSayisi();
+      if (modal.style.display === 'flex' && currentIndex === idx) {
+        guncelleModalSecimButonu();
+      }
+    }
+
+    function toggleSelectFromModal() {
+      const seciliMi = seciliSet.has(currentIndex);
+      kartSecim(currentIndex, !seciliMi);
+      const chk = document.getElementById(`chk-${currentIndex}`);
+      if (chk) chk.checked = !seciliMi;
+      guncelleModalSecimButonu();
+    }
+
+    function guncelleModalSecimButonu() {
+      if (seciliSet.has(currentIndex)) {
+        modalSelectBtn.textContent = '✓ Seçildi (Kaldır)';
+        modalSelectBtn.style.background = '#d9534f';
+      } else {
+        modalSelectBtn.textContent = '+ Listeye Seç';
+        modalSelectBtn.style.background = '#0078d4';
+      }
+    }
+
+    function guncelleSecimSayisi() {
+      bulkBtn.textContent = `Seçilenleri İndir (${seciliSet.size})`;
+    }
+
+    // İndirme İşlemleri
+    async function tekilIndir(url, dosyaAdi) {
+      try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = dosyaAdi;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      } catch (err) {
+        window.open(url, '_blank');
+      }
+    }
+
+    function indirMevcutModal() {
+      const foto = fotograflar[currentIndex];
+      tekilIndir(foto.url, foto.id);
+    }
+
+    async function topluIndir() {
+      if (seciliSet.size === 0) {
+        alert('Lütfen önce indirilecek fotoğrafları seçin.');
+        return;
+      }
+
+      bulkBtn.textContent = 'İndiriliyor...';
+      bulkBtn.disabled = true;
+
+      for (const idx of seciliSet) {
+        const foto = fotograflar[idx];
+        await tekilIndir(foto.url, foto.id);
+        // Tarayıcı indirme kuyruğunu kilitlememek için kısa gecikme
+        await new Promise(r => setTimeout(r, 400));
+      }
+
+      bulkBtn.disabled = false;
+      guncelleSecimSayisi();
+    }
+
+    // Sonsuz Kaydırma
+    window.addEventListener('scroll', () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
+        resimleriYukle();
+      }
+    });
+
+    // Modal Fonksiyonları
+    function openModal(index) {
+      if (!fotograflar.length) return;
+      currentIndex = index;
+      updateModal();
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+    }
+
+    function updateModal() {
+      modalImg.src = fotograflar[currentIndex].url;
+      counter.textContent = `${currentIndex + 1} / ${fotograflar.length}`;
+      guncelleModalSecimButonu();
+    }
+
+    function prevImg(e) {
+      if (e) e.stopPropagation();
+      currentIndex = (currentIndex - 1 + fotograflar.length) % fotograflar.length;
+      updateModal();
+    }
+
+    function nextImg(e) {
+      if (e) e.stopPropagation();
+      currentIndex = (currentIndex + 1) % fotograflar.length;
+      updateModal();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (modal.style.display === 'flex') {
+        if (e.key === 'ArrowRight') nextImg();
+        if (e.key === 'ArrowLeft') prevImg();
+        if (e.key === 'Escape') closeModal();
+      }
+    });
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    resimleriYukle();
+  </script>
+</body>
+</html>
