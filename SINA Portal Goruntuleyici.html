@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SİNA Modül Portalı</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        /* İframe konteyneri tam ekran olduğunda ekranın tamamını kaplar */
+        .frame-container:fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            background-color: #0f172a;
+        }
+        .frame-container:-webkit-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            background-color: #0f172a;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 flex flex-col h-screen overflow-hidden">
+
+    <!-- Üst Başlık & Sekmeler -->
+    <header class="bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
+        <div class="px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg shadow-sm">
+                    <i class="fa-solid fa-chart-line text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-slate-800 leading-tight">SİNA Yönetim Portalı</h1>
+                    <span id="active-title-label" class="text-xs font-semibold text-blue-600 uppercase tracking-wide">Yükleniyor...</span>
+                </div>
+            </div>
+
+            <!-- Eylem Butonları -->
+            <div class="flex items-center gap-2">
+                <a id="external-link-btn" href="#" target="_blank" rel="noopener noreferrer" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors shadow-sm">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Yeni Sekmede Aç</span>
+                </a>
+                <button id="fullscreen-btn" 
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm">
+                    <i class="fa-solid fa-expand"></i>
+                    <span>Tam Ekran</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sekme Çubuğu -->
+        <div class="px-4 border-t border-slate-100 bg-slate-50/50 flex items-center overflow-x-auto no-scrollbar gap-1" id="tab-container">
+            <!-- Sekmeler JS ile dinamik eklenecek -->
+        </div>
+    </header>
+
+    <!-- İframe & Görüntüleyici Alanı -->
+    <main class="flex-1 relative p-3 flex flex-col min-h-0 bg-slate-100">
+        <!-- İframe Konteyneri (Fullscreen API uygulanacak eleman) -->
+        <div id="viewer-wrapper" class="frame-container flex-1 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col overflow-hidden relative group">
+            
+            <!-- Bilgi / Güvenlik Notu Çubuğu -->
+            <div class="bg-amber-50 border-b border-amber-200 px-3 py-1.5 text-xs text-amber-800 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-amber-600"></i>
+                    Sağlık Bakanlığı güvenlik (X-Frame) kuralları nedeniyle pencerede açılmazsa <strong>'Yeni Sekmede Aç'</strong> butonunu kullanabilirsiniz.
+                </span>
+                <button id="overlay-fullscreen-btn" title="Tam Ekran Yap" class="text-slate-600 hover:text-blue-600 p-1">
+                    <i class="fa-solid fa-maximize"></i>
+                </button>
+            </div>
+
+            <!-- Loading Göstergesi -->
+            <div id="loading-spinner" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                <div class="flex flex-col items-center gap-2">
+                    <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs text-slate-600 font-medium">Modül yükleniyor...</span>
+                </div>
+            </div>
+
+            <!-- Asıl Görüntüleyici IFRAME -->
+            <iframe id="sina-frame" 
+                    class="w-full h-full border-0 flex-1"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
+                    allow="fullscreen">
+            </iframe>
+        </div>
+    </main>
+
+    <script>
+        // =========================================================================
+        // 1. SABİT DEĞİŞKENLER
+        // =========================================================================
+        const PARAMS = {
+            BIRIM_KODU: "461491",
+            YIL: "2026",
+            AY: "EYLUL",
+            AY_KHT: "EYLÜL",
+            AHB_ADI: "Mardin Kızıltepe 18 Nolu AHB - Mardin"
+        };
+
+        // =========================================================================
+        // 2. LİNK ŞABLONLARI
+        // =========================================================================
+        const LINK_SABLONLARI = {
+            "sina": "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840={AY}%26252860={BIRIM_KODU}%26252916={YIL}",
+            "kht": "https://sina.saglik.gov.tr/showcases/SC-2DF3A82DF98O48J/SCI-VCQ97DDE181J1HA?filters=300699={YIL}%26300707={AY_KHT}%26300711={BIRIM_KODU}",
+            "memnuniyet": "https://sina.saglik.gov.tr/showcases/SC-AA6Q1F9AU1B4B2O/SCI-E52DD7UAC0Y24Z5?filters=27693={YIL}-01-01%252000%253A00%253A00%2627693={YIL}-12-31%252023%253A59%253A59",
+            "muayene": "https://sina.saglik.gov.tr/showcases/SC-AA6Q1F9AU1B4B2O/SCI-E52DD7UAC0Y24Z5?filters=27477={AHB_ADI}",
+            "otizm": "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-4N2O921XV9IX02M?filters=372133={BIRIM_KODU}"
+        };
+
+        // Modül İsimleri ve İkonları
+        const TAB_CONFIG = {
+            sina: { label: "SİNA Ana Tablo", icon: "fa-solid fa-hospital" },
+            kht: { label: "KHT İzlem", icon: "fa-solid fa-heart-pulse" },
+            memnuniyet: { label: "Memnuniyet", icon: "fa-solid fa-face-smile" },
+            muayene: { label: "Muayene", icon: "fa-solid fa-stethoscope" },
+            otizm: { label: "Otizm Tarama", icon: "fa-solid fa-brain" }
+        };
+
+        // URL Dönüştürücü
+        function linkOlustur(sablon) {
+            let url = sablon;
+            for (const [key, val] of Object.entries(PARAMS)) {
+                url = url.replaceAll(`{${key}}`, encodeURIComponent(val));
+            }
+            return url;
+        }
+
+        // Link Listesi
+        const FINAL_LINKS = {};
+        for (const key in LINK_SABLONLARI) {
+            FINAL_LINKS[key] = linkOlustur(LINK_SABLONLARI[key]);
+        }
+
+        let activeTab = "sina";
+
+        // DOM Elemanları
+        const tabContainer = document.getElementById('tab-container');
+        const iframe = document.getElementById('sina-frame');
+        const activeTitleLabel = document.getElementById('active-title-label');
+        const externalLinkBtn = document.getElementById('external-link-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const overlayFullscreenBtn = document.getElementById('overlay-fullscreen-btn');
+        const viewerWrapper = document.getElementById('viewer-wrapper');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        // İframe yüklenme durumu dinleyicisi
+        iframe.addEventListener('load', () => {
+            loadingSpinner.classList.add('hidden');
+        });
+
+        // Sekme Değiştirme Fonksiyonu
+        function selectTab(key) {
+            if (!FINAL_LINKS[key]) return;
+            activeTab = key;
+
+            // Loading animasyonunu aç
+            loadingSpinner.classList.remove('hidden');
+
+            // İframe URL güncelle
+            const targetUrl = FINAL_LINKS[key];
+            iframe.src = targetUrl;
+
+            // Dış bağlantı butonunu güncelle
+            externalLinkBtn.href = targetUrl;
+            
+            // Başlığı güncelle
+            const info = TAB_CONFIG[key] || { label: key.toUpperCase() };
+            activeTitleLabel.textContent = info.label;
+
+            // Sekme stillerini güncelle
+            renderTabs();
+        }
+
+        // Sekmeleri Çiz
+        function renderTabs() {
+            tabContainer.innerHTML = '';
+            for (const key in FINAL_LINKS) {
+                const info = TAB_CONFIG[key] || { label: key.toUpperCase(), icon: 'fa-solid fa-link' };
+                const isActive = key === activeTab;
+
+                const btn = document.createElement('button');
+                btn.className = `flex items-center gap-2 py-2 px-4 text-xs font-semibold border-b-2 transition-all duration-150 whitespace-nowrap ${
+                    isActive 
+                    ? 'border-blue-600 text-blue-600 bg-white rounded-t-md shadow-xs' 
+                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+                }`;
+
+                btn.innerHTML = `<i class="${info.icon}"></i> <span>${info.label}</span>`;
+                btn.onclick = () => selectTab(key);
+                tabContainer.appendChild(btn);
+            }
+        }
+
+        // Tam Ekran Aç / Kapat Fonksiyonu
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                if (viewerWrapper.requestFullscreen) {
+                    viewerWrapper.requestFullscreen();
+                } else if (viewerWrapper.webkitRequestFullscreen) {
+                    viewerWrapper.webkitRequestFullscreen();
+                } else if (viewerWrapper.msRequestFullscreen) {
+                    viewerWrapper.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Fullscreen ikonunu güncelle
+        document.addEventListener('fullscreenchange', () => {
+            const isFull = !!document.fullscreenElement;
+            const fullIcon = isFull ? 'fa-compress' : 'fa-expand';
+            const fullText = isFull ? 'Küçült' : 'Tam Ekran';
+            fullscreenBtn.innerHTML = `<i class="fa-solid ${fullIcon}"></i> <span>${fullText}</span>`;
+        });
+
+        // Buton Dinleyicileri
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        overlayFullscreenBtn.addEventListener('click', toggleFullscreen);
+
+        // URL parametresi ile gelindiyse ilk onu seç (?link=muayene gibi)
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetParam = urlParams.get('link');
+        if (targetParam && FINAL_LINKS[targetParam.toLowerCase()]) {
+            activeTab = targetParam.toLowerCase();
+        }
+
+        // İlk yükleme
+        selectTab(activeTab);
+    </script>
+</body>
+</html>
