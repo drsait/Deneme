@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaman Sayaçları</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 30px 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e2e8f0;
+            text-align: center;
+            overflow-x: hidden;
+            background-color: #030712;
+        }
+
+        /* Hareketli Arka Plan Animasyonu */
+        .mystic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: linear-gradient(135deg, #030712 0%, #0f172a 50%, #1e1b4b 100%);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: floatOrb 15s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: #4338ca;
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: #7c3aed;
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #0ea5e9;
+            top: 40%;
+            left: 30%;
+            animation-delay: -10s;
+            opacity: 0.2;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(50px, 80px) scale(1.1); }
+            100% { transform: translate(-50px, -50px) scale(0.9); }
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #f8fafc;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            width: 260px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(124, 58, 237, 0.5);
+            box-shadow: 0 12px 40px 0 rgba(124, 58, 237, 0.2);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #c4b5fd;
+            letter-spacing: 1px;
+        }
+
+        .card p {
+            font-size: 14px;
+            margin: 8px 0;
+            color: #94a3b8;
+        }
+
+        .result {
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-top: 12px !important;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mystic-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <h1>Zaman Sayaçları</h1>
+
+    <div class="container" id="cardContainer">
+        <!-- Kartlar -->
+    </div>
+
+    <script>
+        const initialData = [
+            { name: "Sait", date: "1986-01-13" },
+            { name: "Hatice", date: "1997-03-18" },
+            { name: "Zeynep", date: "2016-08-15" },
+            { name: "Rengin", date: "2021-05-19" },
+            { name: "Evlilik", date: "2015-05-24" },
+            { name: "Gerçek", date: "1985-08-08" }
+        ];
+
+        function calculateAge(dateString) {
+            const birthDate = new Date(dateString);
+            const today = new Date();
+
+            let years = today.getFullYear() - birthDate.getFullYear();
+            let months = today.getMonth() - birthDate.getMonth();
+            let days = today.getDate() - birthDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            return `${years} yıl, ${months} ay, ${days} gün`;
+        }
+
+        function formatDateTr(dateString) {
+            const parts = dateString.split('-');
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = '';
+
+            initialData.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <h3>${item.name}</h3>
+                    <p>Tarih: <strong>${formatDateTr(item.date)}</strong></p>
+                    <p class="result">${calculateAge(item.date)}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        renderCards();
+        setInterval(renderCards, 60000);
+    </script>
+</body>
+</html>
