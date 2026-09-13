@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duvar Kağıtları</title>
+  <style id="kb-style"></style>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#121212;color:#fff;padding:10px}
+    body.fs{overflow:hidden;padding:0}
+    .header{text-align:center;margin-bottom:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;width:100%}
+    .dd-cont{position:relative;display:inline-block;width:100%;max-width:260px}
+    .dd-btn{background:#222;color:#fff;border:1px solid #444;padding:10px 16px;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:space-between;width:100%;user-select:none}
+    .dd-btn:hover{border-color:#0078d4}
+    .dd-menu{display:none;position:absolute;top:calc(100% + 5px);left:0;background:#1e1e1e;border:1px solid #444;border-radius:8px;width:100%;max-height:300px;overflow-y:auto;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.6);padding:8px}
+    .dd-menu.show{display:block}
+    .dd-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:5px;cursor:pointer;font-size:13px;color:#ddd;user-select:none}
+    .dd-item:hover{background:#2a2a2a}
+    .dd-item input{accent-color:#0078d4;width:16px;height:16px;cursor:pointer}
+    select{padding:10px 14px;border-radius:6px;font-size:14px;font-weight:bold;background:#222;color:#fff;border:1px solid #444;outline:none;cursor:pointer}
+    .btn{background:#0078d4;color:#fff;padding:10px 16px;border-radius:6px;font-size:14px;font-weight:bold;border:none;cursor:pointer;transition:background .2s;white-space:nowrap}
+    .btn:hover{background:#005a9e}
+    .btn-dl{background:#28a745}.btn-dl:hover{background:#218838}
+    .btn-sl{background:#8a2be2}.btn-sl:hover{background:#731ec2}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+    .card{background:#1e1e1e;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;position:relative}
+    .card img{width:100%;height:140px;object-fit:cover;cursor:pointer;background:#2a2a2a}
+    .card-info{padding:8px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#bbb;gap:4px}
+    .card-check{position:absolute;top:8px;left:8px;width:22px;height:22px;cursor:pointer;z-index:2;accent-color:#0078d4}
+    #loader{text-align:center;padding:20px;color:#888;font-size:14px}
+    #modal{display:none;position:fixed;inset:0;background:#000;z-index:100;justify-content:center;align-items:center;user-select:none;overflow:hidden}
+    
+    .modal-img{position:absolute;width:100vw;height:100vh;object-fit:cover;min-width:100vw;min-height:100vh;transform-origin:center;pointer-events:none;opacity:0;transition:opacity 2s ease-in-out, filter 2s ease-in-out;filter:blur(20px) contrast(200%);}
+    .modal-img.active{opacity:1;filter:blur(0) contrast(100%);}
+    .modal-img.paused{transform:scale(1)!important;object-fit:contain!important}
+
+    .kb{animation-name:rm;animation-timing-function:cubic-bezier(0.25,0.1,0.25,1);animation-fill-mode:forwards}
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);color:#fff;border:none;font-size:24px;width:40px;height:50px;border-radius:6px;cursor:pointer;z-index:102;backdrop-filter:blur(4px);transition:opacity .4s}
+    .prev-btn{left:10px}.next-btn{right:10px}
+    .top-bar{position:absolute;top:15px;right:15px;display:flex;gap:8px;align-items:center;z-index:102;transition:opacity .4s}
+    .act-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;width:40px;height:40px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .ui-hide{opacity:0!important;pointer-events:none!important;cursor:none!important}
+    @media(min-width:768px){
+      body{padding:20px}
+      .gallery{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px}
+      .card img{height:180px}
+      .card-info{font-size:12px;padding:10px}
+      .dd-cont{width:auto;max-width:none}
+      .dd-btn{width:auto}
+      .nav-btn{font-size:30px;width:50px;height:60px}
+      .prev-btn{left:20px}
+      .next-btn{right:20px}
+      .top-bar{top:20px;right:25px}
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>Duvar Kağıtları</h2>
+    <div class="controls">
+      <div class="dd-cont">
+        <button class="dd-btn" id="cat-btn" onclick="document.getElementById('dd-menu').classList.toggle('show')">
+          <span>Kategoriler (Tümü)</span> ▾
+        </button>
+        <div class="dd-menu" id="dd-menu">
+          <label class="dd-item">
+            <input type="checkbox" id="cat-all" value="all" checked onchange="handleCat(this)">
+            <strong>Tüm Kategoriler</strong>
+          </label>
+          <hr style="border:0;border-top:1px solid #333;margin:4px 0">
+          <div id="cat-items"></div>
+        </div>
+      </div>
+      <select id="res-sel" onchange="refreshGrid()">
+        <option value="1920x1080">FHD (1920x1080)</option>
+        <option value="2560x1440">2K (2560x1440)</option>
+        <option value="3840x2160">4K (3840x2160)</option>
+      </select>
+      <button class="btn btn-sl" onclick="startSlide()">▶ Slayt</button>
+      <button class="btn" id="sel-all-btn" onclick="toggleAll()">Tümünü Seç</button>
+      <button class="btn" onclick="refreshGrid()">Yenile</button>
+      <button class="btn btn-dl" id="bulk-btn" onclick="bulkDl()">İndir (0)</button>
+    </div>
+  </div>
+
+  <div class="gallery" id="gallery"></div>
+  <div id="loader">Yükleniyor...</div>
+
+  <div id="modal">
+    <div class="top-bar ui-hide" id="top-bar">
+      <button class="act-btn" onclick="toggleFs()" title="Tam Ekran Aç/Kapat">⛶</button>
+      <button class="act-btn" onclick="closeModal()" title="Slaytı Kapat">✕</button>
+    </div>
+    <button class="nav-btn prev-btn ui-hide" onclick="changeImg(-1,event)" title="Önceki Foto">‹</button>
+    <img id="img1" class="modal-img active" alt="">
+    <img id="img2" class="modal-img" alt="">
+    <button class="nav-btn next-btn ui-hide" onclick="changeImg(1,event)" title="Sonraki Foto">›</button>
+  </div>
+
+  <script>
+    const CATS = [
+      {id:"space",l:"Uzay"},{id:"nature",l:"Doğa"},{id:"mountain",l:"Dağlar"},{id:"sea",l:"Deniz"},
+      {id:"forest",l:"Orman"},{id:"city",l:"Şehir"},{id:"architecture",l:"Mimari"},{id:"sunset",l:"Gün Batımı"},
+      {id:"desert",l:"Çöl"},{id:"aurora",l:"Aurora"},{id:"animals",l:"Hayvanlar"},{id:"underwater",l:"Sualtı"},
+      {id:"night",l:"Gece"},{id:"minimal",l:"Minimal"},{id:"abstract",l:"Soyut"},{id:"macro",l:"Makro"},
+      {id:"winter",l:"Kış"},{id:"autumn",l:"Sonbahar"},{id:"waterfall",l:"Şelale"},{id:"clouds",l:"Bulut"},
+      {id:"roads",l:"Yol"},{id:"aerial",l:"Drone"}
+    ];
+
+    let photos = [], selSet = new Set(), selCats = new Set(['all']), curr = 0, page = 1, loading = false, timer = null, slideActive = false, hideTO = null, tX = 0, tT = 0, activeImgBox = 1;
+    const $ = id => document.getElementById(id);
+
+    CATS.forEach(c => $('cat-items').innerHTML += `<label class="dd-item"><input type="checkbox" value="${c.id}" onchange="handleCat(this)"> ${c.l}</label>`);
+    window.onclick = e => { if(!$('cat-btn').contains(e.target) && !$('dd-menu').contains(e.target)) $('dd-menu').classList.remove('show'); };
+
+    function handleCat(el) {
+      const all = $('cat-all'), inputs = document.querySelectorAll('#cat-items input');
+      if(el.value === 'all') {
+        if(el.checked) { inputs.forEach(i => i.checked = false); selCats.clear(); selCats.add('all'); }
+        else el.checked = true;
+      } else {
+        all.checked = false; selCats.delete('all');
+        if(el.checked) selCats.add(el.value); else selCats.delete(el.value);
+        if(!selCats.size) { all.checked = true; selCats.add('all'); }
+      }
+      $('cat-btn').firstElementChild.textContent = selCats.has('all') ? 'Kategoriler (Tümü)' : `Kategoriler (${selCats.size})`;
+      refreshGrid();
+    }
+
+    function refreshGrid() { page = 1; photos = []; selSet.clear(); updateUI(); $('gallery').innerHTML = ''; loadPhotos(); }
+
+    async function loadPhotos(autoSlide = false) {
+      if(loading) return; loading = true; $('loader').style.display = 'block';
+      const [w, h] = $('res-sel').value.split('x');
+      const cArr = selCats.has('all') ? CATS.map(c => c.id) : Array.from(selCats);
+      
+      for(let i=0; i<20; i++) {
+        const seed = `${cArr[Math.floor(Math.random()*cArr.length)]}_${Date.now()}_${i}`;
+        photos.push({url:`https://picsum.photos/seed/${seed}/${w}/${h}`, id:`wp_${seed}.jpg`, w, h});
+      }
+
+      photos.slice(-20).forEach((f, idx) => {
+        const i = photos.length - 20 + idx;
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)"><img src="${f.url}" loading="lazy" onclick="openModal(${i})"><div class="card-info"><div><strong>${f.w}x${f.h}</strong><br><span id="sz-${i}" style="color:#888">...</span></div><button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url}','${f.id}')">İndir</button></div>`;
+        $('gallery').appendChild(div);
+        fetch(f.url).then(r => r.blob()).then(b => { if($(`sz-${i}`)) $('sz-${i}').textContent = (b.size/1048576).toFixed(2)+' MB'; }).catch(() => {});
+      });
+
+      page++; loading = false; $('loader').style.display = 'none'; updateUI();
+      if(autoSlide) startSlide();
+    }
+
+    function toggleCard(i, state) {
+      if(state) selSet.add(i); else selSet.delete(i);
+      updateUI();
+    }
+
+    function toggleAll() {
+      const all = selSet.size === photos.length && photos.length > 0;
+      selSet.clear();
+      if(!all) photos.forEach((_, i) => selSet.add(i));
+      photos.forEach((_, i) => { const c = $(`chk-${i}`); if(c) c.checked = !all; });
+      updateUI();
+    }
+
+    function updateUI() {
+      $('bulk-btn').textContent = `İndir (${selSet.size})`;
+      $('sel-all-btn').textContent = (photos.length > 0 && selSet.size === photos.length) ? 'Seçimi Kaldır' : 'Tümünü Seç';
+    }
+
+    async function dlSingle(url, name) {
+      try {
+        const res = await fetch(url); const blob = await res.blob();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+      } catch { window.open(url, '_blank'); }
+    }
+
+    async function bulkDl() {
+      if(!selSet.size) return alert('Önce fotoğraf seçin.');
+      $('bulk-btn').textContent = 'İndiriliyor...'; $('bulk-btn').disabled = true;
+      for(const i of selSet) { await dlSingle(photos[i].url, photos[i].id); await new Promise(r => setTimeout(r, 300)); }
+      $('bulk-btn').disabled = false; updateUI();
+    }
+
+    function openModal(i) {
+      if(!photos.length) return;
+      curr = i; slideActive = true; stopTimer();
+      updateModal(); $('modal').style.display = 'flex'; resetTimer(); hideUI();
+    }
+
+    function closeModal() {
+      stopTimer();
+      if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+      document.body.classList.remove('fs'); $('modal').style.display = 'none'; showUI();
+    }
+
+    function toggleFs() {
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    function updateModal() {
+      const activeImg = activeImgBox === 1 ? $('img1') : $('img2');
+      const nextImg = activeImgBox === 1 ? $('img2') : $('img1');
+
+      nextImg.className = 'modal-img';
+      nextImg.src = photos[curr].url;
+
+      if(slideActive) {
+        const effects = [
+          () => `0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.08) translate(-1%,-1%)}`,
+          () => `0%{transform:scale(1.08) translate(0,0)}100%{transform:scale(1) translate(1%,1%)}`,
+          () => `0%{transform:scale(1.04) translate(-2%,0)}100%{transform:scale(1.04) translate(2%,0)}`,
+          () => `0%{transform:scale(1.04) translate(0,-2%)}100%{transform:scale(1.04) translate(0,2%)}`
+        ];
+        $('kb-style').textContent = `@keyframes rm{${effects[Math.floor(Math.random()*effects.length)]()}}`;
+        nextImg.style.animationDuration = '10s';
+        void nextImg.offsetWidth;
+        nextImg.classList.add('kb');
+      } else {
+        nextImg.classList.add('paused');
+      }
+
+      activeImg.classList.remove('active');
+      nextImg.classList.add('active');
+      activeImgBox = activeImgBox === 1 ? 2 : 1;
+
+      if(curr >= photos.length - 3) loadPhotos();
+    }
+
+    function changeImg(dir, e) {
+      if(e) e.stopPropagation();
+      curr = (curr + dir + photos.length) % photos.length;
+      updateModal(); if(slideActive) resetTimer();
+    }
+
+    function toggleSlide() {
+      slideActive = !slideActive;
+      const currentActiveImg = activeImgBox === 1 ? $('img1') : $('img2');
+      if(slideActive) { 
+        updateModal(); 
+        resetTimer(); 
+        hideUI(); 
+      } else { 
+        stopTimer(); 
+        currentActiveImg.className = 'modal-img active paused'; 
+        showUI(); 
+      }
+    }
+
+    function startSlide() {
+      if(!photos.length) return;
+      document.documentElement.requestFullscreen?.().catch(()=>{});
+      document.body.classList.add('fs');
+      openModal(0);
+    }
+
+    function stopTimer() { if(timer) clearInterval(timer); }
+    function resetTimer() { stopTimer(); if(slideActive) timer = setInterval(() => changeImg(1), 10000); resetHideTO(); }
+
+    function showUI() { 
+      $('top-bar').classList.remove('ui-hide'); 
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('ui-hide')); 
+      $('modal').style.cursor = 'default'; 
+    }
+    
+    function hideUI() { 
+      if(slideActive) { 
+        $('top-bar').classList.add('ui-hide'); 
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.add('ui-hide')); 
+        $('modal').style.cursor = 'none'; 
+      } 
+    }
+    
+    function resetHideTO() { showUI(); clearTimeout(hideTO); if(slideActive) hideTO = setTimeout(hideUI, 3000); }
+
+    $('modal').onmousemove = resetHideTO;
+    $('modal').ontouchstart = e => { tX = e.changedTouches[0].screenX; tT = Date.now(); resetHideTO(); };
+    $('modal').ontouchend = e => {
+      const dX = e.changedTouches[0].screenX - tX;
+      if(Math.abs(dX) > 50) changeImg(dX < 0 ? 1 : -1);
+      else if(Math.abs(dX) < 10 && Date.now() - tT < 300) toggleSlide();
+      resetHideTO();
+    };
+    $('modal').onclick = e => { if(e.target === $('modal') || e.target.classList.contains('modal-img')) toggleSlide(); resetHideTO(); };
+
+    window.onkeydown = e => {
+      if($('modal').style.display === 'flex') {
+        resetHideTO();
+        if(e.key === 'ArrowRight') changeImg(1);
+        if(e.key === 'ArrowLeft') changeImg(-1);
+        if(e.key === 'Escape') closeModal();
+        if(e.key === ' ') { e.preventDefault(); toggleSlide(); }
+      }
+    };
+
+    window.onscroll = () => { if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) loadPhotos(); };
+
+    loadPhotos(true);
+  </script>
+</body>
+</html>
