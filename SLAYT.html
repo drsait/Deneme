@@ -4,662 +4,295 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Duvar Kağıtları</title>
-  <style id="dynamic-kenburns-style"></style>
+  <style id="kb-style"></style>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #121212; color: #fff; padding: 10px; }
-    body.fullscreen-active { overflow: hidden; padding: 0; }
-    .header { text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; width: 100%; }
-
-    .dropdown-container { position: relative; display: inline-block; width: 100%; max-width: 260px; }
-    .dropdown-btn { background: #222; color: #fff; border: 1px solid #444; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: space-between; width: 100%; user-select: none; }
-    .dropdown-btn:hover { border-color: #0078d4; }
-    .dropdown-menu { display: none; position: absolute; top: calc(100% + 5px); left: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 8px; width: 100%; max-height: 300px; overflow-y: auto; z-index: 50; box-shadow: 0 8px 24px rgba(0,0,0,0.6); padding: 8px; }
-    .dropdown-menu.show { display: block; }
-    .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 13px; color: #ddd; user-select: none; }
-    .dropdown-item:hover { background: #2a2a2a; }
-    .dropdown-item input { accent-color: #0078d4; width: 16px; height: 16px; cursor: pointer; }
-
-    select { padding: 10px 14px; border-radius: 6px; font-size: 14px; font-weight: bold; background: #222; color: #fff; border: 1px solid #444; outline: none; cursor: pointer; }
-    .btn { background: #0078d4; color: white; padding: 10px 16px; border-radius: 6px; font-size: 14px; font-weight: bold; border: none; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
-    .btn:hover { background: #005a9e; }
-    .btn-download { background: #28a745; }
-    .btn-download:hover { background: #218838; }
-    .btn-slide { background: #8a2be2; }
-    .btn-slide:hover { background: #731ec2; }
-
-    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-    .card { background: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: flex; flex-direction: column; position: relative; }
-    .card img { width: 100%; height: 140px; object-fit: cover; cursor: pointer; transition: transform 0.2s; background: #2a2a2a; }
-    .card-info { padding: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #bbb; gap: 4px; }
-    .card-check { position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; cursor: pointer; z-index: 2; accent-color: #0078d4; }
-    #loader { text-align: center; padding: 20px; color: #888; font-size: 14px; }
-
-    #modal { display: none; position: fixed; inset: 0; background: #000; z-index: 100; justify-content: center; align-items: center; user-select: none; overflow: hidden; }
-    #modal-img { width: 100vw; height: 100vh; object-fit: cover; min-width: 100vw; min-height: 100vh; transform-origin: center center; pointer-events: none; transition: transform 0.3s ease; }
-    
-    /* İlk dokunuşta sinematik mod kapalı iken tam görünüm için */
-    #modal-img.paused-view {
-      transform: scale(1) translate(0px, 0px) !important;
-      object-fit: contain !important;
-    }
-
-    .random-ken-burns {
-      animation-name: randomMovement;
-      animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
-      animation-fill-mode: forwards;
-    }
-
-    .nav-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); color: white; border: none; font-size: 24px; width: 40px; height: 50px; border-radius: 6px; cursor: pointer; transition: opacity 0.3s; z-index: 102; display: none; }
-    .nav-btn:hover { background: rgba(255,255,255,0.3); }
-    .prev-btn { left: 10px; }
-    .next-btn { right: 10px; }
-
-    .top-bar { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 102; transition: opacity 0.4s ease; }
-    .modal-actions { display: flex; gap: 8px; align-items: center; }
-    .close-fullscreen-group { display: flex; gap: 6px; align-items: center; margin-left: 10px; }
-    
-    .action-btn { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 18px; width: 40px; height: 40px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-    .action-btn:hover { background: rgba(255,255,255,0.3); }
-
-    .initial-hidden { display: none !important; }
-
-    .slide-controls { display: flex; gap: 6px; align-items: center; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
-    .slide-controls select { padding: 4px 6px; font-size: 11px; }
-
-    .ui-hidden { opacity: 0 !important; pointer-events: none !important; cursor: none !important; }
-
-    @media (min-width: 768px) {
-      body { padding: 20px; }
-      .gallery { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-      .card img { height: 180px; }
-      .card-info { font-size: 12px; padding: 10px; }
-      .dropdown-container { width: auto; max-width: none; }
-      .dropdown-btn { width: auto; }
-      .nav-btn { font-size: 30px; width: 50px; height: 60px; left: 20px; }
-      .next-btn { right: 20px; }
-      .top-bar { top: 20px; left: 25px; right: 25px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#121212;color:#fff;padding:10px}
+    body.fs{overflow:hidden;padding:0}
+    .header{text-align:center;margin-bottom:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+    .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;width:100%}
+    .dd-cont{position:relative;display:inline-block;width:100%;max-width:260px}
+    .dd-btn{background:#222;color:#fff;border:1px solid #444;padding:10px 16px;border-radius:6px;font-size:14px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:space-between;width:100%;user-select:none}
+    .dd-btn:hover{border-color:#0078d4}
+    .dd-menu{display:none;position:absolute;top:calc(100% + 5px);left:0;background:#1e1e1e;border:1px solid #444;border-radius:8px;width:100%;max-height:300px;overflow-y:auto;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,0.6);padding:8px}
+    .dd-menu.show{display:block}
+    .dd-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:5px;cursor:pointer;font-size:13px;color:#ddd;user-select:none}
+    .dd-item:hover{background:#2a2a2a}
+    .dd-item input{accent-color:#0078d4;width:16px;height:16px;cursor:pointer}
+    select{padding:10px 14px;border-radius:6px;font-size:14px;font-weight:bold;background:#222;color:#fff;border:1px solid #444;outline:none;cursor:pointer}
+    .btn{background:#0078d4;color:#fff;padding:10px 16px;border-radius:6px;font-size:14px;font-weight:bold;border:none;cursor:pointer;transition:background .2s;white-space:nowrap}
+    .btn:hover{background:#005a9e}
+    .btn-dl{background:#28a745}.btn-dl:hover{background:#218838}
+    .btn-sl{background:#8a2be2}.btn-sl:hover{background:#731ec2}
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+    .card{background:#1e1e1e;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;position:relative}
+    .card img{width:100%;height:140px;object-fit:cover;cursor:pointer;background:#2a2a2a}
+    .card-info{padding:8px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#bbb;gap:4px}
+    .card-check{position:absolute;top:8px;left:8px;width:22px;height:22px;cursor:pointer;z-index:2;accent-color:#0078d4}
+    #loader{text-align:center;padding:20px;color:#888;font-size:14px}
+    #modal{display:none;position:fixed;inset:0;background:#000;z-index:100;justify-content:center;align-items:center;user-select:none;overflow:hidden}
+    #modal-img{width:100vw;height:100vh;object-fit:cover;min-width:100vw;min-height:100vh;transform-origin:center;pointer-events:none;transition:transform .3s}
+    #modal-img.paused{transform:scale(1)!important;object-fit:contain!important}
+    .kb{animation-name:rm;animation-timing-function:cubic-bezier(0.25,0.1,0.25,1);animation-fill-mode:forwards}
+    .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);color:#fff;border:none;font-size:24px;width:40px;height:50px;border-radius:6px;cursor:pointer;z-index:102;display:none}
+    .prev-btn{left:10px}.next-btn{right:10px}
+    .top-bar{position:absolute;top:15px;left:15px;right:15px;display:flex;justify-content:space-between;align-items:center;z-index:102;transition:opacity .4s}
+    .m-actions{display:flex;gap:8px;align-items:center}
+    .act-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;width:40px;height:40px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .hidden{display:none!important}
+    .slide-ctrl{display:flex;gap:6px;align-items:center;background:rgba(0,0,0,0.6);padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.2)}
+    .slide-ctrl select{padding:4px 6px;font-size:11px}
+    .ui-hide{opacity:0!important;pointer-events:none!important;cursor:none!important}
+    @media(min-width:768px){
+      body{padding:20px}
+      .gallery{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px}
+      .card img{height:180px}
+      .card-info{font-size:12px;padding:10px}
+      .dd-cont{width:auto;max-width:none}
+      .dd-btn{width:auto}
+      .nav-btn{font-size:30px;width:50px;height:60px;left:20px}
+      .next-btn{right:20px}
+      .top-bar{top:20px;left:25px;right:25px}
     }
   </style>
 </head>
 <body>
-
   <div class="header">
     <h2>Duvar Kağıtları</h2>
-    
     <div class="controls">
-      <div class="dropdown-container">
-        <button class="dropdown-btn" id="category-btn" onclick="toggleDropdown(event)">
+      <div class="dd-cont">
+        <button class="dd-btn" id="cat-btn" onclick="document.getElementById('dd-menu').classList.toggle('show')">
           <span>Kategoriler (Tümü)</span> ▾
         </button>
-        <div class="dropdown-menu" id="dropdown-menu">
-          <label class="dropdown-item">
-            <input type="checkbox" id="cat-all" value="all" checked onchange="kategoriSecimDegisti(this)">
+        <div class="dd-menu" id="dd-menu">
+          <label class="dd-item">
+            <input type="checkbox" id="cat-all" value="all" checked onchange="handleCat(this)">
             <strong>Tüm Kategoriler</strong>
           </label>
-          <hr style="border: 0; border-top: 1px solid #333; margin: 4px 0;">
-          <div id="category-items"></div>
+          <hr style="border:0;border-top:1px solid #333;margin:4px 0">
+          <div id="cat-items"></div>
         </div>
       </div>
-
-      <select id="kalite" onchange="filtreYenile()">
+      <select id="res-sel" onchange="refreshGrid()">
         <option value="1920x1080">FHD (1920x1080)</option>
-        <option value="2560x1440">2K QHD (2560x1440)</option>
-        <option value="3840x2160">4K UHD (3840x2160)</option>
+        <option value="2560x1440">2K (2560x1440)</option>
+        <option value="3840x2160">4K (3840x2160)</option>
       </select>
-
-      <button class="btn btn-slide" onclick="slaytBaslat()">▶ Slayt</button>
-      <button class="btn" id="select-all-btn" onclick="tumunuSecToggle()">Tümünü Seç</button>
-      <button class="btn" onclick="filtreYenile()">Yenile</button>
-      <button class="btn btn-download" id="bulk-btn" onclick="topluIndir()">İndir (0)</button>
+      <button class="btn btn-sl" onclick="startSlide()">▶ Slayt</button>
+      <button class="btn" id="sel-all-btn" onclick="toggleAll()">Tümünü Seç</button>
+      <button class="btn" onclick="refreshGrid()">Yenile</button>
+      <button class="btn btn-dl" id="bulk-btn" onclick="bulkDl()">İndir (0)</button>
     </div>
   </div>
 
   <div class="gallery" id="gallery"></div>
-  <div id="loader">Daha fazla görsel yükleniyor...</div>
+  <div id="loader">Yükleniyor...</div>
 
   <div id="modal">
-    <div class="top-bar modal-actions ui-hidden" id="modal-top-bar">
-      <span id="counter" class="initial-hidden" style="color: #ccc; font-size: 14px;">1 / 20</span>
-      
-      <div class="modal-actions">
-        <div class="slide-controls initial-hidden" id="slide-settings">
-          <span style="font-size: 11px; color: #ddd;">Süre:</span>
-          <select id="slayt-hiz" onchange="slaytSuresiDegisti()">
-            <option value="5000">5 sn</option>
-            <option value="10000" selected>10 sn</option>
-            <option value="15000">15 sn</option>
-            <option value="30000">30 sn</option>
+    <div class="top-bar m-actions ui-hide" id="top-bar">
+      <span id="counter" class="hidden" style="color:#ccc;font-size:14px">1 / 20</span>
+      <div class="m-actions">
+        <div class="slide-ctrl hidden" id="slide-cfg">
+          <span style="font-size:11px;color:#ddd">Süre:</span>
+          <select id="slide-spd" onchange="resetTimer()">
+            <option value="5000">5s</option>
+            <option value="10000" selected>10s</option>
+            <option value="15000">15s</option>
+            <option value="30000">30s</option>
           </select>
-          <button class="btn btn-slide" id="slayt-toggle-btn" style="padding: 4px 8px; font-size: 11px;" onclick="slaytDurdurBaslat()">Durdur</button>
+          <button class="btn btn-sl" style="padding:4px 8px;font-size:11px" id="sl-tog" onclick="toggleSlide()">Durdur</button>
         </div>
-
-        <button class="btn initial-hidden" id="modal-select-btn" style="padding: 6px 10px; font-size: 12px;" onclick="toggleSelectFromModal()">Seç</button>
-        <button class="btn btn-download initial-hidden" style="padding: 6px 10px; font-size: 12px;" onclick="indirMevcutModal()">İndir</button>
-        
-        <div class="close-fullscreen-group">
-          <button class="action-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Tam Ekran">⛶</button>
-          <button class="action-btn" onclick="closeModal()" title="Kapat">✕</button>
+        <button class="btn hidden" id="m-sel-btn" style="padding:6px 10px;font-size:12px" onclick="toggleModalSel()">Seç</button>
+        <button class="btn btn-dl hidden" style="padding:6px 10px;font-size:12px" onclick="dlSingle(photos[curr].url,photos[curr].id)">İndir</button>
+        <div style="display:flex;gap:6px;align-items:center;margin-left:10px">
+          <button class="act-btn" onclick="if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()">⛶</button>
+          <button class="act-btn" onclick="closeModal()">✕</button>
         </div>
       </div>
     </div>
-
-    <button class="nav-btn prev-btn" id="btn-prev" onclick="prevImg(event)">‹</button>
-    <img id="modal-img" src="" alt="Önizleme">
-    <button class="nav-btn next-btn" id="btn-next" onclick="nextImg(event)">›</button>
+    <button class="nav-btn prev-btn" style="display:block" onclick="changeImg(-1,event)">‹</button>
+    <img id="modal-img" alt="">
+    <button class="nav-btn next-btn" style="display:block" onclick="changeImg(1,event)">›</button>
   </div>
 
   <script>
-    const KATEGORI_LISTESI = [
-      { id: "space", label: "Uzay & Galaksi" },
-      { id: "nature", label: "Doğa & Manzara" },
-      { id: "mountain", label: "Dağlar & Zirveler" },
-      { id: "sea", label: "Deniz & Okyanus" },
-      { id: "forest", label: "Orman & Ağaçlar" },
-      { id: "city", label: "Şehir & Metropol" },
-      { id: "architecture", label: "Mimari & Yapılar" },
-      { id: "sunset", label: "Gün Batımı & Şafak" },
-      { id: "desert", label: "Çöl & Kanyon" },
-      { id: "aurora", label: "Kutup Işıkları (Aurora)" },
-      { id: "animals", label: "Vahşi Yaşam & Hayvanlar" },
-      { id: "underwater", label: "Sualtı & Mercanlar" },
-      { id: "night", label: "Gece Işıkları" },
-      { id: "minimal", label: "Minimalist & Sade" },
-      { id: "abstract", label: "Soyut & Geometrik" },
-      { id: "macro", label: "Makro Doğa" },
-      { id: "winter", label: "Kış & Kar Manzaraları" },
-      { id: "autumn", label: "Sonbahar Yaprakları" },
-      { id: "waterfall", label: "Şelaleler & Nehirler" },
-      { id: "clouds", label: "Bulutlar & Gökyüzü" },
-      { id: "roads", label: "Yollar & Yolculuk" },
-      { id: "aerial", label: "Havadan (Drone) Çekim" }
+    const CATS = [
+      {id:"space",l:"Uzay"},{id:"nature",l:"Doğa"},{id:"mountain",l:"Dağlar"},{id:"sea",l:"Deniz"},
+      {id:"forest",l:"Orman"},{id:"city",l:"Şehir"},{id:"architecture",l:"Mimari"},{id:"sunset",l:"Gün Batımı"},
+      {id:"desert",l:"Çöl"},{id:"aurora",l:"Aurora"},{id:"animals",l:"Hayvanlar"},{id:"underwater",l:"Sualtı"},
+      {id:"night",l:"Gece"},{id:"minimal",l:"Minimal"},{id:"abstract",l:"Soyut"},{id:"macro",l:"Makro"},
+      {id:"winter",l:"Kış"},{id:"autumn",l:"Sonbahar"},{id:"waterfall",l:"Şelale"},{id:"clouds",l:"Bulut"},
+      {id:"roads",l:"Yol"},{id:"aerial",l:"Drone"}
     ];
 
-    let fotograflar = [];
-    let seciliSet = new Set();
-    let seciliKategoriler = new Set(['all']);
-    let currentIndex = 0;
-    let page = 1;
-    let isLoading = false;
+    let photos = [], selSet = new Set(), selCats = new Set(['all']), curr = 0, page = 1, loading = false, timer = null, slideActive = false, hideTO = null, tX = 0, tT = 0;
+    const $ = id => document.getElementById(id);
 
-    let slideTimer = null;
-    let isSlideActive = false;
-    let hideControlsTimeout = null;
-    let touchStartX = 0;
-    let touchEndX = 0;
-    let touchStartTime = 0;
+    // Kriter Menüsü Oluşturma
+    CATS.forEach(c => $('cat-items').innerHTML += `<label class="dd-item"><input type="checkbox" value="${c.id}" onchange="handleCat(this)"> ${c.l}</label>`);
 
-    const modal = document.getElementById('modal');
-    const modalImg = document.getElementById('modal-img');
-    const dynamicStyle = document.getElementById('dynamic-kenburns-style');
-    const counter = document.getElementById('counter');
-    const gallery = document.getElementById('gallery');
-    const loader = document.getElementById('loader');
-    const bulkBtn = document.getElementById('bulk-btn');
-    const modalSelectBtn = document.getElementById('modal-select-btn');
-    const selectAllBtn = document.getElementById('select-all-btn');
-    const topBar = document.getElementById('modal-top-bar');
-    const btnPrev = document.getElementById('btn-prev');
-    const btnNext = document.getElementById('btn-next');
-    const slaytToggleBtn = document.getElementById('slayt-toggle-btn');
-    const dropdownMenu = document.getElementById('dropdown-menu');
-    const categoryBtn = document.getElementById('category-btn');
+    window.onclick = e => { if(!$('cat-btn').contains(e.target) && !$('dd-menu').contains(e.target)) $('dd-menu').classList.remove('show'); };
 
-    function kategoriMenusuHazirla() {
-      const container = document.getElementById('category-items');
-      KATEGORI_LISTESI.forEach(k => {
-        const lbl = document.createElement('label');
-        lbl.className = 'dropdown-item';
-        lbl.innerHTML = `<input type="checkbox" value="${k.id}" onchange="kategoriSecimDegisti(this)"> ${k.label}`;
-        container.appendChild(lbl);
-      });
-    }
-
-    function toggleDropdown(e) {
-      e.stopPropagation();
-      dropdownMenu.classList.toggle('show');
-    }
-
-    window.addEventListener('click', (e) => {
-      if (!dropdownMenu.contains(e.target) && e.target !== categoryBtn) {
-        dropdownMenu.classList.remove('show');
-      }
-    });
-
-    function kategoriSecimDegisti(target) {
-      const allCheck = document.getElementById('cat-all');
-      const inputs = document.querySelectorAll('#category-items input');
-
-      if (target.value === 'all') {
-        if (target.checked) {
-          inputs.forEach(i => i.checked = false);
-          seciliKategoriler.clear();
-          seciliKategoriler.add('all');
-        } else {
-          target.checked = true;
-        }
+    function handleCat(el) {
+      const all = $('cat-all'), inputs = document.querySelectorAll('#cat-items input');
+      if(el.value === 'all') {
+        if(el.checked) { inputs.forEach(i => i.checked = false); selCats.clear(); selCats.add('all'); }
+        else el.checked = true;
       } else {
-        allCheck.checked = false;
-        seciliKategoriler.delete('all');
-
-        if (target.checked) {
-          seciliKategoriler.add(target.value);
-        } else {
-          seciliKategoriler.delete(target.value);
-        }
-
-        if (seciliKategoriler.size === 0) {
-          allCheck.checked = true;
-          seciliKategoriler.add('all');
-        }
+        all.checked = false; selCats.delete('all');
+        if(el.checked) selCats.add(el.value); else selCats.delete(el.value);
+        if(!selCats.size) { all.checked = true; selCats.add('all'); }
       }
-
-      categoryBtn.querySelector('span').textContent = seciliKategoriler.has('all') 
-        ? 'Kategoriler (Tümü)' 
-        : `Kategoriler (${seciliKategoriler.size})`;
-
-      filtreYenile();
+      $('cat-btn').firstElementChild.textContent = selCats.has('all') ? 'Kategoriler (Tümü)' : `Kategoriler (${selCats.size})`;
+      refreshGrid();
     }
 
-    function filtreYenile() {
-      page = 1;
-      fotograflar = [];
-      seciliSet.clear();
-      guncelleSecimSayisi();
-      gallery.innerHTML = '';
-      resimleriYukle();
-    }
+    function refreshGrid() { page = 1; photos = []; selSet.clear(); updateUI(); $('gallery').innerHTML = ''; loadPhotos(); }
 
-    async function resimleriYukle(ilkAcilis = false) {
-      if (isLoading) return;
-      isLoading = true;
-      loader.style.display = 'block';
-
-      const [width, height] = document.getElementById('kalite').value.split('x');
-      const catArray = seciliKategoriler.has('all') 
-        ? KATEGORI_LISTESI.map(k => k.id) 
-        : Array.from(seciliKategoriler);
-
-      const yeniFotolar = [];
-
-      for (let i = 0; i < 20; i++) {
-        const rastgeleKategori = catArray[Math.floor(Math.random() * catArray.length)];
-        const seed = `${rastgeleKategori}_${Date.now()}_${(page - 1) * 20 + i}`;
-        const url = `https://picsum.photos/seed/${seed}/${width}/${height}`;
-        
-        yeniFotolar.push({
-          url: url,
-          id: `kilit_ekrani_${seed}.jpg`,
-          width: width,
-          height: height
-        });
-      }
-
-      for (const foto of yeniFotolar) {
-        fotograflar.push(foto);
-        const idx = fotograflar.length - 1;
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <input type="checkbox" class="card-check" id="chk-${idx}" onchange="kartSecim(${idx}, this.checked)">
-          <img src="${foto.url}" loading="lazy" onclick="openModal(${idx})">
-          <div class="card-info">
-            <div>
-              <strong>${foto.width}x${foto.height}</strong><br>
-              <span id="size-${idx}" style="color: #888;">Hesaplanıyor...</span>
-            </div>
-            <button class="btn btn-download" style="padding: 4px 8px; font-size: 11px;" onclick="tekilIndir('${foto.url}', '${foto.id}')">İndir</button>
-          </div>
-        `;
-        gallery.appendChild(card);
-        boyutBilgisiniGetir(foto.url, idx);
-      }
-
-      page++;
-      isLoading = false;
-      loader.style.display = 'none';
-      guncelleTumunuSecButonu();
-
-      if (ilkAcilis && fotograflar.length > 0) {
-        slaytBaslat();
-      }
-    }
-
-    async function boyutBilgisiniGetir(url, idx) {
-      const sizeSpan = document.getElementById(`size-${idx}`);
-      try {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        if (sizeSpan && blob.size > 0) {
-          const mb = (blob.size / (1024 * 1024)).toFixed(2);
-          sizeSpan.textContent = `${mb} MB`;
-        }
-      } catch {
-        if (sizeSpan) sizeSpan.textContent = 'Bilinmiyor';
-      }
-    }
-
-    function kartSecim(idx, durum) {
-      if (durum) seciliSet.add(idx);
-      else seciliSet.delete(idx);
-      guncelleSecimSayisi();
-      guncelleTumunuSecButonu();
-      if (modal.style.display === 'flex' && currentIndex === idx) {
-        guncelleModalSecimButonu();
-      }
-    }
-
-    function tumunuSecToggle() {
-      const hepsiSecili = seciliSet.size === fotograflar.length && fotograflar.length > 0;
-      if (hepsiSecili) {
-        seciliSet.clear();
-      } else {
-        fotograflar.forEach((_, idx) => seciliSet.add(idx));
-      }
-
-      fotograflar.forEach((_, idx) => {
-        const chk = document.getElementById(`chk-${idx}`);
-        if (chk) chk.checked = !hepsiSecili;
-      });
-
-      guncelleSecimSayisi();
-      guncelleTumunuSecButonu();
-      if (modal.style.display === 'flex') guncelleModalSecimButonu();
-    }
-
-    function guncelleTumunuSecButonu() {
-      selectAllBtn.textContent = (fotograflar.length > 0 && seciliSet.size === fotograflar.length) ? 'Seçimi Kaldır' : 'Tümünü Seç';
-    }
-
-    function toggleSelectFromModal() {
-      const seciliMi = seciliSet.has(currentIndex);
-      kartSecim(currentIndex, !seciliMi);
-      const chk = document.getElementById(`chk-${currentIndex}`);
-      if (chk) chk.checked = !seciliMi;
-      guncelleModalSecimButonu();
-    }
-
-    function guncelleModalSecimButonu() {
-      if (seciliSet.has(currentIndex)) {
-        modalSelectBtn.textContent = '✓ Seçildi';
-        modalSelectBtn.style.background = '#d9534f';
-      } else {
-        modalSelectBtn.textContent = '+ Seç';
-        modalSelectBtn.style.background = '#0078d4';
-      }
-    }
-
-    function guncelleSecimSayisi() {
-      bulkBtn.textContent = `İndir (${seciliSet.size})`;
-    }
-
-    async function tekilIndir(url, dosyaAdi) {
-      try {
-        const res = await fetch(url);
-        const blob = await res.blob();
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = dosyaAdi;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      } catch {
-        window.open(url, '_blank');
-      }
-    }
-
-    function indirMevcutModal() {
-      const foto = fotograflar[currentIndex];
-      tekilIndir(foto.url, foto.id);
-    }
-
-    async function topluIndir() {
-      if (seciliSet.size === 0) return alert('Lütfen önce fotoğrafları seçin.');
-      bulkBtn.textContent = 'İndiriliyor...';
-      bulkBtn.disabled = true;
-
-      for (const idx of seciliSet) {
-        const foto = fotograflar[idx];
-        await tekilIndir(foto.url, foto.id);
-        await new Promise(r => setTimeout(r, 400));
-      }
-      bulkBtn.disabled = false;
-      guncelleSecimSayisi();
-    }
-
-    function rastgeleAnimasyonUret(sureMs) {
-      const scaleValues = [1.05, 1.20, 1.35];
-      const startScale = scaleValues[Math.floor(Math.random() * scaleValues.length)];
-      let endScale = scaleValues[Math.floor(Math.random() * scaleValues.length)];
+    async function loadPhotos(autoSlide = false) {
+      if(loading) return; loading = true; $('loader').style.display = 'block';
+      const [w, h] = $('res-sel').value.split('x');
+      const cArr = selCats.has('all') ? CATS.map(c => c.id) : Array.from(selCats);
       
-      while (startScale === endScale) {
-        endScale = scaleValues[Math.floor(Math.random() * scaleValues.length)];
+      for(let i=0; i<20; i++) {
+        const seed = `${cArr[Math.floor(Math.random()*cArr.length)]}_${Date.now()}_${i}`;
+        photos.push({url:`https://picsum.photos/seed/${seed}/${w}/${h}`, id:`wp_${seed}.jpg`, w, h});
       }
 
-      const startX = (Math.random() * 16 - 8).toFixed(2);
-      const startY = (Math.random() * 16 - 8).toFixed(2);
-      const endX = (Math.random() * 16 - 8).toFixed(2);
-      const endY = (Math.random() * 16 - 8).toFixed(2);
+      photos.slice(-20).forEach((f, idx) => {
+        const i = photos.length - 20 + idx;
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)"><img src="${f.url}" loading="lazy" onclick="openModal(${i})"><div class="card-info"><div><strong>${f.w}x${f.h}</strong><br><span id="sz-${i}" style="color:#888">...</span></div><button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url}','${f.id}')">İndir</button></div>`;
+        $('gallery').appendChild(div);
+        fetch(f.url).then(r => r.blob()).then(b => { if($(`sz-${i}`)) $('sz-${i}').textContent = (b.size/1048576).toFixed(2)+' MB'; }).catch(() => {});
+      });
 
-      dynamicStyle.textContent = `
-        @keyframes randomMovement {
-          0% {
-            transform: scale(${startScale.toFixed(2)}) translate(${startX}%, ${startY}%);
-          }
-          100% {
-            transform: scale(${endScale.toFixed(2)}) translate(${endX}%, ${endY}%);
-          }
-        }
-      `;
-
-      modalImg.style.animationDuration = `${sureMs}ms`;
+      page++; loading = false; $('loader').style.display = 'none'; updateUI();
+      if(autoSlide && photos.length > 0) startSlide();
     }
 
-    function openModal(index) {
-      if (!fotograflar.length) return;
-      currentIndex = index;
-      isSlideActive = false;
-      slaytiDurdur();
-      slaytToggleBtn.textContent = 'Devam Et';
-      updateModal();
-      modal.style.display = 'flex';
-      showControls();
+    function toggleCard(i, state) {
+      if(state) selSet.add(i); else selSet.delete(i);
+      updateUI();
+      if($('modal').style.display === 'flex' && curr === i) updateModalSelBtn();
+    }
+
+    function toggleAll() {
+      const all = selSet.size === photos.length && photos.length > 0;
+      selSet.clear();
+      if(!all) photos.forEach((_, i) => selSet.add(i));
+      photos.forEach((_, i) => { const c = $(`chk-${i}`); if(c) c.checked = !all; });
+      updateUI();
+      if($('modal').style.display === 'flex') updateModalSelBtn();
+    }
+
+    function updateUI() {
+      $('bulk-btn').textContent = `İndir (${selSet.size})`;
+      $('sel-all-btn').textContent = (photos.length > 0 && selSet.size === photos.length) ? 'Seçimi Kaldır' : 'Tümünü Seç';
+    }
+
+    function updateModalSelBtn() {
+      $('m-sel-btn').textContent = selSet.has(curr) ? '✓ Seçildi' : '+ Seç';
+      $('m-sel-btn').style.background = selSet.has(curr) ? '#d9534f' : '#0078d4';
+    }
+
+    async function dlSingle(url, name) {
+      try {
+        const res = await fetch(url); const blob = await res.blob();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+      } catch { window.open(url, '_blank'); }
+    }
+
+    async function bulkDl() {
+      if(!selSet.size) return alert('Önce fotoğraf seçin.');
+      $('bulk-btn').textContent = 'İndiriliyor...'; $('bulk-btn').disabled = true;
+      for(const i of selSet) { await dlSingle(photos[i].url, photos[i].id); await new Promise(r => setTimeout(r, 300)); }
+      $('bulk-btn').disabled = false; updateUI();
+    }
+
+    function openModal(i) {
+      if(!photos.length) return;
+      curr = i; slideActive = false; stopTimer();
+      $('sl-tog').textContent = 'Devam Et';
+      updateModal(); $('modal').style.display = 'flex'; showUI();
     }
 
     function closeModal() {
-      slaytiDurdur();
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-      document.body.classList.remove('fullscreen-active');
-      modal.style.display = 'none';
-      modalImg.classList.remove('random-ken-burns');
-      showControls();
-    }
-
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().catch(() => {});
-        }
-      }
-      resetHideTimer();
+      stopTimer();
+      if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+      document.body.classList.remove('fs'); $('modal').style.display = 'none'; showUI();
     }
 
     function updateModal() {
-      modalImg.classList.remove('random-ken-burns');
-      modalImg.src = fotograflar[currentIndex].url;
-      
-      const sure = parseInt(document.getElementById('slayt-hiz').value, 10) || 10000;
+      const img = $('modal-img');
+      img.className = ''; img.src = photos[curr].url;
+      const spd = parseInt($('slide-spd').value, 10) || 10000;
 
-      if (isSlideActive) {
-        modalImg.classList.remove('paused-view');
-        rastgeleAnimasyonUret(sure);
-        void modalImg.offsetWidth;
-        modalImg.classList.add('random-ken-burns');
+      if(slideActive) {
+        const s = [1.05, 1.2, 1.35], s1 = s[Math.floor(Math.random()*3)], s2 = s[Math.floor(Math.random()*3)];
+        $('kb-style').textContent = `@keyframes rm{0%{transform:scale(${s1}) translate(${Math.random()*16-8}%,${Math.random()*16-8}%)}100%{transform:scale(${s2}) translate(${Math.random()*16-8}%,${Math.random()*16-8}%);}}`;
+        img.style.animationDuration = spd + 'ms';
+        void img.offsetWidth; img.classList.add('kb');
       } else {
-        modalImg.classList.add('paused-view');
+        img.classList.add('paused');
       }
+      $('counter').textContent = `${curr + 1} / ${photos.length}`;
+      updateModalSelBtn();
+      if(curr >= photos.length - 3) loadPhotos();
+    }
 
-      counter.textContent = `${currentIndex + 1} / ${fotograflar.length}`;
-      guncelleModalSecimButonu();
+    function changeImg(dir, e) {
+      if(e) e.stopPropagation();
+      curr = (curr + dir + photos.length) % photos.length;
+      updateModal(); if(slideActive) resetTimer();
+    }
 
-      if (currentIndex >= fotograflar.length - 3) {
-        resimleriYukle();
+    function startSlide() {
+      if(!photos.length) return;
+      document.documentElement.requestFullscreen?.().catch(()=>{});
+      document.body.classList.add('fs'); $('modal').style.display = 'flex';
+      slideActive = true; $('sl-tog').textContent = 'Durdur';
+      updateModal(); resetTimer(); hideUI();
+    }
+
+    function toggleSlide() {
+      slideActive = !slideActive;
+      if(slideActive) { $('sl-tog').textContent = 'Durdur'; updateModal(); resetTimer(); hideUI(); }
+      else { stopTimer(); $('modal-img').className = 'paused'; $('sl-tog').textContent = 'Devam Et'; showUI(); }
+    }
+
+    function stopTimer() { if(timer) clearInterval(timer); }
+    function resetTimer() { stopTimer(); if(slideActive) timer = setInterval(() => changeImg(1), parseInt($('slide-spd').value, 10)); resetHideTO(); }
+
+    function showUI() { $('top-bar').classList.remove('ui-hide'); $('modal').style.cursor = 'default'; }
+    function hideUI() { if(slideActive) { $('top-bar').classList.add('ui-hide'); $('modal').style.cursor = 'none'; } }
+    function resetHideTO() { showUI(); clearTimeout(hideTO); if(slideActive) hideTO = setTimeout(hideUI, 4000); }
+
+    $('modal').onmousemove = resetHideTO;
+    $('modal').ontouchstart = e => { tX = e.changedTouches[0].screenX; tT = Date.now(); resetHideTO(); };
+    $('modal').ontouchend = e => {
+      const dX = e.changedTouches[0].screenX - tX;
+      if(Math.abs(dX) > 50) changeImg(dX < 0 ? 1 : -1);
+      else if(Math.abs(dX) < 10 && Date.now() - tT < 300) toggleSlide();
+      resetHideTO();
+    };
+    $('modal').onclick = e => { if(e.target === $('modal') || e.target === $('modal-img')) toggleSlide(); resetHideTO(); };
+
+    window.onkeydown = e => {
+      if($('modal').style.display === 'flex') {
+        resetHideTO();
+        if(e.key === 'ArrowRight') changeImg(1);
+        if(e.key === 'ArrowLeft') changeImg(-1);
+        if(e.key === 'Escape') closeModal();
+        if(e.key === ' ') { e.preventDefault(); toggleSlide(); }
       }
-    }
+    };
 
-    function prevImg(e) {
-      if (e) e.stopPropagation();
-      currentIndex = (currentIndex - 1 + fotograflar.length) % fotograflar.length;
-      updateModal();
-      if (isSlideActive) slaytDöngüsüAyarla();
-    }
+    window.onscroll = () => { if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) loadPhotos(); };
 
-    function nextImg(e) {
-      if (e) e.stopPropagation();
-      currentIndex = (currentIndex + 1) % fotograflar.length;
-      updateModal();
-      if (isSlideActive) slaytDöngüsüAyarla();
-    }
-
-    function slaytBaslat() {
-      if (!fotograflar.length) return;
-      modal.style.display = 'flex';
-      
-      const docEl = document.documentElement;
-      if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
-      else if (docEl.webkitRequestFullscreen) docEl.webkitRequestFullscreen();
-
-      document.body.classList.add('fullscreen-active');
-
-      isSlideActive = true;
-      slaytToggleBtn.textContent = 'Durdur';
-      updateModal();
-      slaytDöngüsüAyarla();
-      hideControls();
-    }
-
-    function slaytDurdurBaslat() {
-      if (isSlideActive) {
-        slaytiDurdur();
-        modalImg.classList.remove('random-ken-burns');
-        modalImg.classList.add('paused-view');
-        slaytToggleBtn.textContent = 'Devam Et';
-        showControls();
-      } else {
-        isSlideActive = true;
-        modalImg.classList.remove('paused-view');
-        slaytToggleBtn.textContent = 'Durdur';
-        updateModal();
-        slaytDöngüsüAyarla();
-        hideControls();
-      }
-    }
-
-    function slaytiDurdur() {
-      isSlideActive = false;
-      if (slideTimer) clearInterval(slideTimer);
-    }
-
-    function slaytSuresiDegisti() {
-      if (isSlideActive) {
-        updateModal();
-        slaytDöngüsüAyarla();
-      }
-      resetHideTimer();
-    }
-
-    function slaytDöngüsüAyarla() {
-      if (slideTimer) clearInterval(slideTimer);
-      const sure = parseInt(document.getElementById('slayt-hiz').value, 10) || 10000;
-      slideTimer = setInterval(() => {
-        nextImg();
-      }, sure);
-    }
-
-    function showControls() {
-      topBar.classList.remove('ui-hidden');
-      modal.style.cursor = 'default';
-    }
-
-    function hideControls() {
-      if (modal.style.display === 'flex' && isSlideActive) {
-        topBar.classList.add('ui-hidden');
-        modal.style.cursor = 'none';
-      }
-    }
-
-    function resetHideTimer() {
-      showControls();
-      clearTimeout(hideControlsTimeout);
-      if (isSlideActive) {
-        hideControlsTimeout = setTimeout(hideControls, 5000);
-      }
-    }
-
-    modal.addEventListener('mousemove', resetHideTimer);
-    
-    modal.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartTime = Date.now();
-      resetHideTimer();
-    }, {passive: true});
-
-    modal.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      const touchEndTime = Date.now();
-      const diffX = touchEndX - touchStartX;
-      const elapsedTime = touchEndTime - touchStartTime;
-
-      if (Math.abs(diffX) > 50) {
-        if (diffX < 0) {
-          nextImg();
-        } else {
-          prevImg();
-        }
-      } 
-      else if (Math.abs(diffX) < 10 && elapsedTime < 300) {
-        // İlk dokunmada slayt aktifse durdur ve tam göster, kapalıysa devam ettir
-        slaytDurdurBaslat();
-      }
-
-      resetHideTimer();
-    }, {passive: true});
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal || e.target === modalImg) {
-        slaytDurdurBaslat();
-      }
-      resetHideTimer();
-    });
-
-    window.addEventListener('keydown', (e) => {
-      if (modal.style.display === 'flex') {
-        resetHideTimer();
-        if (e.key === 'ArrowRight') nextImg();
-        if (e.key === 'ArrowLeft') prevImg();
-        if (e.key === 'Escape') closeModal();
-        if (e.key === ' ') {
-          e.preventDefault();
-          slaytDurdurBaslat();
-        }
-      }
-    });
-
-    window.addEventListener('scroll', () => {
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) {
-        resimleriYukle();
-      }
-    });
-
-    kategoriMenusuHazirla();
-    resimleriYukle(true);
+    loadPhotos(true);
   </script>
 </body>
 </html>
