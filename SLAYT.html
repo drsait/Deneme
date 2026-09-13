@@ -37,7 +37,7 @@
     #loader { text-align: center; padding: 20px; color: #888; font-size: 14px; }
 
     #modal { display: none; position: fixed; inset: 0; background: #000; z-index: 100; justify-content: center; align-items: center; user-select: none; overflow: hidden; }
-    #modal-img { width: 100vw; height: 100vh; object-fit: cover; transform-origin: center center; pointer-events: none; }
+    #modal-img { width: 100vw; height: 100vh; object-fit: cover; min-width: 100vw; min-height: 100vh; transform-origin: center center; pointer-events: none; }
 
     .random-ken-burns {
       animation-name: randomMovement;
@@ -178,10 +178,11 @@
     let isLoading = false;
 
     let slideTimer = null;
-    let isSlideActive = false; // Varsayılan olarak kapalı
+    let isSlideActive = false;
     let hideControlsTimeout = null;
     let touchStartX = 0;
     let touchEndX = 0;
+    let touchStartTime = 0;
 
     const modal = document.getElementById('modal');
     const modalImg = document.getElementById('modal-img');
@@ -316,8 +317,7 @@
       guncelleTumunuSecButonu();
 
       if (ilkAcilis && fotograflar.length > 0) {
-        currentIndex = Math.floor(Math.random() * fotograflar.length);
-        openModal(currentIndex);
+        slaytBaslat();
       }
     }
 
@@ -425,7 +425,7 @@
     }
 
     function rastgeleAnimasyonUret(sureMs) {
-      const scaleValues = [1.0, 1.15, 1.30];
+      const scaleValues = [1.05, 1.20, 1.35];
       const startScale = scaleValues[Math.floor(Math.random() * scaleValues.length)];
       let endScale = scaleValues[Math.floor(Math.random() * scaleValues.length)];
       
@@ -455,8 +455,8 @@
     function openModal(index) {
       if (!fotograflar.length) return;
       currentIndex = index;
-      isSlideActive = false; // Normal tıklamada slayt kapalı başlasın
-      slaytDurdur();
+      isSlideActive = false;
+      slaytiDurdur();
       slaytToggleBtn.textContent = 'Devam Et';
       updateModal();
       modal.style.display = 'flex';
@@ -521,8 +521,7 @@
 
     function slaytBaslat() {
       if (!fotograflar.length) return;
-      currentIndex = 0;
-      openModal(currentIndex);
+      modal.style.display = 'flex';
       
       const docEl = document.documentElement;
       if (docEl.requestFullscreen) docEl.requestFullscreen().catch(() => {});
@@ -542,11 +541,13 @@
         slaytiDurdur();
         modalImg.classList.remove('random-ken-burns');
         slaytToggleBtn.textContent = 'Devam Et';
+        showControls();
       } else {
         isSlideActive = true;
         slaytToggleBtn.textContent = 'Durdur';
         updateModal();
         slaytDöngüsüAyarla();
+        hideControls();
       }
     }
 
@@ -593,27 +594,39 @@
 
     modal.addEventListener('mousemove', resetHideTimer);
     
-    // Dokunma (Swipe) ve Mobil Hareket Algılama
+    // Dokunma (Touch) ve Kaydırma (Swipe) Algılama
     modal.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
+      touchStartTime = Date.now();
       resetHideTimer();
     }, {passive: true});
 
     modal.addEventListener('touchend', (e) => {
       touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
+      const touchEndTime = Date.now();
+      const diffX = touchEndX - touchStartX;
+      const elapsedTime = touchEndTime - touchStartTime;
+
+      // Eğer hızlıca parmak kaydırıldıysa (Swipe)
+      if (Math.abs(diffX) > 50) {
+        if (diffX < 0) {
+          nextImg(); // Sola kaydırma -> Sonraki
+        } else {
+          prevImg(); // Sağa kaydırma -> Önceki
+        }
+      } 
+      // Eğer ekrana direkt dokunulup bırakıldıysa (Tap)
+      else if (Math.abs(diffX) < 10 && elapsedTime < 300) {
+        const screenWidth = window.innerWidth;
+        if (touchStartX > screenWidth / 2) {
+          nextImg(); // Ekranın sağ tarafına dokunma -> Sonraki
+        } else {
+          prevImg(); // Ekranın sol tarafına dokunma -> Önceki
+        }
+      }
+
       resetHideTimer();
     }, {passive: true});
-
-    function handleSwipe() {
-      const swipeThreshold = 50;
-      if (touchEndX < touchStartX - swipeThreshold) {
-        nextImg(); // Sola kaydırma -> Sonraki görsel
-      }
-      if (touchEndX > touchStartX + swipeThreshold) {
-        prevImg(); // Sağa kaydırma -> Önceki görsel
-      }
-    }
 
     modal.addEventListener('click', (e) => {
       if (e.target === modal || e.target === modalImg) resetHideTimer();
@@ -639,7 +652,7 @@
     });
 
     kategoriMenusuHazirla();
-    resimleriYukle(false);
+    resimleriYukle(true);
   </script>
 </body>
 </html>
