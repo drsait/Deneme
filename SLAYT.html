@@ -37,7 +37,13 @@
     #loader { text-align: center; padding: 20px; color: #888; font-size: 14px; }
 
     #modal { display: none; position: fixed; inset: 0; background: #000; z-index: 100; justify-content: center; align-items: center; user-select: none; overflow: hidden; }
-    #modal-img { width: 100vw; height: 100vh; object-fit: cover; min-width: 100vw; min-height: 100vh; transform-origin: center center; pointer-events: none; }
+    #modal-img { width: 100vw; height: 100vh; object-fit: cover; min-width: 100vw; min-height: 100vh; transform-origin: center center; pointer-events: none; transition: transform 0.3s ease; }
+    
+    /* İlk dokunuşta sinematik mod kapalı iken tam görünüm için */
+    #modal-img.paused-view {
+      transform: scale(1) translate(0px, 0px) !important;
+      object-fit: contain !important;
+    }
 
     .random-ken-burns {
       animation-name: randomMovement;
@@ -492,9 +498,12 @@
       const sure = parseInt(document.getElementById('slayt-hiz').value, 10) || 10000;
 
       if (isSlideActive) {
+        modalImg.classList.remove('paused-view');
         rastgeleAnimasyonUret(sure);
         void modalImg.offsetWidth;
         modalImg.classList.add('random-ken-burns');
+      } else {
+        modalImg.classList.add('paused-view');
       }
 
       counter.textContent = `${currentIndex + 1} / ${fotograflar.length}`;
@@ -540,10 +549,12 @@
       if (isSlideActive) {
         slaytiDurdur();
         modalImg.classList.remove('random-ken-burns');
+        modalImg.classList.add('paused-view');
         slaytToggleBtn.textContent = 'Devam Et';
         showControls();
       } else {
         isSlideActive = true;
+        modalImg.classList.remove('paused-view');
         slaytToggleBtn.textContent = 'Durdur';
         updateModal();
         slaytDöngüsüAyarla();
@@ -594,7 +605,6 @@
 
     modal.addEventListener('mousemove', resetHideTimer);
     
-    // Dokunma (Touch) ve Kaydırma (Swipe) Algılama
     modal.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
       touchStartTime = Date.now();
@@ -607,29 +617,26 @@
       const diffX = touchEndX - touchStartX;
       const elapsedTime = touchEndTime - touchStartTime;
 
-      // Eğer hızlıca parmak kaydırıldıysa (Swipe)
       if (Math.abs(diffX) > 50) {
         if (diffX < 0) {
-          nextImg(); // Sola kaydırma -> Sonraki
+          nextImg();
         } else {
-          prevImg(); // Sağa kaydırma -> Önceki
+          prevImg();
         }
       } 
-      // Eğer ekrana direkt dokunulup bırakıldıysa (Tap)
       else if (Math.abs(diffX) < 10 && elapsedTime < 300) {
-        const screenWidth = window.innerWidth;
-        if (touchStartX > screenWidth / 2) {
-          nextImg(); // Ekranın sağ tarafına dokunma -> Sonraki
-        } else {
-          prevImg(); // Ekranın sol tarafına dokunma -> Önceki
-        }
+        // İlk dokunmada slayt aktifse durdur ve tam göster, kapalıysa devam ettir
+        slaytDurdurBaslat();
       }
 
       resetHideTimer();
     }, {passive: true});
 
     modal.addEventListener('click', (e) => {
-      if (e.target === modal || e.target === modalImg) resetHideTimer();
+      if (e.target === modal || e.target === modalImg) {
+        slaytDurdurBaslat();
+      }
+      resetHideTimer();
     });
 
     window.addEventListener('keydown', (e) => {
