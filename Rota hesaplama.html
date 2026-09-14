@@ -244,18 +244,6 @@
       }
     }
 
-    function ozetGuncelle(son) {
-      const st = (son[0].split(/[\sT]+/)[1] || '').substring(0, 5);
-      $('gSaat').innerText = $('dSaat').innerText = st;
-      $('gSure').innerText = `${getColVal(son, 'gidis', 'sure')} dk`;
-      $('gBadge').innerHTML = delayBadge(getColVal(son, 'gidis', 'gecikme'));
-      $('gMesafe').innerText = `Mesafe: ${getColVal(son, 'gidis', 'mesafe')} km`;
-
-      $('dSure').innerText = `${getColVal(son, 'donus', 'sure')} dk`;
-      $('dBadge').innerHTML = delayBadge(getColVal(son, 'donus', 'gecikme'));
-      $('dMesafe').innerText = `Mesafe: ${getColVal(son, 'donus', 'mesafe')} km`;
-    }
-
     function getRangeZaman() {
       let maxZ = 0;
       tumKayitlar.forEach(r => { const t = parseTarih(r[0]); if (t > maxZ) maxZ = t; });
@@ -283,6 +271,25 @@
         if (s > 0 && s < minS) minS = s;
       });
       return minS === Infinity ? 20 : Math.round(minS);
+    }
+
+    function ozetGuncelle(son) {
+      const st = (son[0].split(/[\sT]+/)[1] || '').substring(0, 5);
+      $('gSaat').innerText = $('dSaat').innerText = st;
+
+      const gSure = getColVal(son, 'gidis', 'sure');
+      const dSure = getColVal(son, 'donus', 'sure');
+      
+      const refGidis = getEnKisaSure24h('gidis');
+      const refDonus = getEnKisaSure24h('donus');
+
+      $('gSure').innerText = `${gSure} dk`;
+      $('gBadge').innerHTML = delayBadge(Math.max(0, gSure - refGidis));
+      $('gMesafe').innerText = `Mesafe: ${getColVal(son, 'gidis', 'mesafe')} km`;
+
+      $('dSure').innerText = `${dSure} dk`;
+      $('dBadge').innerHTML = delayBadge(Math.max(0, dSure - refDonus));
+      $('dMesafe').innerText = `Mesafe: ${getColVal(son, 'donus', 'mesafe')} km`;
     }
 
     function baslikGuncelle() {
