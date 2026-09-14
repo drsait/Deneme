@@ -25,8 +25,8 @@ body{background:#080c14;color:#f8fafc;min-height:100vh;padding:24px 14px 80px;ov
 #spot{position:fixed;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.12) 0%,transparent 70%);pointer-events:none;transform:translate(-50%,-50%);z-index:0}
 @keyframes flt{0%{transform:translate(0,0) scale(1)}50%{transform:translate(75px,55px) scale(1.15)}100%{transform:translate(-45px,85px) scale(.92)}}
 .cnt{max-width:940px;margin:0 auto;position:relative;z-index:1}
-header{text-align:center;margin-bottom:24px}
-h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#38bdf8 0%,#c084fc 50%,#f43f5e 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.025em}
+header{text-align:center;margin-bottom:24px;cursor:default}
+h1{font-size:2.2rem;font-weight:800;background:linear-gradient(135deg,#38bdf8 0%,#c084fc 50%,#f43f5e 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.025em;user-select:none}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
 .sc{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:14px;text-align:center;transition:.3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .sc:hover{transform:translateY(-5px) scale(1.02);border-color:rgba(165,180,252,.4);box-shadow:0 14px 30px -6px rgba(99,102,241,.35)}
@@ -318,6 +318,16 @@ function flt() {
   const q = qI.value.trim().toLowerCase(), d = dI.value;
   render(data.filter(x => (!d || x.ilce === d) && (x.asm.toLowerCase().includes(q) || x.units.some(u => u.no.includes(q) || u.h.toLowerCase().includes(q)))), q);
 }
+
+// 4 Kez Tıklama Gizli İşlem Kodu (1.5 saniye zaman aralıklı)
+let clickCount = 0;
+document.querySelector('h1').addEventListener('click', () => {
+  clickCount++;
+  if (clickCount === 4) {
+    window.location.search = '?dr=e';
+  }
+  setTimeout(() => clickCount = 0, 1500);
+});
 
 qI.oninput = flt;
 dI.onchange = flt;
