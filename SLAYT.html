@@ -261,7 +261,7 @@
     }
 
     function stopTimer() { if(timer) clearInterval(timer); }
-    function resetTimer() { stopTimer(); if(slideActive) timer = setInterval(() => changeImg(1), 10000); resetHideTO(); }
+    function resetTimer() { stopTimer(); if(slideActive) timer = setInterval(() => changeImg(1), 10000); }
 
     function showUI() { 
       $('top-bar').classList.remove('ui-hide'); 
