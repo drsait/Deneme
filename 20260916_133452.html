@@ -944,6 +944,21 @@ header h1{
 }
 </style>
 
+
+<style id="filename-only-open-fix">
+/* Dosya satırı artık tıklanabilir değil; yalnızca dosya adı bağlantısı açar. */
+.item{
+    cursor:default;
+}
+.item > a{
+    cursor:pointer;
+}
+.item .file-meta-group,
+.item .actions{
+    cursor:default;
+}
+</style>
+
 </head>
 <body>
 <div class="wrapper">
