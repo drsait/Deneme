@@ -68,9 +68,10 @@
 <body>
 
 <div class="container">
-    <div id="content">
 
 ```
+<div id="content">
+
     <h1>SİNA Hızlı Erişim</h1>
 
     <p>Lütfen erişmek istediğiniz modülü seçin:</p>
@@ -91,11 +92,17 @@
     // =========================================================================
 
     const PARAMS = {
+
         BIRIM_KODU: "461491",
+
         YIL: "2026",
+
         AY: "EYLUL",
+
         AY_KHT: "EYLÜL",
+
         AHB_ADI: "Mardin Kızıltepe 18 Nolu AHB - Mardin"
+
     };
 
 
@@ -119,11 +126,12 @@
 
         OTIZM:
             "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-4N2O921XV9IX02M?filters=372133={BIRIM_KODU}"
+
     };
 
 
     // =========================================================================
-    // 3. DEĞİŞKENLERİ LİNKLERE UYGULA
+    // 3. LİNK OLUŞTURMA MOTORU
     // =========================================================================
 
     function linkOlustur(sablon) {
@@ -131,7 +139,9 @@
         let url = sablon;
 
         for (const [key, val] of Object.entries(PARAMS)) {
+
             url = url.replaceAll(`{${key}}`, val);
+
         }
 
         return url;
@@ -139,22 +149,32 @@
 
 
     // =========================================================================
-    // 4. GERÇEK SİNA LİNKLERİNİ OLUŞTUR
+    // 4. GERÇEK LİNKLERİ OLUŞTUR
     // =========================================================================
 
     const FINAL_LINKS = {};
 
     for (const key in LINK_SABLONLARI) {
-        FINAL_LINKS[key] = linkOlustur(LINK_SABLONLARI[key]);
+
+        FINAL_LINKS[key] =
+            linkOlustur(LINK_SABLONLARI[key]);
+
     }
 
 
     // =========================================================================
-    // 5. BU HTML DOSYASININ ADRESİNİ AL
+    // 5. MEVCUT HTML SAYFASININ ADRESİ
     // =========================================================================
 
-    // Örneğin:
-    // https://site.com/index.html
+    /*
+     * Örneğin:
+     *
+     * https://site.com/index.html
+     *
+     * Buton:
+     *
+     * https://site.com/index.html?url=KHT
+     */
 
     const SAYFA_ADRESI =
         window.location.origin +
@@ -171,17 +191,22 @@
 
     for (const key in FINAL_LINKS) {
 
-        const btn = document.createElement("a");
+        const btn =
+            document.createElement("a");
 
-        btn.className = "link-btn";
+
+        btn.className =
+            "link-btn";
+
 
         /*
-         * ARTIK BUTON DOĞRUDAN SİNA'YA GİTMİYOR.
+         * BUTONUN GİDECEĞİ ADRES:
          *
-         * Örnek:
          * index.html?url=KHT
          *
          * index.html?url=SINA
+         *
+         * vb.
          */
 
         btn.href =
@@ -189,14 +214,30 @@
             "?url=" +
             encodeURIComponent(key);
 
-        btn.innerText = key;
+
+        /*
+         * YENİ SEKMEDE AÇ
+         */
+
+        btn.target =
+            "_blank";
+
+
+        btn.rel =
+            "noopener noreferrer";
+
+
+        btn.innerText =
+            key;
+
 
         container.appendChild(btn);
+
     }
 
 
     // =========================================================================
-    // 7. URL PARAMETRESİNİ OKU
+    // 7. URL'DEKİ "url" PARAMETRESİNİ OKU
     // =========================================================================
 
     /*
@@ -204,19 +245,21 @@
      *
      * index.html?url=KHT
      *
-     * sonuc:
      * targetKey = "KHT"
      */
 
     const urlParams =
-        new URLSearchParams(window.location.search);
+        new URLSearchParams(
+            window.location.search
+        );
+
 
     const targetKey =
         urlParams.get("url");
 
 
     // =========================================================================
-    // 8. YÖNLENDİRME
+    // 8. OTOMATİK SİNA YÖNLENDİRMESİ
     // =========================================================================
 
     if (targetKey) {
@@ -224,22 +267,43 @@
         const key =
             targetKey.toUpperCase();
 
+
         const targetUrl =
             FINAL_LINKS[key];
 
+
         if (targetUrl) {
 
-            // Sayfayı SİNA adresine yönlendir
+            /*
+             * Özel link açıldığında
+             *
+             * index.html?url=KHT
+             *
+             * otomatik olarak gerçek KHT
+             * SİNA adresine gider.
+             */
+
             window.location.replace(targetUrl);
 
         } else {
 
             document.getElementById("content").innerHTML = `
+
                 <p class="status">
-                    <strong>${key}</strong> adlı bağlantı bulunamadı.
+                    <strong>${key}</strong>
+                    adlı bağlantı bulunamadı.
                 </p>
+
+                <p>
+                    <a href="${SAYFA_ADRESI}">
+                        Ana sayfaya dön
+                    </a>
+                </p>
+
             `;
+
         }
+
     }
 
 </script>
