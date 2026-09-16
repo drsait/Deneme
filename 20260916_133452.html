@@ -825,6 +825,125 @@ header h1{
 }
 </style>
 
+
+<style id="three-dot-actions">
+/* ===== 3 NOKTA İŞLEMLER MENÜSÜ ===== */
+.item .actions{
+    position:relative;
+    display:flex!important;
+    align-items:center;
+    justify-content:flex-end;
+    height:48px;
+    min-width:0;
+    padding:0 10px;
+    gap:0;
+    overflow:visible;
+}
+.more-btn{
+    width:36px;
+    min-width:36px;
+    height:34px;
+    padding:0;
+    border:1px solid rgba(99,102,241,.28);
+    border-radius:9px;
+    background:#f8f7ff;
+    color:#4f46e5;
+    font-size:1.35rem;
+    line-height:1;
+    font-weight:800;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:.15s ease;
+}
+.more-btn:hover,
+.more-btn:focus-visible{
+    background:#eef2ff;
+    border-color:#818cf8;
+    transform:translateY(-1px);
+    outline:none;
+}
+.actions-menu{
+    position:absolute;
+    z-index:3000;
+    right:8px;
+    top:calc(100% - 2px);
+    width:170px;
+    padding:5px;
+    border:1px solid #e2e8f0;
+    border-radius:11px;
+    background:rgba(255,255,255,.99);
+    box-shadow:0 12px 30px rgba(15,23,42,.18);
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-5px) scale(.98);
+    transform-origin:top right;
+    transition:opacity .12s ease,transform .12s ease,visibility .12s ease;
+}
+.actions-menu.open{
+    opacity:1;
+    visibility:visible;
+    transform:translateY(0) scale(1);
+}
+.action-menu-item{
+    width:100%;
+    min-height:36px;
+    padding:7px 9px;
+    border:0;
+    border-radius:7px;
+    background:transparent;
+    color:#1e293b;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    text-align:left;
+    font-size:.76rem;
+    font-weight:650;
+    cursor:pointer;
+}
+.action-menu-item:hover{background:#f1f5f9}
+.action-archive:hover{color:#7c3aed;background:#f5f3ff}
+.action-delete{color:#be123c}
+.action-delete:hover{color:#be123c;background:#fff1f2}
+.action-code:hover{color:#4f46e5;background:#eef2ff}
+
+/* Menü açılırken satırın üstünde kalmasını sağla */
+.item{position:relative;overflow:visible}
+.list{overflow:visible}
+.list-wrap{overflow:visible}
+
+/* Mobil */
+@media(max-width:600px){
+    .item .actions{
+        width:108px;
+        min-width:108px;
+        padding:0 5px!important;
+    }
+    .more-btn{
+        width:34px;
+        min-width:34px;
+        height:32px;
+        font-size:1.3rem;
+    }
+    .actions-menu{
+        right:4px;
+        top:calc(100% - 3px);
+        width:158px;
+    }
+    .action-menu-item{
+        min-height:38px;
+        font-size:.74rem;
+    }
+}
+@media(max-width:380px){
+    .item .actions{
+        width:102px;
+        min-width:102px;
+    }
+}
+</style>
+
 </head>
 <body>
 <div class="wrapper">
@@ -1236,18 +1355,56 @@ header h1{
                     ${f.size !== undefined ? `<span class="file-size">${formatFileSize(f.size)}</span>` : ''}
                     <span class="file-date">${formatDate(currentCommitDates[f.name])}</span>
                 </div>
-                <div class="actions" style="display:${editMode ? 'flex' : 'none'}">
-                    <button class="btn-sm btn-code" title="${isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili Analiz'}">${isEditableTextFile(f.name) ? '&lt;/&gt;' : '🔍'}</button>
-                    <button class="btn-sm btn-archive" title="${isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle'}">📦</button>
-                    <button class="btn-sm btn-delete" title="Sil">🗑️</button>
+                <div class="actions">
+                    <button class="more-btn" type="button" title="İşlemler" aria-label="İşlemler">⋮</button>
+                    <div class="actions-menu">
+                        <button type="button" class="action-menu-item action-code">
+                            <span>${isEditableTextFile(f.name) ? '✎' : '🔍'}</span>
+                            <span>${isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili Analiz'}</span>
+                        </button>
+                        <button type="button" class="action-menu-item action-archive">
+                            <span>${isArchived ? '↩️' : '📦'}</span>
+                            <span>${isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle'}</span>
+                        </button>
+                        <button type="button" class="action-menu-item action-delete">
+                            <span>🗑️</span><span>Sil</span>
+                        </button>
+                    </div>
                 </div>`;
-            const btns = li.querySelectorAll('.actions button');
-            btns[0].onclick = () => openTargetFile(f.name);
-            btns[1].onclick = () => toggleArchive(f.name);
-            btns[2].onclick = () => del(f.name, f.sha);
+            const actions = li.querySelector('.actions');
+            const moreBtn = li.querySelector('.more-btn');
+            const actionsMenu = li.querySelector('.actions-menu');
+
+            moreBtn.onclick = e => {
+                e.stopPropagation();
+                document.querySelectorAll('.actions-menu.open').forEach(m => {
+                    if (m !== actionsMenu) m.classList.remove('open');
+                });
+                actionsMenu.classList.toggle('open');
+            };
+
+            li.querySelector('.action-code').onclick = () => {
+                actionsMenu.classList.remove('open');
+                openTargetFile(f.name);
+            };
+            li.querySelector('.action-archive').onclick = () => {
+                actionsMenu.classList.remove('open');
+                toggleArchive(f.name);
+            };
+            li.querySelector('.action-delete').onclick = () => {
+                actionsMenu.classList.remove('open');
+                del(f.name, f.sha);
+            };
+
             list.appendChild(li);
         });
     };
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.actions')) {
+            document.querySelectorAll('.actions-menu.open').forEach(m => m.classList.remove('open'));
+        }
+    });
 
     const load = async () => {
         const list = el('file-list');
