@@ -76,9 +76,7 @@
 
     <p>Lütfen erişmek istediğiniz modülü seçin:</p>
 
-    <div id="button-container" class="link-list">
-        <!-- Butonlar JavaScript ile oluşturulacak -->
-    </div>
+    <div id="button-container" class="link-list"></div>
 
 </div>
 ```
@@ -87,109 +85,233 @@
 
 <script>
 
-    // =========================================================================
-    // 1. SABİT DEĞİŞKENLER
-    // =========================================================================
+    // =====================================================================
+    // SADECE BURAYI DEĞİŞTİR
+    // =====================================================================
 
-    const PARAMS = {
+    const AYARLAR = {
 
+        // Birim kodu
         BIRIM_KODU: "461491",
 
-        YIL: "2026",
+        // Yıl
+        YIL: 2026,
 
-        AY: "EYLUL",
+        // Ay numarası
+        // 1 = Ocak
+        // 2 = Şubat
+        // 3 = Mart
+        // 4 = Nisan
+        // 5 = Mayıs
+        // 6 = Haziran
+        // 7 = Temmuz
+        // 8 = Ağustos
+        // 9 = Eylül
+        // 10 = Ekim
+        // 11 = Kasım
+        // 12 = Aralık
+        AY: 9,
 
-        AY_KHT: "EYLÜL",
-
+        // AHB adı
         AHB_ADI: "Mardin Kızıltepe 18 Nolu AHB - Mardin"
 
     };
 
 
-    // =========================================================================
-    // 2. GERÇEK SİNA LİNKLERİ
-    // =========================================================================
+    // =====================================================================
+    // AY BİLGİLERİNİ OTOMATİK OLUŞTUR
+    // =====================================================================
+
+    const AY_NUM =
+        String(AYARLAR.AY).padStart(2, "0");
+
+
+    const AY_TARIH =
+        `${AYARLAR.YIL}-${AY_NUM}`;
+
+
+    const AY_ISIMLERI = [
+        "",
+        "OCAK",
+        "ŞUBAT",
+        "MART",
+        "NİSAN",
+        "MAYIS",
+        "HAZİRAN",
+        "TEMMUZ",
+        "AĞUSTOS",
+        "EYLÜL",
+        "EKİM",
+        "KASIM",
+        "ARALIK"
+    ];
+
+
+    const AY_ISMI =
+        AY_ISIMLERI[AYARLAR.AY];
+
+
+    // KHT için kullanılan Türkçe ay
+    const AY_KHT =
+        AY_ISMI;
+
+
+    // SİNA'daki bazı filtrelerde kullanılan ay formatı
+    const AY_SINA =
+        AY_ISMI
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toUpperCase();
+
+
+    // =====================================================================
+    // SİNA LİNK ŞABLONLARI
+    // =====================================================================
 
     const LINK_SABLONLARI = {
 
+        // -----------------------------------------------------------------
+        // SİNA
+        // -----------------------------------------------------------------
+
         SINA:
-            "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840={AY}%26252860={BIRIM_KODU}%26252916={YIL}",
+            "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-2N8Y5C2ADDC1FCD?filters=252840={AY_SINA}%26252860={BIRIM_KODU}%26252916={YIL}",
+
+
+        // -----------------------------------------------------------------
+        // KHT
+        // -----------------------------------------------------------------
 
         KHT:
             "https://sina.saglik.gov.tr/showcases/SC-2DF3A82DF98O48J/SCI-VCQ97DDE181J1HA?filters=300699={YIL}%26300707={AY_KHT}%26300711={BIRIM_KODU}",
 
+
+        // -----------------------------------------------------------------
+        // MEMNUNİYET
+        // -----------------------------------------------------------------
+
         MEMNUNIYET:
             "https://sina.saglik.gov.tr/showcases/SC-AA6Q1F9AU1B4B2O/SCI-E52DD7UAC0Y24Z5?filters=27693={YIL}-01-01%252000%253A00%253A00%2627693={YIL}-12-31%252023%253A59%253A59",
+
+
+        // -----------------------------------------------------------------
+        // MUAYENE
+        // -----------------------------------------------------------------
 
         MUAYENE:
             "https://sina.saglik.gov.tr/showcases/SC-AA6Q1F9AU1B4B2O/SCI-E52DD7UAC0Y24Z5?filters=27477={AHB_ADI}",
 
+
+        // -----------------------------------------------------------------
+        // OTİZM
+        //
+        // Ay artık otomatik olarak:
+        //
+        // 2026-09
+        //
+        // şeklinde oluşturuluyor.
+        // -----------------------------------------------------------------
+
         OTIZM:
-            "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-4N2O921XV9IX02M?filters=372133={BIRIM_KODU}"
+            "https://sina.saglik.gov.tr/showcases/SC-DBBEMXEEDFCCEAB/SCI-4N2O921XV9IX02M?filters=372133={BIRIM_KODU}%26372137={AY_TARIH}%26372145={AY_TARIH}%26dbmfl-0eebb5447f112m8={AY_TARIH}"
 
     };
 
 
-    // =========================================================================
-    // 3. LİNK OLUŞTURMA MOTORU
-    // =========================================================================
+    // =====================================================================
+    // LİNK OLUŞTURMA
+    // =====================================================================
 
     function linkOlustur(sablon) {
 
         let url = sablon;
 
-        for (const [key, val] of Object.entries(PARAMS)) {
 
-            url = url.replaceAll(`{${key}}`, val);
+        const DEGISKENLER = {
+
+            BIRIM_KODU:
+                AYARLAR.BIRIM_KODU,
+
+            YIL:
+                AYARLAR.YIL,
+
+            AY:
+                AY_ISMI,
+
+            AY_SINA:
+                AY_SINA,
+
+            AY_KHT:
+                AY_KHT,
+
+            AY_TARIH:
+                AY_TARIH,
+
+            AHB_ADI:
+                AYARLAR.AHB_ADI
+
+        };
+
+
+        for (
+            const [key, val]
+            of Object.entries(DEGISKENLER)
+        ) {
+
+            url =
+                url.replaceAll(
+                    `{${key}}`,
+                    val
+                );
 
         }
+
 
         return url;
     }
 
 
-    // =========================================================================
-    // 4. GERÇEK LİNKLERİ OLUŞTUR
-    // =========================================================================
+    // =====================================================================
+    // GERÇEK LİNKLERİ OLUŞTUR
+    // =====================================================================
 
     const FINAL_LINKS = {};
 
-    for (const key in LINK_SABLONLARI) {
+
+    for (
+        const key in LINK_SABLONLARI
+    ) {
 
         FINAL_LINKS[key] =
-            linkOlustur(LINK_SABLONLARI[key]);
+            linkOlustur(
+                LINK_SABLONLARI[key]
+            );
 
     }
 
 
-    // =========================================================================
-    // 5. MEVCUT HTML SAYFASININ ADRESİ
-    // =========================================================================
-
-    /*
-     * Örneğin:
-     *
-     * https://site.com/index.html
-     *
-     * Buton:
-     *
-     * https://site.com/index.html?url=KHT
-     */
+    // =====================================================================
+    // BU HTML DOSYASININ ADRESİ
+    // =====================================================================
 
     const SAYFA_ADRESI =
         window.location.origin +
         window.location.pathname;
 
 
-    // =========================================================================
-    // 6. BUTONLARI OLUŞTUR
-    // =========================================================================
+    // =====================================================================
+    // BUTONLARI OLUŞTUR
+    // =====================================================================
 
     const container =
-        document.getElementById("button-container");
+        document.getElementById(
+            "button-container"
+        );
 
 
-    for (const key in FINAL_LINKS) {
+    for (
+        const key in FINAL_LINKS
+    ) {
 
         const btn =
             document.createElement("a");
@@ -200,13 +322,10 @@
 
 
         /*
-         * BUTONUN GİDECEĞİ ADRES:
+         * Özel yönlendirme adresi:
          *
          * index.html?url=KHT
-         *
-         * index.html?url=SINA
-         *
-         * vb.
+         * index.html?url=OTIZM
          */
 
         btn.href =
@@ -215,10 +334,7 @@
             encodeURIComponent(key);
 
 
-        /*
-         * YENİ SEKMEDE AÇ
-         */
-
+        // Yeni sekmede aç
         btn.target =
             "_blank";
 
@@ -236,17 +352,9 @@
     }
 
 
-    // =========================================================================
-    // 7. URL'DEKİ "url" PARAMETRESİNİ OKU
-    // =========================================================================
-
-    /*
-     * Örnek:
-     *
-     * index.html?url=KHT
-     *
-     * targetKey = "KHT"
-     */
+    // =====================================================================
+    // URL PARAMETRESİNİ OKU
+    // =====================================================================
 
     const urlParams =
         new URLSearchParams(
@@ -258,9 +366,9 @@
         urlParams.get("url");
 
 
-    // =========================================================================
-    // 8. OTOMATİK SİNA YÖNLENDİRMESİ
-    // =========================================================================
+    // =====================================================================
+    // GERÇEK SİNA ADRESİNE YÖNLENDİR
+    // =====================================================================
 
     if (targetKey) {
 
@@ -274,20 +382,17 @@
 
         if (targetUrl) {
 
-            /*
-             * Özel link açıldığında
-             *
-             * index.html?url=KHT
-             *
-             * otomatik olarak gerçek KHT
-             * SİNA adresine gider.
-             */
+            window.location.replace(
+                targetUrl
+            );
 
-            window.location.replace(targetUrl);
+        }
 
-        } else {
+        else {
 
-            document.getElementById("content").innerHTML = `
+            document.getElementById(
+                "content"
+            ).innerHTML = `
 
                 <p class="status">
                     <strong>${key}</strong>
