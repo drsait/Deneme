@@ -79,11 +79,9 @@
             font-weight: bold; cursor: grab; z-index: 100006; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
             display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
         }
-        .tab-title-wrap { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-        .tab-title { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
-        .list-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 4px; flex-wrap:wrap; }
-        .list-count { font-size:.78rem; color:rgba(255,255,255,.95); font-weight:700; }
-        .sort-buttons { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+        .list-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 8px; flex-wrap:wrap; }
+        .tab-title { font-weight: 700; font-size: 1.1rem; color: #fff; }
+        .sort-buttons { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-left: auto; }
         .sort-btn {
             width:auto; min-width:72px; height:30px; padding:4px 9px;
             border:1px solid rgba(255,255,255,.65); border-radius:7px;
@@ -97,12 +95,7 @@
         .file-columns, .item {
             display: block; width: 100%;
         }
-        .file-columns {
-            padding: 6px 10px 5px; margin-bottom: 2px;
-            color: rgba(255,255,255,.92); font-size: .72rem; font-weight: 800;
-            text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,.3);
-        }
-        .file-columns button { width: 100%; background: transparent; color: white; border: none; font-size: .72rem; font-weight: 800; cursor: pointer; text-align: left; }
+        .file-columns { display: none; }
 
         .item {
             padding: 6px 10px; background: rgba(248,250,252,.94);
@@ -211,7 +204,6 @@
 </head>
 <body>
 <div class="wrapper">
-    <header><h1>Dosyalar</h1></header>
     <div class="layout">
         <!-- Sidebar -->
         <div class="sidebar" id="app-sidebar">
@@ -263,19 +255,13 @@
 
         <div class="content">
             <div id="secure-content" class="hidden">
-                <div class="tab-title-wrap">
-                    <div id="view-title" class="tab-title">📄 Dosyalarım</div>
-                </div>
                 <div class="list-toolbar">
-                    <div id="list-count" class="list-count"></div>
+                    <div id="view-title" class="tab-title">📄 Dosyalarım (0)</div>
                     <div class="sort-buttons">
                         <button type="button" class="sort-btn" data-sort="name" onclick="setSort('name')">Ad <span class="sort-arrow"></span></button>
                         <button type="button" class="sort-btn active" data-sort="date" onclick="setSort('date')">Tarih <span class="sort-arrow">↓</span></button>
                         <button type="button" class="sort-btn" data-sort="size" onclick="setSort('size')">Boyut <span class="sort-arrow"></span></button>
                     </div>
-                </div>
-                <div class="file-columns">
-                    <button type="button" onclick="setSort('name')">Dosyalar</button>
                 </div>
                 <div class="list-wrap">
                     <ul id="file-list" class="list"><li style="text-align:center; color:white; padding:20px;">Yükleniyor...</li></ul>
@@ -519,7 +505,6 @@
         currentTab = tab;
         el('tab-files-btn').classList.toggle('active', tab === 'files');
         el('tab-archive-btn').classList.toggle('active', tab === 'archive');
-        el('view-title').textContent = tab === 'files' ? '📄 Dosyalarım' : '📦 Arşivdeki Dosyalar';
         load();
     };
 
@@ -559,9 +544,12 @@
 
     const renderFileList = () => {
         const list = el('file-list');
-        if (!currentFiles.length) {
+        const count = currentFiles.length;
+        const titleText = currentTab === 'files' ? `📄 Dosyalarım (${count})` : `📦 Arşivdeki Dosyalar (${count})`;
+        el('view-title').textContent = titleText;
+
+        if (!count) {
             list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok'}</li>`;
-            el('list-count').textContent = '0 dosya';
             return;
         }
 
@@ -575,7 +563,6 @@
             return 0;
         });
 
-        el('list-count').textContent = `${files.length} dosya`;
         updateSortButtons();
         list.innerHTML = '';
 
@@ -673,7 +660,12 @@
             const { list: archivedFiles } = await getGitHubArchiveData();
             let files = data.filter(f => !['index.html', 'archive.json'].includes(f.name.toLowerCase()));
             files = files.filter(f => currentTab === 'files' ? !archivedFiles.includes(f.name) : archivedFiles.includes(f.name));
-            if (!files.length) return list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok'}</li>`;
+            
+            currentFiles = files;
+            if (!files.length) {
+                renderFileList();
+                return;
+            }
 
             const commitDates = {};
             await Promise.all(files.map(async f => {
@@ -688,7 +680,7 @@
                 } catch {}
             }));
 
-            currentFiles = files; currentCommitDates = commitDates;
+            currentCommitDates = commitDates;
             renderFileList();
         } catch {
             list.innerHTML = '<li style="text-align:center; color:red">Yüklenirken hata oluştu</li>';
