@@ -741,6 +741,90 @@ header h1{
 }
 </style>
 
+
+<style id="mobile-table-final-fix">
+/* Mobilde 4 sütun yerine: DOSYA ADI | BOYUT | İŞLEMLER
+   TARİH gizli, işlemler için yeterli alan ayrılıyor. */
+@media (max-width:600px){
+    .file-columns{
+        grid-template-columns:minmax(0,1fr) 62px 0 108px!important;
+    }
+
+    .file-columns button:nth-child(3){
+        display:none!important;
+    }
+
+    .file-columns button:nth-child(4){
+        display:block!important;
+        text-align:center!important;
+        font-size:.60rem;
+    }
+
+    .item{
+        grid-template-columns:minmax(0,1fr) 62px 0 108px!important;
+        min-width:0;
+    }
+
+    .item>a{
+        min-width:0!important;
+        width:100%;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+        white-space:nowrap!important;
+    }
+
+    .item .file-meta-group{
+        width:62px;
+        min-width:62px;
+        padding:0 2px!important;
+        overflow:hidden;
+    }
+
+    .item .actions{
+        width:108px;
+        min-width:108px;
+        padding:0 3px!important;
+        gap:3px!important;
+        overflow:hidden;
+    }
+
+    .item .actions .btn-sm{
+        width:32px!important;
+        min-width:32px!important;
+        height:30px!important;
+        flex:0 0 32px;
+        padding:0!important;
+    }
+}
+
+@media (max-width:380px){
+    .file-columns{
+        grid-template-columns:minmax(0,1fr) 56px 0 102px!important;
+    }
+
+    .item{
+        grid-template-columns:minmax(0,1fr) 56px 0 102px!important;
+    }
+
+    .item .file-meta-group{
+        width:56px;
+        min-width:56px;
+    }
+
+    .item .actions{
+        width:102px;
+        min-width:102px;
+        gap:2px!important;
+    }
+
+    .item .actions .btn-sm{
+        width:31px!important;
+        min-width:31px!important;
+        height:29px!important;
+    }
+}
+</style>
+
 </head>
 <body>
 <div class="wrapper">
