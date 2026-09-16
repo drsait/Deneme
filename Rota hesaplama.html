@@ -537,7 +537,7 @@
     </div>
 
 
-    <!-- SON 24 SAATTEKİ EN KISA ÖLÇÜM -->
+    <!-- SEÇİLEN GÜNDEKİ EN KISA ÖLÇÜM -->
 
     <div class="extreme-card">
 
@@ -602,7 +602,7 @@
     </div>
 
 
-    <!-- SON 24 SAATTEKİ EN UZUN ÖLÇÜM -->
+    <!-- SEÇİLEN GÜNDEKİ EN UZUN ÖLÇÜM -->
 
     <div class="extreme-card">
 
@@ -1294,12 +1294,18 @@
     }
 
 
-    /* SON 24 SAATTEKİ EN KISA ÖLÇÜMLER */
+    /* SEÇİLEN GÜNDEKİ EN KISA ÖLÇÜMLER */
 
     function enKisaOlcumGuncelle() {
 
+      /*
+       * ÖNEMLİ:
+       * gunOffset 0 ise Son 24 Saat,
+       * gunOffset 1 ise Önceki gün,
+       * gunOffset 2 ise iki gün önce vb.
+       */
       const son24 =
-        getFiltreliVeriler(0);
+        getFiltreliVeriler(gunOffset);
 
 
       function bul(yon) {
@@ -1366,6 +1372,18 @@
             'gidis',
             'mesafe'
           )} km`;
+
+      } else {
+
+        $('enKisaGSaat').innerText =
+          '--:--';
+
+        $('enKisaGSure').innerText =
+          '-- dk';
+
+        $('enKisaGMesafe').innerText =
+          'Mesafe: -- km';
+
       }
 
 
@@ -1396,17 +1414,35 @@
             'donus',
             'mesafe'
           )} km`;
+
+      } else {
+
+        $('enKisaDSaat').innerText =
+          '--:--';
+
+        $('enKisaDSure').innerText =
+          '-- dk';
+
+        $('enKisaDMesafe').innerText =
+          'Mesafe: -- km';
+
       }
 
     }
 
 
-    /* SON 24 SAATTEKİ EN UZUN ÖLÇÜMLER */
+    /* SEÇİLEN GÜNDEKİ EN UZUN ÖLÇÜMLER */
 
     function enUzunOlcumGuncelle() {
 
+      /*
+       * ÖNEMLİ:
+       * gunOffset 0 ise Son 24 Saat,
+       * gunOffset 1 ise Önceki gün,
+       * gunOffset 2 ise iki gün önce vb.
+       */
       const son24 =
-        getFiltreliVeriler(0);
+        getFiltreliVeriler(gunOffset);
 
 
       function bul(yon) {
@@ -1475,6 +1511,18 @@
             'gidis',
             'mesafe'
           )} km`;
+
+      } else {
+
+        $('enUzunGSaat').innerText =
+          '--:--';
+
+        $('enUzunGSure').innerText =
+          '-- dk';
+
+        $('enUzunGMesafe').innerText =
+          'Mesafe: -- km';
+
       }
 
 
@@ -1507,6 +1555,18 @@
             'donus',
             'mesafe'
           )} km`;
+
+      } else {
+
+        $('enUzunDSaat').innerText =
+          '--:--';
+
+        $('enUzunDSure').innerText =
+          '-- dk';
+
+        $('enUzunDMesafe').innerText =
+          'Mesafe: -- km';
+
       }
 
     }
@@ -1627,6 +1687,8 @@
     }
 
 
+    /* ÖNCEKİ / SONRAKİ GÜN */
+
     function tarihDegistir(delta) {
 
       gunOffset =
@@ -1637,7 +1699,17 @@
 
       baslikGuncelle();
 
+      /*
+       * Seçilen gün değiştiği için
+       * EN KISA ve EN UZUN da
+       * aynı günün verilerine göre yenilenir.
+       */
+      enKisaOlcumGuncelle();
+
+      enUzunOlcumGuncelle();
+
       cizGrafikler();
+
     }
 
 
