@@ -147,7 +147,35 @@
         div.className = 'card';
         div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)"><img src="${f.url}" loading="lazy" onclick="openModal(${i})"><div class="card-info"><div><strong>${f.w}x${f.h}</strong><br><span id="sz-${i}" style="color:#888">...</span></div><button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url}','${f.id}')">İndir</button></div>`;
         $('gallery').appendChild(div);
-        fetch(f.url).then(r => r.blob()).then(b => { if($(`sz-${i}`)) $('sz-${i}').textContent = (b.size/1048576).toFixed(2)+' MB'; }).catch(() => {});
+        // Dosya boyutunu güvenilir şekilde göster
+        fetch(f.url, {cache:'no-store'}).then(async r => {
+          if(!r.ok) throw new Error('HTTP '+r.status);
+          const b = await r.blob();
+          const el = $(`sz-${i}`);
+          if(el) {
+            const bytes = b.size;
+            el.textContent = bytes >= 1048576
+              ? (bytes/1048576).toFixed(2) + ' MB'
+              : (bytes/1024).toFixed(0) + ' KB';
+          }
+        }).catch(async () => {
+          try {
+            const r = await fetch(f.url, {method:'HEAD', cache:'no-store'});
+            const len = r.headers.get('content-length');
+            const el = $(`sz-${i}`);
+            if(el && len) {
+              const bytes = Number(len);
+              el.textContent = bytes >= 1048576
+                ? (bytes/1048576).toFixed(2) + ' MB'
+                : (bytes/1024).toFixed(0) + ' KB';
+            } else if(el) {
+              el.textContent = 'Boyut alınamadı';
+            }
+          } catch {
+            const el = $(`sz-${i}`);
+            if(el) el.textContent = 'Boyut alınamadı';
+          }
+        });
       });
 
       page++; loading = false; $('loader').style.display = 'none'; updateUI();
