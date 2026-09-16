@@ -5,7 +5,7 @@ const dat=D.map(([i,a,b])=>({i,a,u:b.map(u=>{let [n,h]=u.split(':');return{n,h}}
 const $=id=>document.getElementById(id),qI=$('q'),dI=$('d'),lE=$('list'),sp=$('spot'),en=encodeURIComponent;
 window.onmousemove=e=>{sp.style.left=e.clientX+'px';sp.style.top=e.clientY+'px'};
 [...new Set(dat.map(x=>x.i))].sort().forEach(c=>dI.innerHTML+=`<option value="${c}">${c}</option>`);
-const S_U="https://www.google.com/search?udm=50&q=",S_A=" resmi web sayfası ve iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı çalıştığı birimin numarasıyla birlikte bul ve tablo yap detaylı ve ayrıntılı olsun.her satıra birimleri ayrı ayrı yaz",S_B=" nolu aile hekimliği birimi resmi web sayfası ve iletişim bilgileri, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadı bul detaylı ve ayrıntılı olsun.";
+const S_U="https://www.google.com/search?udm=50&q=",S_A=" resmi web sayfası ve iletişim bilgilerini, asmde çalışan tüm aile hekimlerinin ve aile sağlığı çalışanlarının adı soyadı çalıştığı birimin numarasıyla birlikte detaylı ve ayrıntılı bir şekilde bul ve tablo yap. her birimi ayrı satıra ayrı ayrı yaz",S_B=" nolu aile hekimliği biriminin resmi web sayfasını ve iletişim bilgilerini, çalışan aile hekimi ve aile sağlığı çalışanın adı soyadını detaylı ve ayrıntılı bul, tablo olarak listele";
 const aV=(id,v)=>{let e=$(id);if(e.innerText!=v){e.innerText=v;e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump')}};
 const rnd=(itm,q='')=>{
   let tA=0,tU=0,tM=0;
