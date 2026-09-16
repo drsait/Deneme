@@ -1113,6 +1113,73 @@ header h1{
 }
 </style>
 
+
+<style id="final-name-actions-layout">
+/* İşlemler artık dosya adı sütununun içinde; tarih sütununa kesinlikle taşmaz. */
+.file-columns, .item {
+  grid-template-columns: minmax(0,1fr) 100px 170px !important;
+}
+.name-cell {
+  min-width:0; height:48px; display:flex; align-items:center; gap:4px;
+  overflow:visible; position:relative;
+}
+.name-cell > a {
+  flex:0 1 auto !important; width:auto !important; max-width:calc(100% - 40px) !important;
+  min-width:0 !important; height:auto !important; padding:5px 3px 5px 10px !important;
+  overflow:hidden !important; text-overflow:ellipsis !important; white-space:nowrap !important;
+}
+.name-cell .actions {
+  display:flex !important; flex:0 0 34px; width:34px; min-width:34px; height:34px;
+  align-items:center; justify-content:center; position:relative; overflow:visible;
+}
+.name-cell .more-btn {
+  display:flex !important; width:32px !important; min-width:32px !important; height:31px !important;
+  padding:0 !important; border:1px solid rgba(99,102,241,.30) !important; border-radius:9px !important;
+  background:#f8f7ff !important; color:#4f46e5 !important; font-size:1.2rem !important;
+  align-items:center; justify-content:center; line-height:1;
+}
+.name-cell .actions-menu {
+  position:absolute !important; left:36px !important; right:auto !important; top:50% !important;
+  width:max-content !important; min-width:0 !important; padding:5px !important;
+  display:flex !important; flex-direction:row !important; align-items:center; gap:4px;
+  opacity:0; visibility:hidden; transform:translateY(-50%) scale(.95) !important;
+  transform-origin:left center; background:#fff !important; border:1px solid #e2e8f0 !important;
+  border-radius:11px !important; box-shadow:0 10px 28px rgba(15,23,42,.20) !important;
+  z-index:9999 !important;
+}
+.name-cell .actions-menu.open { opacity:1 !important; visibility:visible !important; transform:translateY(-50%) scale(1) !important; }
+.name-cell .action-menu-item {
+  width:36px !important; min-width:36px !important; height:36px !important; min-height:36px !important;
+  padding:0 !important; display:flex !important; align-items:center; justify-content:center;
+  border:0 !important; border-radius:8px !important; font-size:1rem !important;
+}
+.item .file-meta-group {
+  width:auto; min-width:0; height:48px; padding:0 7px; display:flex !important;
+  align-items:center; justify-content:center; overflow:hidden;
+}
+.item .file-date {
+  width:auto; min-width:0; height:48px; padding:0 7px; display:flex !important;
+  align-items:center; justify-content:center; white-space:nowrap; overflow:hidden;
+  text-overflow:ellipsis; font-size:.72rem; font-variant-numeric:tabular-nums;
+}
+.item, .list, .list-wrap { overflow:visible !important; }
+@media(max-width:600px){
+  .file-columns, .item { grid-template-columns:minmax(0,1fr) 62px 124px !important; }
+  .name-cell { height:50px; gap:3px; }
+  .name-cell > a { max-width:calc(100% - 37px) !important; padding-left:7px !important; font-size:.76rem !important; }
+  .name-cell .actions { flex-basis:32px; width:32px; min-width:32px; height:32px; }
+  .name-cell .more-btn { width:30px !important; min-width:30px !important; height:30px !important; }
+  .name-cell .actions-menu { left:34px !important; padding:4px !important; gap:3px; }
+  .name-cell .action-menu-item { width:33px !important; min-width:33px !important; height:33px !important; min-height:33px !important; }
+  .item .file-meta-group, .item .file-date { height:50px; padding:0 2px; }
+  .item .file-size { font-size:.59rem; }
+  .item .file-date { font-size:.59rem; }
+}
+@media(max-width:380px){
+  .file-columns, .item { grid-template-columns:minmax(0,1fr) 55px 110px !important; }
+  .item .file-date { font-size:.54rem; }
+}
+</style>
 </head>
 <body>
 <div class="wrapper">
@@ -1167,7 +1234,6 @@ header h1{
                     <button type="button" data-sort-col="name" onclick="setSort('name')">DOSYA ADI <span class="column-arrow">↑</span></button>
                     <button type="button" data-sort-col="size" onclick="setSort('size')">BOYUT <span class="column-arrow"></span></button>
                     <button type="button" data-sort-col="date" onclick="setSort('date')">TARİH <span class="column-arrow"></span></button>
-                    <button type="button" data-sort-col="actions" disabled aria-label="İşlemler"></button>
                 </div>
                 <div class="list-wrap">
                     <ul id="file-list" class="list"><li style="text-align:center; color:white; padding:20px;">Yükleniyor...</li></ul>
@@ -1519,12 +1585,9 @@ header h1{
             const li = document.createElement('li');
             li.className = 'item';
             li.innerHTML = `
-                <a href="https://${u}.github.io/${r}/${encodeURIComponent(f.name)}" target="_blank" title="${f.name}">📄 ${f.name}</a>
-                <div class="file-meta-group" style="display:${editMode ? 'none' : 'flex'}">
-                    ${f.size !== undefined ? `<span class="file-size">${formatFileSize(f.size)}</span>` : ''}
-                    <span class="file-date">${formatDate(currentCommitDates[f.name])}</span>
-                </div>
-                <div class="actions">
+                <div class="name-cell">
+                    <a href="https://${u}.github.io/${r}/${encodeURIComponent(f.name)}" target="_blank" title="${f.name}">📄 ${f.name}</a>
+                    <div class="actions">
                     <button class="more-btn" type="button" title="İşlemler" aria-label="İşlemler">⋮</button>
                     <div class="actions-menu">
                         <button type="button" class="action-menu-item action-code">
@@ -1539,7 +1602,11 @@ header h1{
                             <span>🗑️</span><span>Sil</span>
                         </button>
                     </div>
-                </div>`;
+                </div>
+                <div class="file-meta-group" style="display:${editMode ? 'none' : 'flex'}">
+                    ${f.size !== undefined ? `<span class="file-size">${formatFileSize(f.size)}</span>` : ''}
+                </div>
+                <div class="file-date">${formatDate(currentCommitDates[f.name])}</div>`;
             const actions = li.querySelector('.actions');
             const moreBtn = li.querySelector('.more-btn');
             const actionsMenu = li.querySelector('.actions-menu');
