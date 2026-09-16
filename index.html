@@ -12,136 +12,188 @@
             --success: #10b981; --info: #0ea5e9; --text: #0f172a; --border: #e2e8f0;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
-        .wrapper { width: 100%; max-width: 900px; }
-        header h1 { text-align: center; color: white; margin-bottom: 24px; font-size: 1.75rem; font-weight: 700; }
-        .layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
-        @media(max-width:768px){ .layout { grid-template-columns: 1fr; } }
-        .card { background: var(--card); backdrop-filter: blur(12px); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.4); }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px 16px 24px 78px; display: flex; flex-direction: column; align-items: center; }
+        .wrapper { width: 100%; max-width: 1500px; }
+        header h1 { text-align: center; color: white; margin-bottom: 18px; font-size: 1.55rem; font-weight: 700; }
+        .layout { display: block; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 58px; z-index: 500; transition: width .22s ease; cursor: default; }
+        .sidebar:hover, .sidebar:focus-within { width: 260px; }
+        .sidebar.open { width: min(285px, 85vw) !important; box-shadow: 100vw 0 0 rgba(0,0,0,0.45); }
+
+        .sidebar .card { border-radius:0; min-height:100%; margin:0; padding:8px 6px; overflow-y:auto; overflow-x:hidden; box-shadow:0 10px 25px rgba(0,0,0,.12); background:#fff; }
+        .sidebar .card:first-child { min-height: auto; border-radius: 0 0 12px 0; }
+
+        .menu-btn {
+            background: #f1f5f9; border: 1.5px solid var(--border); color: var(--text);
+            border-radius: 10px; padding: 0; text-align: left; font-size: 0.88rem;
+            font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 6px;
+            display: flex; align-items: center; min-height: 40px; height: 40px; width: 100%;
+            overflow: hidden; text-decoration: none;
+        }
+        .menu-btn:hover { background:#e2e8f0; border-color:var(--primary); color:var(--primary); }
+        .menu-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+        
+        .btn-icon {
+            min-width: 44px; width: 44px; height: 40px; display: flex; align-items: center;
+            justify-content: center; font-size: 1.15rem; flex-shrink: 0;
+        }
+        .btn-text {
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px;
+            opacity: 0; transition: opacity 0.15s;
+        }
+        .sidebar:hover .btn-text, .sidebar:focus-within .btn-text, .sidebar.open .btn-text {
+            opacity: 1;
+        }
+
+        .menu-logout { background:#fff1f2; color:#be123c; border-color:#fecdd3; }
+        .menu-refresh { background:#ecfeff; color:#0e7490; border-color:#a5f3fc; }
+        .menu-inspect { background:#e0f2fe; color:#0284c7; border-color:#bae6fd; }
+        .menu-index { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; }
+        
+        .content { width: 100%; }
+
+        @media(max-width:768px){
+            body { padding: 12px 8px 20px 64px !important; }
+            .sidebar { width: 58px !important; }
+            .sidebar:hover, .sidebar:focus-within { width: 58px !important; }
+            .sidebar:hover .btn-text, .sidebar:focus-within .btn-text { opacity: 0; }
+            .sidebar.open .btn-text { opacity: 1 !important; }
+            .sort-buttons { width:100%; }
+            .sort-btn { flex:1 1 0; }
+        }
+
+        .card { background: var(--card); backdrop-filter: blur(12px); border-radius: 16px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.4); }
         input, button { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; }
         button { background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { opacity: 0.9; }
         .row { display: flex; gap: 8px; }
         .toast { font-size: 0.8rem; padding: 6px; border-radius: 6px; margin-top: 8px; display: none; text-align: center; font-weight: 500; }
-        .list { list-style: none; max-height: 450px; overflow-y: auto; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; gap: 8px; }
-        .item a { color: var(--text); text-decoration: none; font-weight: 500; word-break: break-all; margin-right: 8px; min-width: 0; }
-        .item a:hover { color: var(--primary); text-decoration: underline; }
-        .file-meta-group { display: flex; gap: 8px; align-items: center; white-space: nowrap; flex-shrink: 0; }
-        .file-size { font-size: 0.75rem; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-        .file-date { font-size: 0.78rem; color: #64748b; font-weight: 500; }
-        .actions { display: none; gap: 4px; flex-shrink: 0; }
-        .btn-sm { padding: 6px 10px; font-size: 0.85rem; width: auto; border-radius: 6px; background: transparent; border: 1px solid; cursor: pointer; font-weight: bold; }
-        .btn-code { color: var(--primary); border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.05); }
-        .btn-rename { color: var(--warning); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.05); }
-        .btn-archive { color: #8b5cf6; border-color: rgba(139,92,246,0.4); background: rgba(139,92,246,0.05); }
-        .btn-delete { color: var(--danger); border-color: rgba(244,63,94,0.4); background: rgba(244,63,94,0.05); }
-        .auth-btns { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; }
-        .hidden { display: none !important; }
-
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: flex-start; justify-content: center; padding-top: 20px; z-index: 100; display: none; overflow-y: auto; }
-        .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; margin-bottom: 20px; }
-
-        /* KOD EDİTÖRÜ VE MOBİL UYUMLU ARAÇ ÇUBUĞU */
-        .code-editor-wrap { position: relative; width: 100%; margin-bottom: 10px; border-radius: 10px; overflow: hidden; background: #ffffff; border: 1.5px solid #cbd5e1; }
-        .editor-container { position: relative; width: 100%; height: 320px; background: #ffffff; }
-
-        #html-code-input {
-            width: 100%; height: 100%; padding: 44px 12px 28px 12px; margin: 0;
-            border: none; outline: none; box-sizing: border-box; resize: none;
-            font-family: Consolas, 'Courier New', monospace; font-size: 13px; line-height: 20px;
-            color: #0f172a; background: #ffffff; tab-size: 4; white-space: pre; overflow: auto;
-        }
-
-        .editor-top-bar {
-            position: absolute; top: 6px; left: 6px; right: 6px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 6px; z-index: 20; pointer-events: none;
-        }
-
-        .editor-left-tools {
-            display: flex; align-items: center; gap: 5px; pointer-events: auto;
-            flex: 1 1 auto; min-width: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; padding-right: 4px;
-        }
-        .editor-left-tools::-webkit-scrollbar { display: none; }
-
-        .editor-tool-btn {
-            position: static; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 600;
-            color: #475569; background: rgba(248, 250, 252, 0.95); border: 1px solid #cbd5e1;
-            border-radius: 6px; backdrop-filter: blur(8px); cursor: pointer; transition: all 0.2s;
-            white-space: nowrap; flex-shrink: 0;
-        }
-        .editor-tool-btn:hover { color: #0f172a; background: #e2e8f0; border-color: #94a3b8; }
+        .list { list-style: none; width: 100%; }
         
-        .editor-search-box {
-            display: flex; align-items: center; gap: 2px; background: rgba(248, 250, 252, 0.95);
-            border: 1px solid #cbd5e1; border-radius: 6px; padding: 1px 4px; flex-shrink: 0;
-        }
-        .editor-search-box input {
-            width: 70px; padding: 2px 4px; font-size: 0.72rem; border: none; background: transparent;
-            color: #0f172a; outline: none; font-weight: 500;
-        }
-        .search-nav-btn {
-            background: transparent; border: none; color: #64748b; font-size: 0.7rem;
-            cursor: pointer; padding: 2px 4px; border-radius: 3px; font-weight: bold; width: auto;
-        }
-        .search-nav-btn:hover { background: #e2e8f0; color: #0f172a; }
-
-        .fs-filename-badge {
-            font-size: 0.72rem; font-weight: 700; color: #0369a1; background: #e0f2fe;
-            padding: 3px 6px; border-radius: 6px; border: 1px solid #bae6fd;
-            max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            display: none; flex-shrink: 0;
-        }
-
-        /* MOBİLDE DAİMA GÖRÜNÜR SABİT TAM EKRAN BUTONU */
-        .btn-expand-code {
-            pointer-events: auto; flex-shrink: 0; z-index: 25; margin-left: auto;
-            background: #eef2ff; color: #4338ca; border-color: #c7d2fe; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .btn-expand-code:hover { background: #e0e7ff; color: #3730a3; }
-
-        .editor-statusbar {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 22px;
-            background: #f8fafc; border-top: 1px solid #e2e8f0; color: #64748b;
-            font-size: 0.72rem; font-weight: 600; display: flex; align-items: center;
-            justify-content: flex-end; padding: 0 10px; gap: 12px; z-index: 20; pointer-events: none;
-        }
-
-        .code-editor-wrap.fullscreen-editor { position: fixed; inset: 0; z-index: 10001; background: #ffffff; margin: 0; border-radius: 0; border: none; }
-        .code-editor-wrap.fullscreen-editor .editor-container { width: 100vw; height: 100vh; }
-        .code-editor-wrap.fullscreen-editor #html-code-input { padding: 48px 16px 30px 16px; }
-        .code-editor-wrap.fullscreen-editor .editor-top-bar { top: 8px; left: 10px; right: 10px; }
-        .code-editor-wrap.fullscreen-editor .fs-filename-badge { display: inline-block; max-width: 220px; }
-        .code-editor-wrap.fullscreen-editor .editor-statusbar { position: fixed; bottom: 0; height: 24px; padding: 0 16px; }
-
-        .code-modal-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .menu-btn {
-            background: #f1f5f9; border: 1.5px solid var(--border); color: var(--text);
-            border-radius: 10px; padding: 12px; text-align: center; font-size: 0.9rem;
-            font-weight: 600; cursor: pointer; transition: 0.2s; margin-bottom: 10px;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .menu-btn:hover { background: #e2e8f0; border-color: var(--primary); color: var(--primary); }
-        .menu-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        #fullscreen-preview { position: fixed; inset: 0; background: white; z-index: 10002; display: none; }
+        #fullscreen-preview { position: fixed; inset: 0; background: white; z-index: 100005; display: none; }
         #fullscreen-preview iframe { width: 100%; height: 100%; border: none; }
         #draggable-close-btn {
             position: fixed; top: 20px; right: 20px; background: var(--danger); color: white;
             border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem;
-            font-weight: bold; cursor: grab; z-index: 10003; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+            font-weight: bold; cursor: grab; z-index: 100006; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
             display: flex; align-items: center; justify-content: center; user-select: none; touch-action: none;
         }
-        .tab-title-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .tab-title-wrap { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
         .tab-title { font-weight: 700; font-size: 1.1rem; color: var(--primary); }
-        .btn-edit-index { padding: 4px 8px; font-size: 0.78rem; border-radius: 6px; background: rgba(99,102,241,0.1); color: var(--primary); border: 1px solid var(--primary); cursor: pointer; width: auto; font-weight: 600; }
-
-        #binary-modal-box {
-            background: #18181b; color: #f4f4f5; border-radius: 16px; width: 95%; max-width: 920px;
-            padding: 20px; margin-bottom: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid #27272a;
+        .list-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 4px; flex-wrap:wrap; }
+        .list-count { font-size:.78rem; color:rgba(255,255,255,.95); font-weight:700; }
+        .sort-buttons { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+        .sort-btn {
+            width:auto; min-width:72px; height:30px; padding:4px 9px;
+            border:1px solid rgba(255,255,255,.65); border-radius:7px;
+            background:rgba(255,255,255,.88); color:var(--text);
+            font-size:.78rem; font-weight:700; cursor:pointer;
         }
-        #binary-modal-box.fullscreen-active { position: fixed; inset: 0; width: 100vw; max-width: 100vw; height: 100vh; border-radius: 0; margin: 0; z-index: 10005; overflow-y: auto; padding: 24px; }
+        .sort-btn:hover { background:#fff; border-color:var(--primary); }
+        .sort-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .sort-arrow { display:inline-block; min-width:10px; margin-left:2px; }
+
+        .file-columns, .item {
+            display: block; width: 100%;
+        }
+        .file-columns {
+            padding: 6px 10px 5px; margin-bottom: 2px;
+            color: rgba(255,255,255,.92); font-size: .72rem; font-weight: 800;
+            text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,.3);
+        }
+        .file-columns button { width: 100%; background: transparent; color: white; border: none; font-size: .72rem; font-weight: 800; cursor: pointer; text-align: left; }
+
+        .item {
+            padding: 6px 10px; background: rgba(248,250,252,.94);
+            border-bottom: 1px solid rgba(226,232,240,.9); margin-bottom: 2px; min-height: 48px;
+        }
+        .name-cell {
+            position: relative; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 6px; overflow: visible;
+        }
+        .file-title-wrap {
+            display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; justify-content: center;
+            align-items: flex-start;
+        }
+        .file-title-wrap > a {
+            color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.88rem;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            display: inline-block; max-width: 100%; width: fit-content;
+        }
+        .file-title-wrap > a:hover { color: var(--primary); text-decoration: underline; }
+        
+        .file-sub-meta {
+            font-size: 0.65rem; color: #64748b; font-weight: 500; margin-top: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center;
+        }
+        .file-sub-size {
+            background: #e2e8f0; color: #475569; padding: 1px 5px; border-radius: 3px; font-weight: 700;
+        }
+
+        .name-cell .actions { position: relative; flex: 0 0 20px; display: flex; align-items: center; justify-content: center; }
+        .name-cell .more-btn {
+            background: transparent; border: none; color: var(--primary); font-size: 20px; font-weight: 800; cursor: pointer; padding: 0 4px; line-height: 1;
+        }
+        .name-cell .actions-menu {
+            position: absolute; top: 28px; left: auto; right: 0; width: 155px; padding: 6px;
+            background: white; border: 1px solid #e2e8f0; border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 10000;
+            display: flex; flex-direction: column; gap: 4px;
+            opacity: 0; visibility: hidden; pointer-events: none; transition: 0.15s ease;
+        }
+        .name-cell .actions-menu.open { opacity: 1; visibility: visible; pointer-events: auto; }
+        .name-cell .action-menu-item {
+            width: 100%; padding: 8px; display: flex; align-items: center; gap: 8px;
+            background: transparent; color: var(--text); border: none; border-radius: 6px;
+            font-size: 12px; font-weight: 600; cursor: pointer; text-align: left;
+        }
+        .name-cell .action-menu-item:hover { background: #f1f5f9; color: var(--primary); }
+
+        @media(max-width: 768px) {
+            .file-title-wrap > a { font-size: 0.82rem !important; }
+            .file-sub-meta { font-size: 0.60rem !important; }
+        }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: flex-start; justify-content: center; padding-top: 20px; z-index: 2000; display: none; overflow-y: auto; }
+        .modal-box { background: white; padding: 20px; border-radius: 16px; width: 90%; max-width: 360px; margin-bottom: 20px; }
+        
+        .code-editor-wrap { position: relative; width: 100%; margin-bottom: 10px; border-radius: 10px; overflow: hidden; background: #ffffff; border: 1.5px solid #cbd5e1; }
+        .editor-container { position: relative; width: 100%; height: 320px; background: #ffffff; }
+        #html-code-input {
+            width: 100%; height: 100%; padding: 44px 12px 28px 12px; margin: 0;
+            border: none; outline: none; resize: none; font-family: Consolas, monospace; font-size: 13px; line-height: 20px;
+            color: #0f172a; background: #ffffff; tab-size: 4; white-space: pre; overflow: auto;
+        }
+        .editor-top-bar { position: absolute; top: 6px; left: 6px; right: 6px; display: flex; align-items: center; justify-content: space-between; gap: 6px; z-index: 20; pointer-events: none; }
+        .editor-left-tools { display: flex; align-items: center; gap: 5px; pointer-events: auto; flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+        .editor-left-tools::-webkit-scrollbar { display: none; }
+        .editor-tool-btn { padding: 4px 8px; font-size: 0.72rem; font-weight: 600; color: #475569; background: rgba(248, 250, 252, 0.95); border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+        .editor-search-box { display: flex; align-items: center; gap: 2px; background: rgba(248, 250, 252, 0.95); border: 1px solid #cbd5e1; border-radius: 6px; padding: 1px 4px; }
+        .editor-search-box input { width: 65px; padding: 2px 4px; font-size: 0.72rem; border: none; background: transparent; outline: none; }
+        .search-nav-btn { background: transparent; border: none; color: #64748b; font-size: 0.7rem; cursor: pointer; padding: 2px; }
+
+        .fs-filename-badge {
+            font-size: 0.72rem; font-weight: 700; color: #0284c7; background: #e0f2fe;
+            padding: 3px 8px; border-radius: 6px; border: 1px solid #bae6fd;
+            max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: none; flex-shrink: 0; align-items: center; gap: 4px;
+        }
+
+        .btn-expand-code { pointer-events: auto; background: #eef2ff; color: #4338ca; border-color: #c7d2fe; width: auto; }
+        .editor-statusbar { position: absolute; bottom: 0; left: 0; right: 0; height: 22px; background: #f8fafc; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.72rem; font-weight: 600; display: flex; align-items: center; justify-content: flex-end; padding: 0 10px; gap: 12px; pointer-events: none; }
+        
+        .code-editor-wrap.fullscreen-editor { position: fixed; inset: 0; z-index: 100000 !important; background: #fff; margin: 0; border-radius: 0; border: none; }
+        .code-editor-wrap.fullscreen-editor .editor-container { width: 100vw; height: 100vh; }
+        .code-editor-wrap.fullscreen-editor #html-code-input { padding: 48px 16px 30px 16px; }
+        .code-editor-wrap.fullscreen-editor .fs-filename-badge {
+            display: inline-flex !important; max-width: 250px;
+        }
+        
+        .code-modal-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .hidden { display: none !important; }
+
+        #binary-modal-box { background: #18181b; color: #f4f4f5; border-radius: 16px; width: 95%; max-width: 920px; padding: 20px; margin-bottom: 20px; }
+        #binary-modal-box.fullscreen-active { position: fixed; inset: 0; width: 100vw; max-width: 100vw; height: 100vh; border-radius: 0; margin: 0; z-index: 100005; overflow-y: auto; }
         .bin-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .bin-sec { background: #27272a; border: 1px solid #3f3f46; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
         .bin-sec table { width: 100%; border-collapse: collapse; margin-top: 6px; }
@@ -151,52 +203,59 @@
         .bin-ctrl { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
         .bin-nav { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .bin-btn { background: #3f3f46; color: #fff; border: 1px solid #52525b; padding: 4px 8px; cursor: pointer; border-radius: 4px; font-size: 11px; width: auto; font-weight: 600; }
-        .bin-btn:hover { background: #52525b; }
-        .bin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .bin-slider { flex-grow: 1; accent-color: #38bdf8; cursor: pointer; height: 6px; }
         .bin-input { width: 60px; background: #09090b; border: 1px solid #52525b; color: #fff; padding: 3px; text-align: center; border-radius: 4px; font-size: 11px; }
-
-        .bin-sec-fullscreen {
-            position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important;
-            z-index: 10006 !important; background: #18181b !important; padding: 16px !important; margin: 0 !important;
-            border-radius: 0 !important; border: none !important; display: flex !important; flex-direction: column !important;
-        }
-        .bin-sec-fullscreen .bin-pre { flex: 1 1 auto !important; max-height: none !important; font-size: 13px !important; line-height: 18px !important; }
-        .bin-sec-fullscreen .bin-ctrl { margin-top: 10px !important; flex-shrink: 0 !important; }
+        .bin-sec-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 100006 !important; background: #18181b !important; padding: 16px !important; margin: 0 !important; border-radius: 0 !important; display: flex !important; flex-direction: column !important; }
+        .bin-sec-fullscreen .bin-pre { flex: 1 1 auto !important; max-height: none !important; }
     </style>
 </head>
 <body>
 <div class="wrapper">
     <header><h1>Dosyalar</h1></header>
     <div class="layout">
-        <div class="sidebar">
-            <div class="card">
+        <!-- Sidebar -->
+        <div class="sidebar" id="app-sidebar">
+            <div class="card" onclick="event.stopPropagation()">
                 <div id="auth-box">
                     <div class="row">
-                        <input type="password" id="token" placeholder="Şifreyi girin">
-                        <button id="login-btn" onclick="auth(true)">Giriş</button>
+                        <input type="password" id="token" placeholder="Şifre">
+                        <button id="login-btn" onclick="auth(true)" style="min-width:55px;">Giriş</button>
                     </div>
                 </div>
+
                 <div id="logout-box" class="hidden">
-                    <div class="auth-btns">
-                        <button style="background:var(--danger)" onclick="logout()">Çıkış</button>
-                        <button id="edit-toggle" class="btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="toggleEdit()" title="Düzenleme Modu">⚙️</button>
-                        <button class="btn-sm" style="color:var(--primary); border-color:var(--primary);" onclick="location.reload()" title="Yenile">🔄</button>
-                    </div>
+                    <button class="menu-btn menu-logout" onclick="logout()">
+                        <span class="btn-icon">🚪</span><span class="btn-text">Çıkış</span>
+                    </button>
+                    <button class="menu-btn menu-refresh" onclick="location.reload()">
+                        <span class="btn-icon">🔄</span><span class="btn-text">Yenile</span>
+                    </button>
                 </div>
                 <div id="auth-toast" class="toast"></div>
-            </div>
 
-            <div id="secure-sidebar" class="hidden">
-                <div class="card">
-                    <button class="menu-btn active" id="tab-files-btn" onclick="switchTab('files')">📄 Dosyalarım</button>
-                    <button class="menu-btn" id="tab-archive-btn" onclick="switchTab('archive')">📦 Arşiv</button>
-                    <hr style="margin: 12px 0; border: none; border-top: 1px dashed var(--border);">
+                <div id="secure-sidebar" class="hidden" style="margin-top: 10px;">
+                    <button class="menu-btn active" id="tab-files-btn" onclick="switchTab('files')">
+                        <span class="btn-icon">📄</span><span class="btn-text">Dosyalarım</span>
+                    </button>
+                    <button class="menu-btn" id="tab-archive-btn" onclick="switchTab('archive')">
+                        <span class="btn-icon">📦</span><span class="btn-text">Arşiv</span>
+                    </button>
+                    <hr style="margin: 8px 0; border: none; border-top: 1px dashed var(--border);">
                     <input type="file" id="file" class="hidden" onchange="upload()">
-                    <button class="menu-btn" onclick="el('file').click()">📁 Dosya Yükle</button>
-                    <button class="menu-btn" onclick="openCodeModal()">&lt;/&gt; HTML Yükle</button>
+                    <button class="menu-btn" onclick="el('file').click()">
+                        <span class="btn-icon">📁</span><span class="btn-text">Dosya Yükle</span>
+                    </button>
+                    <button class="menu-btn" onclick="openCodeModal()">
+                        <span class="btn-icon">&lt;/&gt;</span><span class="btn-text">HTML Yükle</span>
+                    </button>
                     <input type="file" id="local-inspect-file" class="hidden" onchange="inspectLocalFile(this)">
-                    <button class="menu-btn" style="background: #e0f2fe; color: #0284c7; border-color: #bae6fd;" onclick="el('local-inspect-file').click()">🔍 Dosya İncele</button>
+                    <button class="menu-btn menu-inspect" onclick="el('local-inspect-file').click()">
+                        <span class="btn-icon">🔍</span><span class="btn-text">Dosya İncele</span>
+                    </button>
+                    <!-- En alta taşınan index.html düzenleme butonu -->
+                    <button class="menu-btn menu-index" onclick="openTargetFile('index.html')">
+                        <span class="btn-icon">⚙️</span><span class="btn-text">index.html</span>
+                    </button>
                     <div id="upload-toast" class="toast"></div>
                 </div>
             </div>
@@ -204,26 +263,25 @@
 
         <div class="content">
             <div id="secure-content" class="hidden">
-                <div class="card">
-                    <div class="tab-title-wrap">
-                        <div id="view-title" class="tab-title">📄 Dosyalarım</div>
-                        <button id="edit-index-btn" class="btn-edit-index hidden" onclick="openTargetFile('index.html')">⚙️ index.html Düzenle</button>
-                    </div>
-                    <ul id="file-list" class="list"><li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li></ul>
-                    <div id="list-toast" class="toast"></div>
+                <div class="tab-title-wrap">
+                    <div id="view-title" class="tab-title">📄 Dosyalarım</div>
                 </div>
+                <div class="list-toolbar">
+                    <div id="list-count" class="list-count"></div>
+                    <div class="sort-buttons">
+                        <button type="button" class="sort-btn" data-sort="name" onclick="setSort('name')">Ad <span class="sort-arrow"></span></button>
+                        <button type="button" class="sort-btn active" data-sort="date" onclick="setSort('date')">Tarih <span class="sort-arrow">↓</span></button>
+                        <button type="button" class="sort-btn" data-sort="size" onclick="setSort('size')">Boyut <span class="sort-arrow"></span></button>
+                    </div>
+                </div>
+                <div class="file-columns">
+                    <button type="button" onclick="setSort('name')">Dosyalar</button>
+                </div>
+                <div class="list-wrap">
+                    <ul id="file-list" class="list"><li style="text-align:center; color:white; padding:20px;">Yükleniyor...</li></ul>
+                </div>
+                <div id="list-toast" class="toast"></div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div id="modal" class="modal">
-    <div class="modal-box">
-        <h4 style="margin-bottom:10px; font-size:0.95rem;">Yeniden Adlandır</h4>
-        <input type="text" id="new-name" style="margin-bottom:10px;" placeholder="Yeni Dosya Adı">
-        <div class="row">
-            <button style="background:#cbd5e1; color:#334155;" onclick="el('modal').style.display='none'">İptal</button>
-            <button onclick="saveRename()">Kaydet</button>
         </div>
     </div>
 </div>
@@ -235,22 +293,22 @@
         <div class="code-editor-wrap" id="editor-wrap">
             <div class="editor-top-bar">
                 <div class="editor-left-tools">
+                    <span id="fs-file-badge" class="fs-filename-badge"></span>
                     <button class="editor-tool-btn" onclick="copyCodeToClipboard()" type="button">kopyala</button>
                     <button class="editor-tool-btn" onclick="pasteFromClipboard()" type="button">yapıştır</button>
                     <button class="editor-tool-btn" onclick="runHtmlCode()" type="button">çalıştır</button>
                     <button class="editor-tool-btn" onclick="clearCodeInput()" type="button">temizle</button>
-                    <button class="editor-tool-btn hidden" id="fs-save-btn" onclick="uploadHtmlCode()" type="button" style="color:#16a34a; border-color:rgba(22,163,74,0.4);">kaydet</button>
+                    <button class="editor-tool-btn hidden" id="fs-save-btn" onclick="uploadHtmlCode()" type="button" style="color:#16a34a;">kaydet</button>
                     <div class="editor-search-box">
                         <input type="text" id="code-search-input" placeholder="Bul..." oninput="searchInCode(true)" onkeydown="handleSearchKeydown(event)">
-                        <button class="search-nav-btn" type="button" onclick="searchInCode(true)" title="Sonraki">↓</button>
-                        <button class="search-nav-btn" type="button" onclick="searchInCode(false)" title="Önceki">↑</button>
+                        <button class="search-nav-btn" type="button" onclick="searchInCode(true)">↓</button>
+                        <button class="search-nav-btn" type="button" onclick="searchInCode(false)">↑</button>
                     </div>
-                    <span id="fs-file-badge" class="fs-filename-badge"></span>
                 </div>
                 <button class="editor-tool-btn btn-expand-code" id="toggle-fullscreen-btn" onclick="toggleCodeFullscreen()" type="button">tam ekran</button>
             </div>
             <div class="editor-container">
-                <textarea id="html-code-input" spellcheck="false" autocomplete="off" autocapitalize="off" oninput="updateStatus()"></textarea>
+                <textarea id="html-code-input" spellcheck="false" autocomplete="off" oninput="updateStatus()"></textarea>
             </div>
             <div class="editor-statusbar">
                 <span id="editor-char-count">0 karakter</span>
@@ -274,17 +332,14 @@
                 <button class="bin-btn" style="background:#e11d48;" onclick="closeBinaryModal()">✕ Kapat</button>
             </div>
         </div>
-
         <div class="bin-sec">
             <h5 style="margin-bottom:6px; color:#94a3b8;">Format, Bütünlük ve Başlık Bilgileri</h5>
             <table id="bin-meta-table"></table>
         </div>
-
         <div class="bin-sec" id="bin-details-box" style="display:none;">
             <h5 style="margin-bottom:6px; color:#94a3b8;">Türe Özgü İçerik Analizi</h5>
             <div id="bin-details-content"></div>
         </div>
-
         <div class="bin-sec" id="bin-hex-sec">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <h5 style="color:#94a3b8; margin:0;">Hex Dökümü <span id="bin-hex-counter" style="color:#38bdf8;"></span></h5>
@@ -304,7 +359,6 @@
                 </div>
             </div>
         </div>
-
         <div class="bin-sec" id="bin-str-sec">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                 <h5 style="color:#94a3b8; margin:0;">Sınırsız Metinler (Strings) <span id="bin-str-counter" style="color:#38bdf8;"></span></h5>
@@ -335,11 +389,29 @@
 <script>
     const el = id => document.getElementById(id);
     const u = 'drsait', r = 'Deneme', api = `https://api.github.com/repos/${u}/${r}/contents`;
-    let editMode = false, activeFileData = {}, editingFileName = null, currentTab = 'files', authTimer = null;
+    let activeFileData = {}, editingFileName = null, currentTab = 'files', authTimer = null;
+    
+    // Varsayılan sıralama: Tarihe göre azalan (en yeni en üstte)
+    let sortKey = 'date', sortAsc = false, currentFiles = [], currentCommitDates = {};
 
     const b64Dec = str => decodeURIComponent(escape(atob(str)));
     const b64Enc = str => btoa(unescape(encodeURIComponent(str)));
     const isEditableTextFile = name => /\.(html?|txt|js|css|json|md|xml|svg|csv|py|php)$/i.test(name);
+
+    // Sidebar mobilde tıklandığında açılsın
+    const sbEl = el('app-sidebar');
+    sbEl.addEventListener('click', e => {
+        if (window.innerWidth <= 768) {
+            sbEl.classList.add('open');
+        }
+    });
+
+    document.addEventListener('click', e => {
+        const sb = el('app-sidebar');
+        if (sb && sb.classList.contains('open') && !sb.contains(e.target)) {
+            sb.classList.remove('open');
+        }
+    });
 
     function updateFsFileNameBadge() {
         const val = el('html-file-name').value.trim();
@@ -355,57 +427,30 @@
         return (bytes / 1048576).toFixed(1) + ' MB';
     };
 
-    function getCode() {
-        return el('html-code-input').value;
-    }
-
-    function setCode(code) {
-        el('html-code-input').value = code || '';
-        updateStatus();
-    }
-
+    function getCode() { return el('html-code-input').value; }
+    function setCode(code) { el('html-code-input').value = code || ''; updateStatus(); }
     function updateStatus() {
         const text = getCode();
         el('editor-char-count').textContent = `${text.length.toLocaleString()} karakter`;
         el('editor-size-count').textContent = formatFileSize(new Blob([text]).size);
     }
 
-    function handleSearchKeydown(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            searchInCode(!e.shiftKey);
-        }
-    }
-
+    function handleSearchKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); searchInCode(!e.shiftKey); } }
     function searchInCode(forward = true) {
-        const ta = el('html-code-input');
-        const query = el('code-search-input').value;
+        const ta = el('html-code-input'), query = el('code-search-input').value;
         if (!query) return;
-
-        const text = ta.value;
-        const qLower = query.toLowerCase();
-        const tLower = text.toLowerCase();
-
-        let pos = -1;
-        if (forward) {
-            pos = tLower.indexOf(qLower, ta.selectionEnd);
-            if (pos === -1) pos = tLower.indexOf(qLower, 0);
-        } else {
-            pos = tLower.lastIndexOf(qLower, Math.max(0, ta.selectionStart - 1));
-            if (pos === -1) pos = tLower.lastIndexOf(qLower);
-        }
-
+        const text = ta.value, qLower = query.toLowerCase(), tLower = text.toLowerCase();
+        let pos = forward ? tLower.indexOf(qLower, ta.selectionEnd) : tLower.lastIndexOf(qLower, Math.max(0, ta.selectionStart - 1));
+        if (pos === -1) pos = forward ? tLower.indexOf(qLower, 0) : tLower.lastIndexOf(qLower);
         if (pos !== -1) {
-            ta.focus();
             ta.setSelectionRange(pos, pos + query.length);
-
             const linesBefore = text.substring(0, pos).split('\n').length;
-            const lineHeight = 20;
-            ta.scrollTop = Math.max(0, (linesBefore - 4) * lineHeight);
+            ta.scrollTop = Math.max(0, (linesBefore - 4) * 20);
         }
     }
 
     window.onload = () => { 
+        updateSortButtons();
         const tokenInput = el('token');
         tokenInput.addEventListener('input', () => {
             clearTimeout(authTimer);
@@ -413,20 +458,8 @@
         });
         tokenInput.addEventListener('paste', () => setTimeout(() => auth(false), 50));
         tokenInput.addEventListener('keypress', e => e.key === 'Enter' && auth(true));
-
         const t = localStorage.getItem('gt'); 
         if(t) { tokenInput.value = t; auth(false); } 
-
-        const ta = el('html-code-input');
-        ta.addEventListener('keydown', e => {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = ta.selectionStart, end = ta.selectionEnd;
-                ta.value = ta.value.substring(0, start) + '    ' + ta.value.substring(end);
-                ta.selectionStart = ta.selectionEnd = start + 4;
-                updateStatus();
-            }
-        });
     };
 
     const toast = (id, msg, err) => {
@@ -461,7 +494,7 @@
     };
 
     const unlockUI = () => {
-        ['auth-box'].forEach(id => el(id).classList.add('hidden'));
+        el('auth-box').classList.add('hidden');
         ['logout-box', 'secure-sidebar', 'secure-content'].forEach(id => el(id).classList.remove('hidden'));
     };
 
@@ -490,17 +523,6 @@
         load();
     };
 
-    const toggleEdit = () => {
-        editMode = !editMode;
-        const btn = el('edit-toggle'), indexBtn = el('edit-index-btn');
-        btn.classList.toggle('active', editMode);
-        btn.style.background = editMode ? 'var(--primary)' : 'transparent';
-        btn.style.color = editMode ? 'white' : 'var(--primary)';
-        indexBtn.classList.toggle('hidden', !editMode);
-        document.querySelectorAll('.actions').forEach(a => a.style.display = editMode ? 'flex' : 'none');
-        document.querySelectorAll('.file-meta-group').forEach(d => d.style.display = editMode ? 'none' : 'flex');
-    };
-
     const toggleArchive = async fileName => {
         toast('list-toast', 'Arşiv durumu güncelleniyor...');
         const { list: archivedList, sha } = await getGitHubArchiveData();
@@ -516,13 +538,132 @@
         const d = new Date(dateStr);
         if (isNaN(d)) return '';
         const pad = n => String(n).padStart(2, '0');
-        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     };
+
+    const updateSortButtons = () => {
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            const active = btn.dataset.sort === sortKey;
+            btn.classList.toggle('active', active);
+            const arrow = btn.querySelector('.sort-arrow');
+            if (arrow) arrow.textContent = active ? (sortAsc ? '↑' : '↓') : '';
+        });
+    };
+
+    const setSort = key => {
+        if (sortKey === key) sortAsc = !sortAsc;
+        else { sortKey = key; sortAsc = (key === 'date' ? false : true); }
+        updateSortButtons();
+        renderFileList();
+    };
+
+    const renderFileList = () => {
+        const list = el('file-list');
+        if (!currentFiles.length) {
+            list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok'}</li>`;
+            el('list-count').textContent = '0 dosya';
+            return;
+        }
+
+        const files = [...currentFiles].sort((a,b) => {
+            let av, bv;
+            if (sortKey === 'size') { av = Number(a.size || 0); bv = Number(b.size || 0); }
+            else if (sortKey === 'date') { av = new Date(currentCommitDates[a.name] || 0).getTime(); bv = new Date(currentCommitDates[b.name] || 0).getTime(); }
+            else { av = a.name.toLocaleLowerCase('tr'); bv = b.name.toLocaleLowerCase('tr'); }
+            if (av < bv) return sortAsc ? -1 : 1;
+            if (av > bv) return sortAsc ? 1 : -1;
+            return 0;
+        });
+
+        el('list-count').textContent = `${files.length} dosya`;
+        updateSortButtons();
+        list.innerHTML = '';
+
+        files.forEach(f => {
+            const isArchived = currentTab === 'archive';
+            const li = document.createElement('li');
+            li.className = 'item';
+
+            const nameCell = document.createElement('div');
+            nameCell.className = 'name-cell';
+
+            const titleWrap = document.createElement('div');
+            titleWrap.className = 'file-title-wrap';
+
+            const link = document.createElement('a');
+            link.href = `https://${u}.github.io/${r}/${encodeURIComponent(f.name)}`;
+            link.target = '_blank';
+            link.title = f.name;
+            link.textContent = `📄 ${f.name}`;
+
+            const subMeta = document.createElement('div');
+            subMeta.className = 'file-sub-meta';
+            
+            const sizeSpan = document.createElement('span');
+            sizeSpan.className = 'file-sub-size';
+            sizeSpan.textContent = f.size !== undefined ? formatFileSize(f.size) : '-';
+
+            const dateSpan = document.createElement('span');
+            dateSpan.textContent = formatDate(currentCommitDates[f.name]);
+
+            subMeta.append(sizeSpan, dateSpan);
+            titleWrap.append(link, subMeta);
+
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+
+            const more = document.createElement('button');
+            more.type = 'button';
+            more.className = 'more-btn';
+            more.title = 'İşlemler';
+            more.textContent = '⋮';
+
+            const menu = document.createElement('div');
+            menu.className = 'actions-menu';
+
+            const codeBtn = document.createElement('button');
+            codeBtn.type = 'button';
+            codeBtn.className = 'action-menu-item';
+            codeBtn.innerHTML = `<span>${isEditableTextFile(f.name) ? '✎' : '🔍'}</span><span>${isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili Analiz'}</span>`;
+
+            const archiveBtn = document.createElement('button');
+            archiveBtn.type = 'button';
+            archiveBtn.className = 'action-menu-item';
+            archiveBtn.innerHTML = `<span>${isArchived ? '↩️' : '📦'}</span><span>${isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle'}</span>`;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'action-menu-item';
+            deleteBtn.style.color = 'var(--danger)';
+            deleteBtn.innerHTML = '<span>🗑️</span><span>Sil</span>';
+
+            menu.append(codeBtn, archiveBtn, deleteBtn);
+            actions.append(more, menu);
+            nameCell.append(titleWrap, actions);
+
+            li.append(nameCell);
+            list.appendChild(li);
+
+            more.onclick = e => {
+                e.stopPropagation();
+                document.querySelectorAll('.actions-menu.open').forEach(m => { if (m !== menu) m.classList.remove('open'); });
+                menu.classList.toggle('open');
+            };
+            codeBtn.onclick = e => { e.stopPropagation(); menu.classList.remove('open'); openTargetFile(f.name); };
+            archiveBtn.onclick = e => { e.stopPropagation(); menu.classList.remove('open'); toggleArchive(f.name); };
+            deleteBtn.onclick = e => { e.stopPropagation(); menu.classList.remove('open'); del(f.name, f.sha); };
+        });
+    };
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.actions')) {
+            document.querySelectorAll('.actions-menu.open').forEach(m => m.classList.remove('open'));
+        }
+    });
 
     const load = async () => {
         const list = el('file-list');
         list.innerHTML = '<li style="text-align:center; color:#64748b; padding:20px;">Yükleniyor...</li>';
-
         try {
             const res = await req();
             if (!res.ok) throw new Error();
@@ -532,48 +673,23 @@
             const { list: archivedFiles } = await getGitHubArchiveData();
             let files = data.filter(f => !['index.html', 'archive.json'].includes(f.name.toLowerCase()));
             files = files.filter(f => currentTab === 'files' ? !archivedFiles.includes(f.name) : archivedFiles.includes(f.name));
-
             if (!files.length) return list.innerHTML = `<li style="text-align:center; color:#64748b; padding:20px;">${currentTab === 'files' ? 'Depo boş' : 'Arşivde dosya yok'}</li>`;
 
             const commitDates = {};
-            try {
-                const cRes = await fetch(`https://api.github.com/repos/${u}/${r}/commits?per_page=50`, {
-                    headers: { 'Authorization': `token ${localStorage.getItem('gt')}` }
-                });
-                if (cRes.ok) {
-                    (await cRes.json()).forEach(c => {
-                        const date = c.commit?.committer?.date || c.commit?.author?.date;
-                        const msg = c.commit?.message || '';
-                        files.forEach(f => { if (!commitDates[f.name] && msg.includes(f.name)) commitDates[f.name] = date; });
-                    });
-                }
-            } catch {}
+            await Promise.all(files.map(async f => {
+                try {
+                    const cRes = await fetch(`https://api.github.com/repos/${u}/${r}/commits?path=${encodeURIComponent(f.name)}&per_page=1`, { headers: { 'Authorization': `token ${localStorage.getItem('gt')}` } });
+                    if (cRes.ok) {
+                        const arr = await cRes.json();
+                        if (Array.isArray(arr) && arr[0]) {
+                            commitDates[f.name] = arr[0].commit?.committer?.date || arr[0].commit?.author?.date || '';
+                        }
+                    }
+                } catch {}
+            }));
 
-            list.innerHTML = '';
-            files.forEach(f => {
-                const isArchived = archivedFiles.includes(f.name);
-                const li = document.createElement('li');
-                li.className = 'item';
-                li.innerHTML = `
-                    <a href="https://${u}.github.io/${r}/${encodeURIComponent(f.name)}" target="_blank">📄 ${f.name}</a>
-                    <div class="file-meta-group" style="display:${editMode ? 'none' : 'flex'}">
-                        ${f.size !== undefined ? `<span class="file-size">${formatFileSize(f.size)}</span>` : ''}
-                        <span class="file-date">${formatDate(commitDates[f.name])}</span>
-                    </div>
-                    <div class="actions" style="display:${editMode ? 'flex' : 'none'}">
-                        <button class="btn-sm btn-code" title="${isEditableTextFile(f.name) ? 'Kodu Düzenle' : 'İkili Analiz'}">${isEditableTextFile(f.name) ? '&lt;/&gt;' : '🔍'}</button>
-                        <button class="btn-sm btn-archive" title="${isArchived ? 'Arşivden Çıkar' : 'Arşive Gizle'}">📦</button>
-                        <button class="btn-sm btn-rename" title="Yeniden Adlandır">🏷️</button>
-                        <button class="btn-sm btn-delete" title="Sil">🗑️</button>
-                    </div>`;
-
-                const btns = li.querySelectorAll('.actions button');
-                btns[0].onclick = () => openTargetFile(f.name);
-                btns[1].onclick = () => toggleArchive(f.name);
-                btns[2].onclick = () => openRenameModal(f.name, f.sha);
-                btns[3].onclick = () => del(f.name, f.sha);
-                list.appendChild(li);
-            });
+            currentFiles = files; currentCommitDates = commitDates;
+            renderFileList();
         } catch {
             list.innerHTML = '<li style="text-align:center; color:red">Yüklenirken hata oluştu</li>';
         }
@@ -602,19 +718,13 @@
     };
 
     const normalizeHtmlFileName = name => (name = name.trim()) ? (name.includes('.') ? name : `${name}.html`) : '';
-
-    const clearCodeInput = () => {
-        setCode('');
-        el('html-code-input').focus();
-    };
+    const clearCodeInput = () => { setCode(''); el('html-code-input').focus(); };
 
     const copyCodeToClipboard = async () => {
-        const text = getCode();
-        try { 
-            await navigator.clipboard.writeText(text); 
-        } catch {
+        try { await navigator.clipboard.writeText(getCode()); }
+        catch {
             const ta = document.createElement('textarea');
-            ta.value = text; document.body.appendChild(ta); ta.select();
+            ta.value = getCode(); document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); document.body.removeChild(ta);
         }
         toast('list-toast', 'Kod kopyalandı');
@@ -624,7 +734,7 @@
         const isFull = el('editor-wrap').classList.toggle('fullscreen-editor');
         el('toggle-fullscreen-btn').textContent = isFull ? 'küçült' : 'tam ekran';
         el('fs-save-btn').classList.toggle('hidden', !isFull);
-        if (isFull) updateFsFileNameBadge();
+        updateFsFileNameBadge();
         el('html-code-input').focus();
     };
 
@@ -650,10 +760,7 @@
     };
 
     const pasteFromClipboard = async () => {
-        try {
-            const clip = await navigator.clipboard.readText();
-            if (clip) setCode(clip);
-        } catch {}
+        try { const clip = await navigator.clipboard.readText(); if (clip) setCode(clip); } catch {}
         el('html-code-input').focus();
     };
 
@@ -734,34 +841,6 @@
         }
     };
 
-    const openRenameModal = (name, sha) => {
-        const input = el('new-name');
-        input.value = name; activeFileData = { name, sha };
-        el('modal').style.display = 'flex';
-        input.focus(); input.select();
-    };
-
-    const saveRename = async () => {
-        const newName = el('new-name').value.trim();
-        if (!newName || newName === activeFileData.name) return;
-        el('modal').style.display = 'none';
-        toast('list-toast', 'Yeniden adlandırılıyor...');
-
-        try {
-            const getRes = await req(encodeURIComponent(activeFileData.name));
-            if (!getRes.ok) throw new Error();
-            const data = await getRes.json();
-
-            const putRes = await req(encodeURIComponent(newName), 'PUT', { message: `Ad Değişimi: ${activeFileData.name} -> ${newName}`, content: data.content });
-            if (!putRes.ok) throw new Error();
-
-            await req(encodeURIComponent(activeFileData.name), 'DELETE', { message: `Silindi: ${activeFileData.name}`, sha: data.sha });
-            toast('list-toast', 'Ad değiştirildi'); load();
-        } catch {
-            toast('list-toast', 'İşlem başarısız', true);
-        }
-    };
-
     const del = async (name, sha) => {
         if (!confirm(`${name} silinsin mi?`)) return;
         toast('list-toast', `${name} siliniyor...`);
@@ -804,8 +883,7 @@
     }
 
     const initBinaryView = async (name, buf, extraMeta = '') => {
-        binBuf = new Uint8Array(buf);
-        binView = new DataView(buf);
+        binBuf = new Uint8Array(buf); binView = new DataView(buf);
         binAllStrings = []; binHexPage = 0; binStrPage = 0;
 
         el('bin-modal-title').textContent = `Analiz: ${name}`;
@@ -863,7 +941,6 @@
         box.classList.remove('fullscreen-active');
         el('bin-fs-btn').textContent = '⛶ Tam Ekran';
         ['bin-hex-sec', 'bin-str-sec'].forEach(id => el(id).classList.remove('bin-sec-fullscreen'));
-        ['bin-hex-expand-btn', 'bin-str-expand-btn'].forEach(id => el(id).textContent = '⛶ Tam Ekran');
         el('binary-modal').style.display = 'none';
         binBuf = binView = null; binAllStrings = [];
     };
@@ -886,50 +963,12 @@
                 const time = new Date(binView.getUint32(peOffset + 8, true) * 1000).toUTCString();
                 const arch = machine === 0x8664 ? "64-bit (x64)" : (machine === 0x14C ? "32-bit (x86)" : "ARM/Diğer");
                 meta += `<tr><td><b>Format</b></td><td>Windows PE (EXE/DLL)</td></tr><tr><td><b>Mimari / Tarih</b></td><td>${arch} | ${time}</td></tr><tr><td><b>Bölüm Sayısı</b></td><td>${sections}</td></tr>`;
-
-                let secRows = '', secPtr = peOffset + 24 + binView.getUint16(peOffset + 20, true);
-                for (let i = 0; i < sections && secPtr + 40 <= binBuf.length; i++) {
-                    let sName = '';
-                    for (let j = 0; j < 8; j++) if (binBuf[secPtr + j]) sName += String.fromCharCode(binBuf[secPtr + j]);
-                    secRows += `<tr><td>${sName}</td><td>${binView.getUint32(secPtr + 8, true)} B</td><td>0x${binView.getUint32(secPtr + 12, true).toString(16).toUpperCase()}</td></tr>`;
-                    secPtr += 40;
-                }
-                dContent.innerHTML = `<table><thead><tr><th>Bölüm</th><th>Boyut</th><th>Adres</th></tr></thead><tbody>${secRows}</tbody></table>`;
-                dBox.style.display = 'block';
+                dBox.style.display = 'none';
                 el('bin-meta-table').innerHTML = meta;
                 return;
             }
         }
-
-        if (binBuf[0] === 0x7F && binBuf[1] === 0x45 && binBuf[2] === 0x4C && binBuf[3] === 0x46) {
-            meta += `<tr><td><b>Format</b></td><td>Linux ELF (${binBuf[4] === 2 ? '64-bit' : '32-bit'})</td></tr>`;
-        } else if (binBuf[0] === 0x50 && binBuf[1] === 0x4B && binBuf[2] === 0x03 && binBuf[3] === 0x04) {
-            let files = [], ptr = 0;
-            while (ptr < binBuf.length - 30) {
-                if (binBuf[ptr] === 0x50 && binBuf[ptr+1] === 0x4B && binBuf[ptr+2] === 0x03 && binBuf[ptr+3] === 0x04) {
-                    const nLen = binView.getUint16(ptr + 26, true);
-                    let fName = '';
-                    for (let i = 0; i < nLen; i++) fName += String.fromCharCode(binBuf[ptr + 30 + i]);
-                    if (fName) files.push(fName);
-                    ptr += 30 + nLen + binView.getUint16(ptr + 28, true) + binView.getUint32(ptr + 18, true);
-                } else ptr++;
-            }
-            meta += `<tr><td><b>Format</b></td><td>${files.some(f => f.includes('[Content_Types].xml')) ? 'Office Belgesi (DOCX/XLSX)' : 'ZIP Arşivi'}</td></tr>`;
-            if (files.length) {
-                dContent.innerHTML = `<pre class="bin-pre">${files.slice(0, 50).join('\n')}${files.length > 50 ? '\n...' : ''}</pre>`;
-                dBox.style.display = 'block';
-            }
-        } else if (binBuf[0] === 0x25 && binBuf[1] === 0x50 && binBuf[2] === 0x44 && binBuf[3] === 0x46) {
-            meta += `<tr><td><b>Format</b></td><td>PDF Belgesi (${String.fromCharCode(...binBuf.slice(0, 8))})</td></tr>`;
-        } else if (binBuf[0] === 0x89 && binBuf[1] === 0x50 && binBuf[2] === 0x4E && binBuf[3] === 0x46) {
-            meta += `<tr><td><b>Format</b></td><td>PNG Görseli (${binView.getUint32(16, false)}x${binView.getUint32(20, false)} px)</td></tr>`;
-        } else if (binBuf[0] === 0xFF && binBuf[1] === 0xD8) {
-            meta += `<tr><td><b>Format</b></td><td>JPEG Görseli</td></tr>`;
-        } else if (binBuf[0] === 0x47 && binBuf[1] === 0x49 && binBuf[2] === 0x46) {
-            meta += `<tr><td><b>Format</b></td><td>GIF Görseli (${binView.getUint16(6, true)}x${binView.getUint16(8, true)} px)</td></tr>`;
-        } else {
-            meta += `<tr><td><b>Format</b></td><td>Genel İkili / Veri Dosyası</td></tr>`;
-        }
+        meta += `<tr><td><b>Format</b></td><td>Genel İkili / Veri Dosyası</td></tr>`;
         el('bin-meta-table').innerHTML = meta;
     }
 
