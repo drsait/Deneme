@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>İnternet Çıkış IP Geçmişi</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Segoe UI,Arial,sans-serif;
+    background:#0f172a;
+    color:#e5e7eb;
+    min-height:100vh;
+  }
+  .wrap{max-width:900px;margin:auto;padding:28px 18px}
+  .card{
+    background:#111827;
+    border:1px solid #334155;
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:18px;
+  }
+  h1{margin:0 0 6px;font-size:28px}
+  .sub{color:#94a3b8;margin-bottom:20px}
+  .current{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .label{font-size:13px;color:#94a3b8}
+  #currentIp{
+    margin-top:5px;
+    font-size:30px;
+    font-weight:800;
+    color:#38bdf8;
+  }
+  #status{font-size:13px;color:#94a3b8;margin-top:5px}
+  .actions{display:flex;gap:9px;flex-wrap:wrap}
+  button{
+    border:0;
+    border-radius:10px;
+    padding:10px 13px;
+    cursor:pointer;
+    font-weight:700;
+    background:#243247;
+    color:#fff;
+  }
+  .primary{background:#0284c7}
+  .danger{background:#7f1d1d}
+  input{
+    width:280px;
+    max-width:100%;
+    padding:10px 12px;
+    border-radius:9px;
+    border:1px solid #334155;
+    background:#0b1220;
+    color:#fff;
+  }
+  .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .tablewrap{overflow:auto;border:1px solid #334155;border-radius:10px}
+  table{width:100%;border-collapse:collapse;min-width:600px}
+  th,td{padding:11px 12px;border-bottom:1px solid #273449;text-align:left}
+  th{background:#172033;color:#cbd5e1;font-size:13px}
+  td{font-size:14px}
+  tr:last-child td{border-bottom:0}
+  .empty{text-align:center;color:#94a3b8;padding:25px!important}
+  .badge{
+    display:inline-block;
+    padding:3px 8px;
+    background:#0c4a6e;
+    color:#bae6fd;
+    border-radius:999px;
+    font-size:12px;
+  }
+  .note{margin-top:10px;color:#94a3b8;font-size:12px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>İnternet Çıkış IP Geçmişi</h1>
+  <div class="sub">Yalnızca internete çıkarken dışarıdan görünen genel IP adresini kaydeder.</div>
+
+  <div class="card">
+    <div class="current">
+      <div>
+        <div class="label">Şu anki internet çıkış IP adresi</div>
+        <div id="currentIp">Tespit ediliyor…</div>
+        <div id="status"></div>
+      </div>
+      <div class="actions">
+        <button class="primary" onclick="detectIp()">Yeniden Kontrol Et</button>
+        <button onclick="downloadCsv()">CSV İndir</button>
+        <button class="danger" onclick="clearHistory()">Geçmişi Temizle</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <strong>IP Geçmişi</strong>
+      <input id="search" placeholder="IP veya tarih ara…" oninput="render()">
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>İnternet Çıkış IP</th>
+            <th>Tarih</th>
+            <th>Saat</th>
+            <th>Durum</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      Yerel ağ IP adresleri (192.168.x.x, 10.x.x.x vb.) kaydedilmez.
+      Geçmiş yalnızca bu tarayıcının localStorage alanında tutulur.
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = "internetExitIpHistory_v1";
+
+function getHistory(){
+  try{return JSON.parse(localStorage.getItem(KEY) || "[]")}
+  catch{return []}
+}
+
+function saveHistory(data){
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
+function fmtDate(iso){
+  return new Date(iso).toLocaleDateString("tr-TR");
+}
+
+function fmtTime(iso){
+  return new Date(iso).toLocaleTimeString("tr-TR");
+}
+
+async function getPublicIp(){
+  const services = [
+    "https://api.ipify.org?format=json",
+    "https://api4.ipify.org?format=json"
+  ];
+
+  for(const url of services){
+    try{
+      const controller = new AbortController();
+      const timer = setTimeout(()=>controller.abort(), 6000);
+
+      const res = await fetch(url,{
+        cache:"no-store",
+        signal:controller.signal
+      });
+
+      clearTimeout(timer);
+
+      if(!res.ok) continue;
+
+      const data = await res.json();
+
+      if(data.ip) return data.ip;
+    }catch(e){}
+  }
+
+  throw new Error("IP alınamadı");
+}
+
+async function detectIp(){
+  const ipEl = document.getElementById("currentIp");
+  const status = document.getElementById("status");
+
+  ipEl.textContent = "Tespit ediliyor…";
+  status.textContent = "İnternet çıkış IP adresi sorgulanıyor.";
+
+  try{
+    const ip = await getPublicIp();
+    ipEl.textContent = ip;
+
+    const history = getHistory();
+    const previousIp = history.length ? history[0].ip : null;
+    const changed = !!previousIp && previousIp !== ip;
+
+    history.unshift({
+      ip: ip,
+      time: new Date().toISOString(),
+      changed: changed
+    });
+
+    saveHistory(history.slice(0,5000));
+
+    status.textContent = changed
+      ? "İnternet çıkış IP adresi değişti."
+      : "İnternet çıkış IP adresi kaydedildi.";
+
+    render();
+  }catch(e){
+    ipEl.textContent = "Alınamadı";
+    status.textContent = "İnternet çıkış IP adresi tespit edilemedi.";
+  }
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[c]));
+}
+
+function render(){
+  const history = getHistory();
+  const q = document.getElementById("search").value.trim().toLowerCase();
+
+  const rows = history.filter(x =>
+    x.ip.toLowerCase().includes(q) ||
+    fmtDate(x.time).toLowerCase().includes(q) ||
+    fmtTime(x.time).toLowerCase().includes(q)
+  );
+
+  const tbody = document.getElementById("tbody");
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Kayıt yok.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map((x,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${escapeHtml(x.ip)}</strong></td>
+      <td>${fmtDate(x.time)}</td>
+      <td>${fmtTime(x.time)}</td>
+      <td>${x.changed ? '<span class="badge">IP değişti</span>' : 'Normal'}</td>
+    </tr>
+  `).join("");
+}
+
+function downloadCsv(){
+  const history = getHistory();
+
+  if(!history.length){
+    alert("İndirilecek kayıt yok.");
+    return;
+  }
+
+  const rows = [["Internet Cikis IP","Tarih","Saat","IP Degisti"]];
+
+  history.forEach(x=>{
+    rows.push([
+      x.ip,
+      fmtDate(x.time),
+      fmtTime(x.time),
+      x.changed ? "Evet" : "Hayir"
+    ]);
+  });
+
+  const csv = "\uFEFF" + rows.map(r =>
+    r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(";")
+  ).join("\r\n");
+
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "internet-cikis-ip-gecmisi.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function clearHistory(){
+  if(confirm("Tüm IP geçmişi silinsin mi?")){
+    localStorage.removeItem(KEY);
+    render();
+  }
+}
+
+render();
+detectIp();
+</script>
+</body>
+</html>
