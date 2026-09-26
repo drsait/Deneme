@@ -27,7 +27,7 @@
     .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     .card{background:#1e1e1e;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;position:relative}
     .card img{width:100%;height:140px;object-fit:cover;cursor:pointer;background:#2a2a2a}
-    .card-info{padding:8px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#bbb;gap:4px}
+    .card-info{padding:8px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#bbb;gap:4px}.src{color:#7fc7ff;font-size:10px}
     .card-check{position:absolute;top:8px;left:8px;width:22px;height:22px;cursor:pointer;z-index:2;accent-color:#0078d4}
     #loader{text-align:center;padding:20px;color:#888;font-size:14px}
     #modal{display:none;position:fixed;inset:0;background:#000;z-index:100;justify-content:center;align-items:center;user-select:none;overflow:hidden}
@@ -58,7 +58,7 @@
 </head>
 <body>
   <div class="header">
-    <h2>Duvar Kağıtları</h2>
+    <h2>Duvar Kağıtları</h2><div style="font-size:12px;color:#888">Kaynaklar: Openverse • Wikimedia Commons • Flickr</div>
     <div class="controls">
       <div class="dd-cont">
         <button class="dd-btn" id="cat-btn" onclick="document.getElementById('dd-menu').classList.toggle('show')">
@@ -87,29 +87,64 @@
 
   <div class="gallery" id="gallery"></div>
   <div id="loader">Yükleniyor...</div>
+  <div id="scroll-sentinel" style="height:1px"></div>
 
   <div id="modal">
     <div class="top-bar ui-hide" id="top-bar">
+      <button class="act-btn" id="play-btn" onclick="toggleSlide(event)" title="Slaytı Oynat / Durdur">⏸</button>
       <button class="act-btn" onclick="toggleFs()" title="Tam Ekran Aç/Kapat">⛶</button>
       <button class="act-btn" onclick="closeModal()" title="Slaytı Kapat">✕</button>
     </div>
-    <button class="nav-btn prev-btn ui-hide" onclick="changeImg(-1,event)" title="Önceki Foto">‹</button>
+    <button class="nav-btn prev-btn ui-hide" onclick="changeImg(-1,event,true)" title="Önceki Foto">‹</button>
     <img id="img1" class="modal-img active" alt="">
     <img id="img2" class="modal-img" alt="">
-    <button class="nav-btn next-btn ui-hide" onclick="changeImg(1,event)" title="Sonraki Foto">›</button>
+    <button class="nav-btn next-btn ui-hide" onclick="changeImg(1,event,true)" title="Sonraki Foto">›</button>
   </div>
 
   <script>
     const CATS = [
-      {id:"space",l:"Uzay"},{id:"nature",l:"Doğa"},{id:"mountain",l:"Dağlar"},{id:"sea",l:"Deniz"},
-      {id:"forest",l:"Orman"},{id:"city",l:"Şehir"},{id:"architecture",l:"Mimari"},{id:"sunset",l:"Gün Batımı"},
-      {id:"desert",l:"Çöl"},{id:"aurora",l:"Aurora"},{id:"animals",l:"Hayvanlar"},{id:"underwater",l:"Sualtı"},
-      {id:"night",l:"Gece"},{id:"minimal",l:"Minimal"},{id:"abstract",l:"Soyut"},{id:"macro",l:"Makro"},
-      {id:"winter",l:"Kış"},{id:"autumn",l:"Sonbahar"},{id:"waterfall",l:"Şelale"},{id:"clouds",l:"Bulut"},
-      {id:"roads",l:"Yol"},{id:"aerial",l:"Drone"}
+      {id:"space",l:"Uzay",q:"space galaxy stars"},{id:"nature",l:"Doğa",q:"nature landscape"},{id:"mountain",l:"Dağlar",q:"mountain landscape"},
+      {id:"sea",l:"Deniz",q:"sea ocean coast"},{id:"forest",l:"Orman",q:"forest trees"},{id:"city",l:"Şehir",q:"city skyline"},
+      {id:"architecture",l:"Mimari",q:"architecture building"},{id:"sunset",l:"Gün Batımı",q:"sunset landscape"},{id:"desert",l:"Çöl",q:"desert dunes"},
+      {id:"aurora",l:"Aurora",q:"aurora borealis"},{id:"animals",l:"Hayvanlar",q:"wildlife animals"},{id:"underwater",l:"Sualtı",q:"underwater ocean"},
+      {id:"night",l:"Gece",q:"night landscape"},{id:"minimal",l:"Minimal",q:"minimalist landscape"},{id:"abstract",l:"Soyut",q:"abstract background"},
+      {id:"macro",l:"Makro",q:"macro photography"},{id:"winter",l:"Kış",q:"winter snow landscape"},{id:"autumn",l:"Sonbahar",q:"autumn fall landscape"},
+      {id:"waterfall",l:"Şelale",q:"waterfall nature"},{id:"clouds",l:"Bulut",q:"clouds sky"},{id:"roads",l:"Yol",q:"road landscape"},
+      {id:"aerial",l:"Drone",q:"aerial landscape drone"}
     ];
 
-    let photos = [], selSet = new Set(), selCats = new Set(['all']), curr = 0, page = 1, loading = false, timer = null, slideActive = false, hideTO = null, tX = 0, tT = 0, activeImgBox = 1;
+    let photos = [], selSet = new Set(), selCats = new Set(['all']), curr = 0, page = 1, loading = false, timer = null, slideActive = false, hideTO = null, tX = 0, tT = 0, activeImgBox = 1, fillBusy = false;
+    let sourceTurn = 0;
+    const seenPhotoKeys = new Set(JSON.parse(sessionStorage.getItem('wallpaperSeenKeys') || '[]'));
+    const seenUrls = new Set(JSON.parse(sessionStorage.getItem('wallpaperSeenUrls') || '[]'));
+
+    function rememberPhoto(key, url) {
+      seenPhotoKeys.add(key);
+      seenUrls.add(url);
+      // Bellek şişmesin diye son 5000 benzersiz kayıt tutulur.
+      const keys = Array.from(seenPhotoKeys).slice(-5000);
+      const urls = Array.from(seenUrls).slice(-5000);
+      sessionStorage.setItem('wallpaperSeenKeys', JSON.stringify(keys));
+      sessionStorage.setItem('wallpaperSeenUrls', JSON.stringify(urls));
+    }
+
+    function getSelectedQueries() {
+      const selected = selCats.has('all') ? CATS : CATS.filter(c => selCats.has(c.id));
+      return selected.map(c => c.q);
+    }
+
+    function pickQuery() {
+      const qs = getSelectedQueries();
+      return qs[Math.floor(Math.random() * qs.length)] || 'nature landscape';
+    }
+
+    function cleanUrl(u) {
+      try {
+        const x = new URL(u);
+        x.hash = '';
+        return x.toString();
+      } catch { return u; }
+    }
     const $ = id => document.getElementById(id);
 
     CATS.forEach(c => $('cat-items').innerHTML += `<label class="dd-item"><input type="checkbox" value="${c.id}" onchange="handleCat(this)"> ${c.l}</label>`);
@@ -129,26 +164,142 @@
       refreshGrid();
     }
 
-    function refreshGrid() { page = 1; photos = []; selSet.clear(); updateUI(); $('gallery').innerHTML = ''; loadPhotos(); }
+    async function refreshGrid() {
+      page = 1;
+      photos = [];
+      selSet.clear();
+      updateUI();
+      $('gallery').innerHTML = '';
+      await loadPhotos();
+      ensureViewportFilled();
+    }
 
     async function loadPhotos(autoSlide = false) {
-      if(loading) return; loading = true; $('loader').style.display = 'block';
+      if(loading) return false;
+      loading = true;
+      $('loader').style.display = 'block';
+
       const [w, h] = $('res-sel').value.split('x');
-      const cArr = selCats.has('all') ? CATS.map(c => c.id) : Array.from(selCats);
-      
-      for(let i=0; i<20; i++) {
-        const seed = `${cArr[Math.floor(Math.random()*cArr.length)]}_${Date.now()}_${i}`;
-        photos.push({url:`https://picsum.photos/seed/${seed}/${w}/${h}`, id:`wp_${seed}.jpg`, w, h});
+      const wanted = 20;
+      const fresh = [];
+
+      async function fromOpenverse(count) {
+        const q = pickQuery();
+        const p = Math.max(1, page + Math.floor(Math.random() * 5));
+        const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=${Math.min(50, count * 3)}&page=${p}`;
+        const r = await fetch(url, {cache:'no-store'});
+        if(!r.ok) throw new Error('Openverse HTTP '+r.status);
+        const j = await r.json();
+        for(const x of (j.results || [])) {
+          if(fresh.length >= wanted) break;
+          const img = x.url || x.thumbnail;
+          if(!img) continue;
+          const key = `openverse:${x.id || img}`;
+          const finalUrl = cleanUrl(img);
+          if(seenPhotoKeys.has(key) || seenUrls.has(finalUrl)) continue;
+          rememberPhoto(key, finalUrl);
+          fresh.push({
+            url: finalUrl,
+            id: `openverse_${String(x.id || Date.now()).replace(/[^a-zA-Z0-9_-]/g,'_')}.jpg`,
+            w, h,
+            source: 'Openverse',
+            key
+          });
+        }
       }
 
-      photos.slice(-20).forEach((f, idx) => {
-        const i = photos.length - 20 + idx;
+      async function fromCommons(count) {
+        const q = pickQuery();
+        const offset = (page - 1) * Math.max(10, count);
+        const params = new URLSearchParams({
+          action:'query', format:'json', origin:'*',
+          generator:'search', gsrsearch:`${q} filetype:bitmap`,
+          gsrnamespace:'6', gsrlimit:String(Math.min(50, count * 3)),
+          gsroffset:String(offset),
+          prop:'imageinfo', iiprop:'url|size|mime',
+          iiurlwidth:String(Math.min(Number(w), 1920))
+        });
+        const r = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`, {cache:'no-store'});
+        if(!r.ok) throw new Error('Commons HTTP '+r.status);
+        const j = await r.json();
+        const pages = Object.values(j.query?.pages || {});
+        for(const x of pages) {
+          if(fresh.length >= wanted) break;
+          const ii = x.imageinfo?.[0];
+          if(!ii) continue;
+          if(ii.mime && !String(ii.mime).startsWith('image/')) continue;
+          const img = ii.thumburl || ii.url;
+          if(!img) continue;
+          const key = `commons:${x.pageid || x.title}`;
+          const finalUrl = cleanUrl(img);
+          if(seenPhotoKeys.has(key) || seenUrls.has(finalUrl)) continue;
+          rememberPhoto(key, finalUrl);
+          fresh.push({
+            url: finalUrl,
+            id: `commons_${String(x.pageid || Date.now())}.jpg`,
+            w, h,
+            source: 'Wikimedia',
+            key
+          });
+        }
+      }
+
+      function fromLoremFlickr(count) {
+        const q = pickQuery().split(/\s+/).slice(0,3).join(',');
+        let attempts = 0;
+        while(fresh.length < wanted && attempts < count * 5) {
+          const lock = Math.floor(Math.random() * 2000000000) + 1;
+          const key = `loremflickr:${q}:${lock}`;
+          const img = `https://loremflickr.com/${w}/${h}/${encodeURIComponent(q)}?lock=${lock}`;
+          attempts++;
+          if(seenPhotoKeys.has(key) || seenUrls.has(img)) continue;
+          rememberPhoto(key, img);
+          fresh.push({
+            url: img,
+            id: `flickr_${lock}.jpg`,
+            w, h,
+            source: 'Flickr',
+            key
+          });
+          if(fresh.length >= wanted) break;
+        }
+      }
+
+      // Kaynakları her yüklemede sırayla değiştir; biri hata verirse diğerine geç.
+      const sources = [
+        async () => fromOpenverse(wanted),
+        async () => fromCommons(wanted),
+        async () => fromLoremFlickr(wanted)
+      ];
+
+      let tries = 0;
+      while(fresh.length < wanted && tries < 3) {
+        const idx = (sourceTurn + tries) % sources.length;
+        try { await sources[idx](); } catch(e) { console.warn('Fotoğraf kaynağı hatası:', e); }
+        tries++;
+      }
+      sourceTurn = (sourceTurn + 1) % sources.length;
+
+      // Son çare olarak LoremFlickr ile eksik kısmı tamamla.
+      if(fresh.length < wanted) fromLoremFlickr(wanted - fresh.length);
+
+      const startIndex = photos.length;
+      photos.push(...fresh.slice(0, wanted));
+
+      fresh.slice(0, wanted).forEach((f, idx) => {
+        const i = startIndex + idx;
         const div = document.createElement('div');
         div.className = 'card';
-        div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)"><img src="${f.url}" loading="lazy" onclick="openModal(${i})"><div class="card-info"><div><strong>${f.w}x${f.h}</strong><br><span id="sz-${i}" style="color:#888">...</span></div><button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url}','${f.id}')">İndir</button></div>`;
+        div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)">
+          <img src="${f.url}" loading="lazy" referrerpolicy="no-referrer" onclick="openModal(${i})">
+          <div class="card-info">
+            <div><strong>${f.w}x${f.h}</strong><br><span class="src">${f.source}</span><br><span id="sz-${i}" style="color:#888">...</span></div>
+            <button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url.replace(/'/g,"%27")}','${f.id}')">İndir</button>
+          </div>`;
         $('gallery').appendChild(div);
-        // Dosya boyutunu güvenilir şekilde göster
-        fetch(f.url, {cache:'no-store'}).then(async r => {
+
+        // Boyut bilgisi mümkünse alınır; CORS izin vermeyen kaynaklarda sessizce atlanır.
+        fetch(f.url, {cache:'no-store', mode:'cors'}).then(async r => {
           if(!r.ok) throw new Error('HTTP '+r.status);
           const b = await r.blob();
           const el = $(`sz-${i}`);
@@ -158,28 +309,19 @@
               ? (bytes/1048576).toFixed(2) + ' MB'
               : (bytes/1024).toFixed(0) + ' KB';
           }
-        }).catch(async () => {
-          try {
-            const r = await fetch(f.url, {method:'HEAD', cache:'no-store'});
-            const len = r.headers.get('content-length');
-            const el = $(`sz-${i}`);
-            if(el && len) {
-              const bytes = Number(len);
-              el.textContent = bytes >= 1048576
-                ? (bytes/1048576).toFixed(2) + ' MB'
-                : (bytes/1024).toFixed(0) + ' KB';
-            } else if(el) {
-              el.textContent = 'Boyut alınamadı';
-            }
-          } catch {
-            const el = $(`sz-${i}`);
-            if(el) el.textContent = 'Boyut alınamadı';
-          }
+        }).catch(() => {
+          const el = $(`sz-${i}`);
+          if(el) el.textContent = '';
         });
       });
 
-      page++; loading = false; $('loader').style.display = 'none'; updateUI();
+      page++;
+      loading = false;
+      $('loader').style.display = 'none';
+      updateUI();
+
       if(autoSlide) startSlide();
+      return photos.length > startIndex;
     }
 
     function toggleCard(i, state) {
@@ -215,16 +357,51 @@
       $('bulk-btn').disabled = false; updateUI();
     }
 
+    function updatePlayBtn() {
+      const btn = $('play-btn');
+      if(!btn) return;
+      btn.textContent = slideActive ? '⏸' : '▶';
+      btn.title = slideActive ? 'Slaytı Durdur' : 'Slaytı Oynat';
+    }
+
+    function getCurrentVisibleImg() {
+      return $('img1').classList.contains('active') ? $('img1') : $('img2');
+    }
+
+    function pauseToFullView() {
+      slideActive = false;
+      stopTimer();
+      const currentImg = getCurrentVisibleImg();
+      currentImg.className = 'modal-img active paused';
+      currentImg.style.animation = 'none';
+      currentImg.style.objectFit = 'contain';
+      currentImg.style.transform = 'scale(1)';
+      currentImg.style.filter = 'blur(0) contrast(100%)';
+      showUI();
+      updatePlayBtn();
+    }
+
     function openModal(i) {
       if(!photos.length) return;
-      curr = i; slideActive = true; stopTimer();
-      updateModal(); $('modal').style.display = 'flex'; resetTimer(); hideUI();
+      curr = i;
+      slideActive = true;
+      stopTimer();
+      $('modal').style.display = 'flex';
+      updatePlayBtn();
+      updateModal(false);
+      resetTimer();
+      hideUI();
     }
 
     function closeModal() {
       stopTimer();
+      slideActive = false;
+      updatePlayBtn();
       if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-      document.body.classList.remove('fs'); $('modal').style.display = 'none'; showUI();
+      document.body.classList.remove('fs');
+      $('modal').style.display = 'none';
+      showUI();
+      setTimeout(ensureViewportFilled, 0);
     }
 
     function toggleFs() {
@@ -232,14 +409,24 @@
       else document.exitFullscreen();
     }
 
-    function updateModal() {
+    function updateModal(manual = false) {
       const activeImg = activeImgBox === 1 ? $('img1') : $('img2');
       const nextImg = activeImgBox === 1 ? $('img2') : $('img1');
 
       nextImg.className = 'modal-img';
+      nextImg.style.animation = 'none';
+      nextImg.style.objectFit = manual ? 'contain' : 'cover';
+      nextImg.style.transform = 'scale(1)';
+      nextImg.style.transition = manual ? 'none' : '';
+      activeImg.style.transition = manual ? 'none' : '';
       nextImg.src = photos[curr].url;
 
-      if(slideActive) {
+      if(manual || !slideActive) {
+        nextImg.classList.add('paused');
+        nextImg.style.objectFit = 'contain';
+        nextImg.style.transform = 'scale(1)';
+        nextImg.style.filter = 'blur(0) contrast(100%)';
+      } else {
         const effects = [
           () => `0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.08) translate(-1%,-1%)}`,
           () => `0%{transform:scale(1.08) translate(0,0)}100%{transform:scale(1) translate(1%,1%)}`,
@@ -248,36 +435,54 @@
         ];
         $('kb-style').textContent = `@keyframes rm{${effects[Math.floor(Math.random()*effects.length)]()}}`;
         nextImg.style.animationDuration = '10s';
+        nextImg.style.objectFit = 'cover';
         void nextImg.offsetWidth;
         nextImg.classList.add('kb');
-      } else {
-        nextImg.classList.add('paused');
       }
 
       activeImg.classList.remove('active');
       nextImg.classList.add('active');
       activeImgBox = activeImgBox === 1 ? 2 : 1;
 
+      if(manual) {
+        requestAnimationFrame(() => {
+          nextImg.style.transition = '';
+          activeImg.style.transition = '';
+        });
+      }
+
       if(curr >= photos.length - 3) loadPhotos();
     }
 
-    function changeImg(dir, e) {
+    function changeImg(dir, e, manual = false) {
       if(e) e.stopPropagation();
+      if(!photos.length) return;
+
+      if(manual) {
+        slideActive = false;
+        stopTimer();
+        showUI();
+        updatePlayBtn();
+      }
+
       curr = (curr + dir + photos.length) % photos.length;
-      updateModal(); if(slideActive) resetTimer();
+      updateModal(manual);
+
+      if(slideActive && !manual) resetTimer();
     }
 
-    function toggleSlide() {
+    function toggleSlide(e = null) {
+      if(e) e.stopPropagation();
+
       slideActive = !slideActive;
-      const currentActiveImg = activeImgBox === 1 ? $('img1') : $('img2');
-      if(slideActive) { 
-        updateModal(); 
-        resetTimer(); 
-        hideUI(); 
-      } else { 
-        stopTimer(); 
-        currentActiveImg.className = 'modal-img active paused'; 
-        showUI(); 
+      updatePlayBtn();
+
+      if(slideActive) {
+        updateModal(false);
+        resetTimer();
+        hideUI();
+      } else {
+        pauseToFullView();
       }
     }
 
@@ -286,10 +491,11 @@
       document.documentElement.requestFullscreen?.().catch(()=>{});
       document.body.classList.add('fs');
       openModal(0);
+      updatePlayBtn();
     }
 
     function stopTimer() { if(timer) clearInterval(timer); }
-    function resetTimer() { stopTimer(); if(slideActive) timer = setInterval(() => changeImg(1), 10000); }
+    function resetTimer() { stopTimer(); if(slideActive) timer = setInterval(() => changeImg(1, null, false), 10000); }
 
     function showUI() { 
       $('top-bar').classList.remove('ui-hide'); 
@@ -311,25 +517,62 @@
     $('modal').ontouchstart = e => { tX = e.changedTouches[0].screenX; tT = Date.now(); resetHideTO(); };
     $('modal').ontouchend = e => {
       const dX = e.changedTouches[0].screenX - tX;
-      if(Math.abs(dX) > 50) changeImg(dX < 0 ? 1 : -1);
-      else if(Math.abs(dX) < 10 && Date.now() - tT < 300) toggleSlide();
+      if(Math.abs(dX) > 50) changeImg(dX < 0 ? 1 : -1, null, true);
+      else if(Math.abs(dX) < 10 && Date.now() - tT < 300) pauseToFullView();
       resetHideTO();
     };
-    $('modal').onclick = e => { if(e.target === $('modal') || e.target.classList.contains('modal-img')) toggleSlide(); resetHideTO(); };
+    $('modal').onclick = e => { if(e.target === $('modal') || e.target.classList.contains('modal-img')) pauseToFullView(); resetHideTO(); };
 
     window.onkeydown = e => {
       if($('modal').style.display === 'flex') {
         resetHideTO();
-        if(e.key === 'ArrowRight') changeImg(1);
-        if(e.key === 'ArrowLeft') changeImg(-1);
+
+        if(e.key === 'ArrowRight') {
+          e.preventDefault();
+          changeImg(1, null, true);
+        }
+
+        if(e.key === 'ArrowLeft') {
+          e.preventDefault();
+          changeImg(-1, null, true);
+        }
+
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleSlide();
+        }
+
         if(e.key === 'Escape') closeModal();
-        if(e.key === ' ') { e.preventDefault(); toggleSlide(); }
       }
     };
 
-    window.onscroll = () => { if(window.innerHeight + window.scrollY >= document.body.offsetHeight - 300) loadPhotos(); };
+    async function ensureViewportFilled() {
+      if(fillBusy || loading || $('modal').style.display === 'flex') return;
+      fillBusy = true;
+      try {
+        let guard = 0;
+        while(document.body.scrollHeight <= window.innerHeight + 300 && guard < 10) {
+          const added = await loadPhotos();
+          if(!added) break;
+          guard++;
+          await new Promise(r => requestAnimationFrame(r));
+        }
+      } finally {
+        fillBusy = false;
+      }
+    }
 
-    loadPhotos(true);
+    const photoObserver = new IntersectionObserver(entries => {
+      if(entries.some(e => e.isIntersecting) && $('modal').style.display !== 'flex') {
+        loadPhotos().then(ensureViewportFilled);
+      }
+    }, { root: null, rootMargin: '700px 0px 700px 0px', threshold: 0.01 });
+
+    photoObserver.observe($('scroll-sentinel'));
+
+    window.addEventListener('resize', ensureViewportFilled);
+
+    loadPhotos(true).then(ensureViewportFilled);
   </script>
 </body>
 </html>
