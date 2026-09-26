@@ -27,6 +27,7 @@
     .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
     .card{background:#1e1e1e;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;position:relative}
     .card img{width:100%;height:140px;object-fit:cover;cursor:pointer;background:#2a2a2a}
+    .card.img-error{display:none}
     .card-info{padding:8px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#bbb;gap:4px}.src{color:#7fc7ff;font-size:10px}
     .card-check{position:absolute;top:8px;left:8px;width:22px;height:22px;cursor:pointer;z-index:2;accent-color:#0078d4}
     #loader{text-align:center;padding:20px;color:#888;font-size:14px}
@@ -58,7 +59,7 @@
 </head>
 <body>
   <div class="header">
-    <h2>Duvar Kağıtları</h2><div style="font-size:12px;color:#888">Kaynaklar: Openverse • Wikimedia Commons • Flickr</div>
+    <h2>Duvar Kağıtları</h2><div style="font-size:12px;color:#888">Kaynaklar: Openverse • Wikimedia Commons • Flickr • Wallhaven</div>
     <div class="controls">
       <div class="dd-cont">
         <button class="dd-btn" id="cat-btn" onclick="document.getElementById('dd-menu').classList.toggle('show')">
@@ -73,6 +74,19 @@
           <div id="cat-items"></div>
         </div>
       </div>
+      <div class="dd-cont">
+        <button class="dd-btn" id="src-btn" onclick="document.getElementById('src-menu').classList.toggle('show')">
+          <span>Kaynaklar (Tümü)</span> ▾
+        </button>
+        <div class="dd-menu" id="src-menu">
+          <label class="dd-item">
+            <input type="checkbox" id="src-all" value="all" checked onchange="handleSource(this)">
+            <strong>Tüm Kaynaklar</strong>
+          </label>
+          <hr style="border:0;border-top:1px solid #333;margin:4px 0">
+          <div id="src-items"></div>
+        </div>
+      </div>
       <select id="res-sel" onchange="refreshGrid()">
         <option value="1920x1080">FHD (1920x1080)</option>
         <option value="2560x1440">2K (2560x1440)</option>
@@ -80,6 +94,7 @@
       </select>
       <button class="btn btn-sl" onclick="startSlide()">▶ Slayt</button>
       <button class="btn" id="sel-all-btn" onclick="toggleAll()">Tümünü Seç</button>
+      <button class="btn" onclick="shufflePhotos()">🔀 Fotoğrafları Karıştır</button>
       <button class="btn" onclick="refreshGrid()">Yenile</button>
       <button class="btn btn-dl" id="bulk-btn" onclick="bulkDl()">İndir (0)</button>
     </div>
@@ -113,7 +128,14 @@
       {id:"aerial",l:"Drone",q:"aerial landscape drone"}
     ];
 
-    let photos = [], selSet = new Set(), selCats = new Set(['all']), curr = 0, page = 1, loading = false, timer = null, slideActive = false, hideTO = null, tX = 0, tT = 0, activeImgBox = 1, fillBusy = false;
+    const SOURCES = [
+      {id:"openverse", l:"Openverse"},
+      {id:"wikimedia", l:"Wikimedia"},
+      {id:"flickr", l:"Flickr"},
+      {id:"wallhaven", l:"Wallhaven"}
+    ];
+
+    let photos = [], selSet = new Set(), selCats = new Set(['all']), selSources = new Set(['all']), curr = 0, page = 1, loading = false, timer = null, slideActive = false, hideTO = null, tX = 0, tT = 0, activeImgBox = 1, fillBusy = false;
     let sourceTurn = 0;
     const seenPhotoKeys = new Set(JSON.parse(sessionStorage.getItem('wallpaperSeenKeys') || '[]'));
     const seenUrls = new Set(JSON.parse(sessionStorage.getItem('wallpaperSeenUrls') || '[]'));
@@ -145,10 +167,20 @@
         return x.toString();
       } catch { return u; }
     }
+
+    function hashCode(str) {
+      let h = 0;
+      for(let i=0; i<str.length; i++) h = (((h << 5) - h) + str.charCodeAt(i)) | 0;
+      return h;
+    }
     const $ = id => document.getElementById(id);
 
     CATS.forEach(c => $('cat-items').innerHTML += `<label class="dd-item"><input type="checkbox" value="${c.id}" onchange="handleCat(this)"> ${c.l}</label>`);
-    window.onclick = e => { if(!$('cat-btn').contains(e.target) && !$('dd-menu').contains(e.target)) $('dd-menu').classList.remove('show'); };
+    SOURCES.forEach(s => $('src-items').innerHTML += `<label class="dd-item"><input type="checkbox" value="${s.id}" onchange="handleSource(this)"> ${s.l}</label>`);
+    window.onclick = e => {
+      if(!$('cat-btn').contains(e.target) && !$('dd-menu').contains(e.target)) $('dd-menu').classList.remove('show');
+      if(!$('src-btn').contains(e.target) && !$('src-menu').contains(e.target)) $('src-menu').classList.remove('show');
+    };
 
     function handleCat(el) {
       const all = $('cat-all'), inputs = document.querySelectorAll('#cat-items input');
@@ -164,6 +196,25 @@
       refreshGrid();
     }
 
+    function handleSource(el) {
+      const all = $('src-all'), inputs = document.querySelectorAll('#src-items input');
+      if(el.value === 'all') {
+        if(el.checked) { inputs.forEach(i => i.checked = false); selSources.clear(); selSources.add('all'); }
+        else el.checked = true;
+      } else {
+        all.checked = false; selSources.delete('all');
+        if(el.checked) selSources.add(el.value); else selSources.delete(el.value);
+        if(!selSources.size) { all.checked = true; selSources.add('all'); }
+      }
+      $('src-btn').firstElementChild.textContent = selSources.has('all') ? 'Kaynaklar (Tümü)' : `Kaynaklar (${selSources.size})`;
+      refreshGrid();
+    }
+
+    function getSelectedSourceIds() {
+      return selSources.has('all') ? SOURCES.map(s => s.id) : Array.from(selSources);
+    }
+
+
     async function refreshGrid() {
       page = 1;
       photos = [];
@@ -172,6 +223,107 @@
       $('gallery').innerHTML = '';
       await loadPhotos();
       ensureViewportFilled();
+    }
+
+
+    function imageLoads(url, timeout = 8000) {
+      return new Promise(resolve => {
+        const img = new Image();
+        let done = false;
+        const finish = ok => {
+          if(done) return;
+          done = true;
+          clearTimeout(to);
+          resolve(ok);
+        };
+        const to = setTimeout(() => finish(false), timeout);
+        img.onload = () => finish(true);
+        img.onerror = () => finish(false);
+        img.referrerPolicy = 'no-referrer';
+        img.src = url;
+      });
+    }
+
+    function flickrFeed(tags) {
+      return new Promise((resolve, reject) => {
+        const cb = '__flickr_cb_' + Date.now() + '_' + Math.floor(Math.random()*100000);
+        const s = document.createElement('script');
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error('Flickr zaman aşımı'));
+        }, 12000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          try { delete window[cb]; } catch {}
+          s.remove();
+        }
+
+        window[cb] = data => {
+          cleanup();
+          resolve(data);
+        };
+
+        s.onerror = () => {
+          cleanup();
+          reject(new Error('Flickr feed yüklenemedi'));
+        };
+
+        s.src = 'https://www.flickr.com/services/feeds/photos_public.gne'
+          + '?format=json'
+          + '&jsoncallback=' + encodeURIComponent(cb)
+          + '&tagmode=all'
+          + '&tags=' + encodeURIComponent(tags);
+        document.head.appendChild(s);
+      });
+    }
+
+    function renderCard(f, i) {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.dataset.photoIndex = String(i);
+      div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)">
+        <img src="${f.url}" loading="lazy" referrerpolicy="no-referrer"
+             onerror="this.closest('.card').classList.add('img-error')"
+             onclick="openModal(${i})">
+        <div class="card-info">
+          <div><strong>${f.w}x${f.h}</strong><br><span class="src">${f.source}</span><br><span id="sz-${i}" style="color:#888">...</span></div>
+          <button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url.replace(/'/g,"%27")}','${f.id}')">İndir</button>
+        </div>`;
+      $('gallery').appendChild(div);
+
+      fetch(f.url, {cache:'no-store', mode:'cors'}).then(async r => {
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const b = await r.blob();
+        const el = $(`sz-${i}`);
+        if(el) {
+          const bytes = b.size;
+          el.textContent = bytes >= 1048576
+            ? (bytes/1048576).toFixed(2) + ' MB'
+            : (bytes/1024).toFixed(0) + ' KB';
+        }
+      }).catch(() => {
+        const el = $(`sz-${i}`);
+        if(el) el.textContent = '';
+      });
+    }
+
+    function renderAllPhotos() {
+      $('gallery').innerHTML = '';
+      photos.forEach((f, i) => renderCard(f, i));
+      updateUI();
+    }
+
+    function shufflePhotos() {
+      if(photos.length < 2) return;
+      for(let i = photos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [photos[i], photos[j]] = [photos[j], photos[i]];
+      }
+      selSet.clear();
+      curr = 0;
+      renderAllPhotos();
+      window.scrollTo({top:0, behavior:'smooth'});
     }
 
     async function loadPhotos(autoSlide = false) {
@@ -244,75 +396,120 @@
         }
       }
 
-      function fromLoremFlickr(count) {
-        const q = pickQuery().split(/\s+/).slice(0,3).join(',');
-        let attempts = 0;
-        while(fresh.length < wanted && attempts < count * 5) {
-          const lock = Math.floor(Math.random() * 2000000000) + 1;
-          const key = `loremflickr:${q}:${lock}`;
-          const img = `https://loremflickr.com/${w}/${h}/${encodeURIComponent(q)}?lock=${lock}`;
-          attempts++;
-          if(seenPhotoKeys.has(key) || seenUrls.has(img)) continue;
-          rememberPhoto(key, img);
+      async function fromFlickr(count) {
+        const q = pickQuery();
+        const tags = q.split(/\s+/).slice(0,3).join(',');
+        const data = await flickrFeed(tags);
+        const items = Array.isArray(data?.items) ? data.items : [];
+
+        for(const x of items) {
+          if(fresh.length >= wanted) break;
+          const m = x?.media?.m;
+          if(!m) continue;
+
+          const candidates = [
+            m.replace(/_m(\.[a-zA-Z0-9]+)(\?.*)?$/, '_b$1$2'),
+            m.replace(/_m(\.[a-zA-Z0-9]+)(\?.*)?$/, '_z$1$2'),
+            m
+          ];
+
+          let finalUrl = null;
+          for(const u of candidates) {
+            if(await imageLoads(u, 6000)) {
+              finalUrl = cleanUrl(u);
+              break;
+            }
+          }
+          if(!finalUrl) continue;
+
+          const key = `flickr:${x.link || m}`;
+          if(seenPhotoKeys.has(key) || seenUrls.has(finalUrl)) continue;
+
+          rememberPhoto(key, finalUrl);
           fresh.push({
-            url: img,
-            id: `flickr_${lock}.jpg`,
+            url: finalUrl,
+            id: `flickr_${Math.abs(hashCode(x.link || finalUrl))}.jpg`,
             w, h,
             source: 'Flickr',
             key
           });
-          if(fresh.length >= wanted) break;
         }
       }
 
-      // Kaynakları her yüklemede sırayla değiştir; biri hata verirse diğerine geç.
-      const sources = [
-        async () => fromOpenverse(wanted),
-        async () => fromCommons(wanted),
-        async () => fromLoremFlickr(wanted)
-      ];
+      async function fromWallhaven(count) {
+        const q = pickQuery();
+        const p = Math.max(1, page + Math.floor(Math.random() * 3));
+        const params = new URLSearchParams({
+          q,
+          page: String(p),
+          sorting: 'random',
+          purity: '100',
+          categories: '111',
+          atleast: `${w}x${h}`
+        });
+        const r = await fetch(`https://wallhaven.cc/api/v1/search?${params}`, {cache:'no-store'});
+        if(!r.ok) throw new Error('Wallhaven HTTP ' + r.status);
+        const j = await r.json();
+
+        for(const x of (j.data || [])) {
+          if(fresh.length >= wanted) break;
+          const candidates = [x.path, x.thumbs?.large, x.thumbs?.small].filter(Boolean);
+
+          let finalUrl = null;
+          for(const u of candidates) {
+            if(await imageLoads(u, 5000)) {
+              finalUrl = cleanUrl(u);
+              break;
+            }
+          }
+          if(!finalUrl) continue;
+
+          const key = `wallhaven:${x.id || finalUrl}`;
+          if(seenPhotoKeys.has(key) || seenUrls.has(finalUrl)) continue;
+
+          rememberPhoto(key, finalUrl);
+          fresh.push({
+            url: finalUrl,
+            id: `wallhaven_${String(x.id || Date.now())}.jpg`,
+            w, h,
+            source: 'Wallhaven',
+            key
+          });
+        }
+      }
+
+      // Seçili kaynaklara göre dolaş.
+      const sourceMap = {
+        openverse: async () => fromOpenverse(wanted),
+        wikimedia: async () => fromCommons(wanted),
+        flickr: async () => fromFlickr(wanted),
+        wallhaven: async () => fromWallhaven(wanted)
+      };
+      const selectedSourceIds = getSelectedSourceIds();
+      const sources = selectedSourceIds.map(id => sourceMap[id]).filter(Boolean);
 
       let tries = 0;
-      while(fresh.length < wanted && tries < 3) {
+      const maxTries = Math.max(1, sources.length * 2);
+      while(fresh.length < wanted && tries < maxTries) {
         const idx = (sourceTurn + tries) % sources.length;
         try { await sources[idx](); } catch(e) { console.warn('Fotoğraf kaynağı hatası:', e); }
         tries++;
       }
-      sourceTurn = (sourceTurn + 1) % sources.length;
+      sourceTurn = sources.length ? (sourceTurn + 1) % sources.length : 0;
 
-      // Son çare olarak LoremFlickr ile eksik kısmı tamamla.
-      if(fresh.length < wanted) fromLoremFlickr(wanted - fresh.length);
+      // Eksik kalırsa seçili kaynakları bir tur daha dene.
+      let extra = 0;
+      while(fresh.length < wanted && extra < sources.length) {
+        try { await sources[extra](); } catch(e) { console.warn('Ek kaynak denemesi:', e); }
+        extra++;
+      }
 
       const startIndex = photos.length;
       photos.push(...fresh.slice(0, wanted));
 
       fresh.slice(0, wanted).forEach((f, idx) => {
         const i = startIndex + idx;
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `<input type="checkbox" class="card-check" id="chk-${i}" onchange="toggleCard(${i},this.checked)">
-          <img src="${f.url}" loading="lazy" referrerpolicy="no-referrer" onclick="openModal(${i})">
-          <div class="card-info">
-            <div><strong>${f.w}x${f.h}</strong><br><span class="src">${f.source}</span><br><span id="sz-${i}" style="color:#888">...</span></div>
-            <button class="btn btn-dl" style="padding:4px 8px;font-size:11px" onclick="dlSingle('${f.url.replace(/'/g,"%27")}','${f.id}')">İndir</button>
-          </div>`;
-        $('gallery').appendChild(div);
-
-        // Boyut bilgisi mümkünse alınır; CORS izin vermeyen kaynaklarda sessizce atlanır.
-        fetch(f.url, {cache:'no-store', mode:'cors'}).then(async r => {
-          if(!r.ok) throw new Error('HTTP '+r.status);
-          const b = await r.blob();
-          const el = $(`sz-${i}`);
-          if(el) {
-            const bytes = b.size;
-            el.textContent = bytes >= 1048576
-              ? (bytes/1048576).toFixed(2) + ' MB'
-              : (bytes/1024).toFixed(0) + ' KB';
-          }
-        }).catch(() => {
-          const el = $(`sz-${i}`);
-          if(el) el.textContent = '';
-        });
+        renderCard(f, i);
       });
 
       page++;
@@ -368,17 +565,45 @@
       return $('img1').classList.contains('active') ? $('img1') : $('img2');
     }
 
+    function normalizeManualImg(img) {
+      img.className = 'modal-img paused';
+      img.style.animation = 'none';
+      img.style.transition = 'none';
+      img.style.objectFit = 'contain';
+      img.style.transform = 'scale(1)';
+      img.style.filter = 'blur(0) contrast(100%)';
+    }
+
+    function showImageInstant(index) {
+      const currentImg = getCurrentVisibleImg();
+      const nextImg = currentImg === $('img1') ? $('img2') : $('img1');
+
+      nextImg.src = photos[index].url;
+      normalizeManualImg(currentImg);
+      normalizeManualImg(nextImg);
+
+      currentImg.classList.remove('active');
+      nextImg.classList.add('active');
+
+      activeImgBox = nextImg.id === 'img1' ? 1 : 2;
+
+      requestAnimationFrame(() => {
+        currentImg.style.transition = '';
+        nextImg.style.transition = '';
+      });
+    }
+
     function pauseToFullView() {
       slideActive = false;
       stopTimer();
       const currentImg = getCurrentVisibleImg();
-      currentImg.className = 'modal-img active paused';
-      currentImg.style.animation = 'none';
-      currentImg.style.objectFit = 'contain';
-      currentImg.style.transform = 'scale(1)';
-      currentImg.style.filter = 'blur(0) contrast(100%)';
+      normalizeManualImg(currentImg);
+      currentImg.classList.add('active');
       showUI();
       updatePlayBtn();
+      requestAnimationFrame(() => {
+        currentImg.style.transition = '';
+      });
     }
 
     function openModal(i) {
@@ -458,17 +683,18 @@
       if(e) e.stopPropagation();
       if(!photos.length) return;
 
+      curr = (curr + dir + photos.length) % photos.length;
+
       if(manual) {
         slideActive = false;
         stopTimer();
         showUI();
         updatePlayBtn();
+        showImageInstant(curr);
+      } else {
+        updateModal(false);
+        resetTimer();
       }
-
-      curr = (curr + dir + photos.length) % photos.length;
-      updateModal(manual);
-
-      if(slideActive && !manual) resetTimer();
     }
 
     function toggleSlide(e = null) {
