@@ -1,13 +1,6 @@
 {
   "version": 1,
   "items": {
-    "index.html": {
-      "historyPath": "index (2).html",
-      "historyHead": "d167dfd47a06fc851641b0657181b13986ab7257",
-      "sha": "c0731338e0e1d1f5b989f395c98af4491d921269",
-      "modifiedAt": "2026-09-30T07:18:22.885Z",
-      "movedAt": "2026-09-30T07:18:22.885Z"
-    },
     "index(3)-duzeltilmis.html": {
       "sha": "f1298d22730182b9891e04565d109d2fbf298093",
       "uploadedAt": "2026-09-30T07:57:22.795Z",
@@ -28,6 +21,13 @@
       "addedAt": "2026-09-30T08:52:06.640Z",
       "originalModified": "2026-09-30T08:51:19.767Z",
       "mime": "text/html"
+    },
+    "index2.html": {
+      "historyPath": "index (2).html",
+      "historyHead": "d167dfd47a06fc851641b0657181b13986ab7257",
+      "sha": "c0731338e0e1d1f5b989f395c98af4491d921269",
+      "modifiedAt": "2026-09-30T08:52:21.242Z",
+      "movedAt": "2026-09-30T08:52:21.242Z"
     }
   },
   "folders": {
