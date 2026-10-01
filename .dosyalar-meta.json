@@ -28,6 +28,14 @@
       "originalModified": "2026-09-30T15:52:50.733Z",
       "mime": "text/html",
       "movedAt": "2026-09-30T15:56:23.926Z"
+    },
+    "ahbs eklenti.rar": {
+      "sha": "c93cd99f697c24b306a434fab201d931360133a6",
+      "uploadedAt": "2026-10-01T21:28:20.176Z",
+      "modifiedAt": "2026-10-01T21:28:20.176Z",
+      "addedAt": "2026-10-01T21:28:20.176Z",
+      "originalModified": "2026-10-01T21:27:31.470Z",
+      "mime": "application/x-compressed"
     }
   },
   "folders": {}
