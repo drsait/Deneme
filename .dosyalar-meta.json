@@ -36,7 +36,69 @@
       "addedAt": "2026-10-01T21:28:20.176Z",
       "originalModified": "2026-10-01T21:27:31.470Z",
       "mime": "application/x-compressed"
+    },
+    "arşiv/InternetHiziMini (1).exe": {
+      "sha": "2efc7e4ab826a075a26b8a38aabf1406b1d1af26",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-30T05:53:09.575Z",
+      "mime": "application/x-msdownload"
+    },
+    "arşiv/InternetHiziMini (2).exe": {
+      "sha": "c9181d516ded749832a437d12e7caa231b7cbed0",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-30T07:05:20.805Z",
+      "mime": "application/x-msdownload"
+    },
+    "arşiv/InternetHiziMini.exe": {
+      "sha": "2efc7e4ab826a075a26b8a38aabf1406b1d1af26",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-27T18:21:40.970Z",
+      "mime": "application/x-msdownload"
+    },
+    "arşiv/InternetSpeedMeter (1).exe": {
+      "sha": "530803330cdf013573909181b8220bf66901411c",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-30T07:12:03.619Z",
+      "mime": "application/x-msdownload"
+    },
+    "arşiv/InternetSpeedMeter.exe": {
+      "sha": "530803330cdf013573909181b8220bf66901411c",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-26T11:12:32.390Z",
+      "mime": "application/x-msdownload"
+    },
+    "arşiv/KameraMiniTarayici.zip": {
+      "sha": "8fca9ae241634e78fe08260d309d01babf9b7cf5",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-30T17:43:48.931Z",
+      "mime": "application/x-zip-compressed"
+    },
+    "arşiv/Topnerede.swf": {
+      "sha": "8437f0be36443859a3444fde2c6a3f82584d3c79",
+      "uploadedAt": "2026-10-02T12:01:45.126Z",
+      "modifiedAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "originalModified": "2026-09-27T21:10:50.509Z",
+      "mime": "application/x-shockwave-flash"
     }
   },
-  "folders": {}
+  "folders": {
+    "arşiv": {
+      "createdAt": "2026-10-02T12:01:45.126Z",
+      "addedAt": "2026-10-02T12:01:45.126Z",
+      "uploadedAt": "2026-10-02T12:01:45.126Z"
+    }
+  }
 }
